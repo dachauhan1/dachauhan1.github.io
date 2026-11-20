@@ -186,7 +186,7 @@ const CONSTRUCTS = [{"id": "A_TEACH", "gu": "વર્ગખંડ અધ્ય�
 const DISTRICTS = [{"id": "D01", "en": "Vav-Tharad", "gu": "વાવ-થરાદ", "n": 1, "l": "VT"}, {"id": "D02", "en": "Ahmedabad", "gu": "અમદાવાદ", "n": 2, "l": "A"}, {"id": "D03", "en": "Bhavnagar", "gu": "ભાવનગર", "n": 3, "l": "B"}, {"id": "D04", "en": "Navsari", "gu": "નવસારી", "n": 4, "l": "N"}];
 const STYPES = [{"n": 1, "en": "Government", "gu": "સરકારી", "l": "G"}, {"n": 2, "en": "Grant-in-Aid", "gu": "અનુદાનિત", "l": "GIA"}, {"n": 3, "en": "Self-Financed (Private)", "gu": "સ્વનિર્ભર (ખાનગી)", "l": "P"}];
 const COVER = {"title": "વિદ્યાર્થીઓના અધ્યયન અનુભવો અને મૂલ્યાંકન અનુસૂચિ", "sub": "(ધોરણ 8ના ગણિત શિક્ષણમાં NCF- SE- 2023 મુજબ અધ્યાપનશાસ્ત્રમાં)", "instr": ["(1) આ કોઈ પરીક્ષા નથી. તેથી અહીં કોઈ જવાબ સાચો કે ખોટો નથી.", "(2) દરેક વિધાન ધ્યાનપૂર્વક વાંચો અને તમારા અનુભવને સૌથી વધુ અનુરૂપ લાગતો એક જ વિકલ્પ પસંદ કરીને (✓) ની નિશાની કરો.", "(3) કોઈપણ વિધાનનો જવાબ ખાલી રાખશો નહીં.", "(4) પ્રશ્નોના જવાબ તમારા પોતાના અનુભવ અને અભિપ્રાયના આધારે આપશો. અન્ય વિદ્યાર્થીઓ સાથે ચર્ચા કર્યા વગર સ્વતંત્ર રીતે પ્રતિભાવ આપશો.", "(5) આપના દ્વારા આપવામાં આવેલા તમામ પ્રતિભાવો સંપૂર્ણપણે ગોપનીય રાખવામાં આવશે અને તેનો ઉપયોગ માત્ર સંશોધનના હેતુ માટે જ કરવામાં આવશે.", "(6) ઉદાહરણ: જો વિધાન હોય \"શિક્ષક બોર્ડ દ્વારા સમજાવે છે.\" અને તમારા શિક્ષક લગભગ દરેક વખતે બોર્ડનો ઉપયોગ કરતા હોય, તો \"નિયમિત રીતે (✓)\" ની નિશાની કરો. જો શિક્ષક ક્યારેક જ બોર્ડનો ઉપયોગ કરતા હોય, તો \"ક્યારેક (✓)\" અને જો ક્યારેય ઉપયોગ ન કરતા હોય, તો \"ક્યારેય નહીં (✓)\" ની નિશાની કરો.", "(7) માહિતી ભરતી વખતે કોઈ પ્રશ્ન હોય તો સંશોધક અથવા શિક્ષકનો સંપર્ક કરશો.", "(8) આપના સાચા અને નિખાલસ સહકાર બદલ હાર્દિક આભાર"]};
-const APP_VERSION = "1.6";
+const APP_VERSION = "1.7";
 const BACKEND = "firebase";   // "claude" = Claude artifact database · "firebase" = own Firebase project (Play Store / installable app)
 const FB_VER = "10.12.2";
 const TARGET_N = 2000;
@@ -660,7 +660,7 @@ function stepFilled(st){
 function stepText(st){
   const d = FX.d;
   if (st.k === "gender") return isEmpty(d.GENDER) ? "·" : String(d.GENDER);
-  if (st.k === "rate") return isEmpty(d[st.v]) ? "·" : String(4 - d[st.v]);       // paper column position
+  if (st.k === "rate") return isEmpty(d[st.v]) ? "·" : String(d[st.v]);           // the code itself: 3 નિયમિત, 2 ક્યારેક, 1 ક્યારેય નહીં
   if (st.k === "rank") { const x = d[st.q.raw[st.i]]; return isEmpty(x) ? "·" : String(x); }
   const t = st.q.raw.map((v, j) => d[v] === 1 ? j + 1 : 0).filter(Boolean); return t.length ? t.join("+") : "·";
 }
@@ -708,7 +708,7 @@ function fxRender(){
   } else {
     add(box, h("div", {class:"slab"}, `${st.lab}`), st.sub ? h("div", {class:"qhint"}, st.sub) : null, h("div", {class:"stext"}, st.text));
     if (st.k === "gender") add(box, h("div", {class:"keys", style:"grid-template-columns:1fr 1fr"}, ...[["કુમાર", 1], ["કન્યા", 2]].map(([l, n], i) => keyBtn(n, l, FX.d.GENDER === n, () => fxTap(i)))));
-    else if (st.k === "rate") add(box, h("div", {class:"keys"}, ...SCALE.map((s, i) => keyBtn(i + 1, s.gu, FX.d[st.v] === s.code, () => fxTap(i)))));
+    else if (st.k === "rate") add(box, h("div", {class:"keys"}, ...SCALE.map((s, i) => keyBtn(s.code, s.gu, FX.d[st.v] === s.code, () => fxTap(i)))));
     else if (st.k === "rank") add(box, h("div", {class:"keys", style:"grid-template-columns:repeat(4,1fr)"}, ...[1, 2, 3, 4].map((n, i) => keyBtn(n, n === 1 ? "સૌથી વધુ" : n === 4 ? "સૌથી ઓછું" : "", FX.d[st.q.raw[st.i]] === n, () => fxTap(i)))));
     else {
       const q = st.q;
@@ -754,7 +754,7 @@ function viewFast(){
       h("div", {class:"nav3"}, h("button", {type:"button", class:"btn", id:"fx_back", onclick:() => fxGo(FX.i - 1)}, "◀ પાછળ"),
         h("button", {type:"button", class:"btn", id:"fx_blank", onclick:() => { const st = STEPS[FX.i]; if (st) { clearStep(st); fxNext(); } }}, "0 ખાલી"),
         h("button", {type:"button", class:"btn", id:"fx_fwd", onclick:() => fxNext()}, "આગળ ▶"))),
-    h("div", {class:"card", style:"padding:10px 12px"}, h("div", {class:"lbl", style:"margin-bottom:6px"}, "પેપર સાથે મેળવો — ખાનું દબાવી સીધા ત્યાં જાઓ (અંક = પેપરનું ખાનું / વિકલ્પ ક્રમ)"), h("div", {class:"strip", id:"fxStrip"}),
+    h("div", {class:"card", style:"padding:10px 12px"}, h("div", {class:"lbl", style:"margin-bottom:6px"}, "પેપર સાથે મેળવો — ખાનું દબાવી સીધા ત્યાં જાઓ (A, B, હેતુ 3: 3 = નિયમિત, 2 = ક્યારેક, 1 = ક્યારેય નહીં · C: વિકલ્પ ક્રમ)"), h("div", {class:"strip", id:"fxStrip"}),
       h("button", {type:"button", class:"btn primary", style:"width:100%;margin-top:10px", id:"fx_save", onclick:fxSave}, "✓ સેવ કરો"))));
   if (dr && dr.d && FX.dirty()) say("આ ઉપકરણ પર અધૂરો વિદ્યાર્થી મળ્યો — ત્યાંથી આગળ ભરો.", "warn");
   FX.meta(); fxRender();
@@ -844,11 +844,11 @@ function renderTable(q){
     const s = qi.value.replace(/[^0-3]/g, "").slice(0, q.items.length); if (s !== qi.value) qi.value = s;
     q.items.forEach((it, i) => { const ch = s[i]; const root = box;
       root.querySelectorAll(`input[name="${it.v}"]`).forEach(r => r.checked = false); lastChecked[it.v] = null;
-      if (ch && ch !== "0") { const code = 4 - Number(ch); const r = root.querySelector("#" + CSS.escape("r_" + it.v + "_" + code)); r.checked = true; lastChecked[it.v] = String(code); } });
+      if (ch && ch !== "0") { const code = Number(ch); const r = root.querySelector("#" + CSS.escape("r_" + it.v + "_" + code)); r.checked = true; lastChecked[it.v] = String(code); } });
     markDirty();
   });
   add(box, q.head ? h("div", {class:"qt"}, q.head) : null,
-    h("div", {class:"quick"}, h("b", {}, "ઝડપી એન્ટ્રી"), qi, h("span", {class:"qhint"}, "પેપરના ખાનાનો ક્રમ: 1 = નિયમિત રીતે, 2 = ક્યારેક, 3 = ક્યારેય નહીં, 0 = ખાલી")),
+    h("div", {class:"quick"}, h("b", {}, "ઝડપી એન્ટ્રી"), qi, h("span", {class:"qhint"}, "કોડ: 3 = નિયમિત રીતે, 2 = ક્યારેક, 1 = ક્યારેય નહીં, 0 = ખાલી")),
     h("table", {class:"rt"}, scaleHead(), tb));
   return box;
 }

@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chauhan Research — વિદ્યાર્થી અનુસૂચિ (હેતુ 2 અને 3)</title>
+<meta name="theme-color" content="#1f5a96">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script src="firebase-config.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f3f5f8; --surface:#fff; --ink:#18202b; --muted:#59667a; --line:#d6dde7; --soft:#e5edf7;
+  --accent:#1f5a96; --ok:#1d7a3e; --warn:#9a5800; --bad:#b3261e; --info:#1f5f99;
+  --font:"Shruti","Nirmala UI","Noto Sans Gujarati","Lohit Gujarati",system-ui,sans-serif; color-scheme:light;
+}
+*{box-sizing:border-box} html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.55;padding-bottom:84px}
+h1,h2,h3{margin:0;text-wrap:balance} h2{font-size:1.12rem} h3{font-size:1rem;margin:10px 0 4px}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1000px;margin:0 auto;padding:0 14px}
+header.top{position:sticky;top:0;z-index:30;background:var(--surface);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:8px 0}
+.bar h1{font-size:1rem;font-weight:700;line-height:1.25}
+.bar h1 small{display:block;font-weight:500;color:var(--muted);font-size:.75rem}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:.8rem;font-weight:600;background:var(--soft);color:var(--accent);white-space:nowrap}
+.pill.bad{background:#fde8e6;color:var(--bad)} .pill.warn{background:#fff1dc;color:var(--warn)} .pill.ok{background:#dff3e6;color:var(--ok)}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;padding:0 0 8px;scrollbar-width:thin}
+nav.tabs a{flex:none;text-decoration:none;color:var(--ink);border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:6px 14px;font-size:.88rem;font-weight:600;min-height:38px;display:inline-flex;align-items:center}
+nav.tabs a.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 14px;min-height:44px;cursor:pointer;font-weight:600}
+.btn:hover{border-color:var(--accent)} .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.danger{color:var(--bad);border-color:var(--bad)} .btn.small{min-height:36px;padding:4px 10px;font-size:.85rem}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+input[type=text],input[type=number],input[type=date],input[type=search],input[type=email],input[type=password],select,textarea{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-height:44px;width:100%}
+textarea{min-height:90px}
+input:disabled,select:disabled,textarea:disabled{background:#f1f3f5;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin:14px 0;padding:14px}
+.card>h2{color:var(--accent);margin-bottom:8px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.field{display:flex;flex-direction:column;gap:3px} .field>label,.lbl{font-size:.8rem;color:var(--muted);font-weight:600}
+.msg{margin:10px 0;padding:10px 14px;border-radius:10px;border-left:5px solid var(--accent);background:var(--surface);font-weight:500}
+.msg.ok{border-color:var(--ok)} .msg.warn{border-color:var(--warn);background:#fff8ec} .msg.bad{border-color:var(--bad);background:#fdf1ef}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.stat b{display:block;font-size:1.6rem;font-variant-numeric:tabular-nums;line-height:1.2}
+.stat span{font-size:.82rem;color:var(--muted)}
+.progress{height:16px;border-radius:999px;background:var(--soft);overflow:hidden;margin:6px 0}
+.progress i{display:block;height:100%;background:var(--accent)}
+table.t{border-collapse:collapse;width:100%;font-size:.86rem}
+table.t th,table.t td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+table.t th{background:var(--soft);position:sticky;top:0;z-index:1}
+table.t td.num,table.t th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.scroll{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:10px}
+.badge{display:inline-block;border-radius:6px;padding:0 6px;font-size:.75rem;font-weight:700;white-space:nowrap}
+.b-ok{background:#dff3e6;color:var(--ok)} .b-warn{background:#fff1dc;color:var(--warn)} .b-bad{background:#fde8e6;color:var(--bad)} .b-mut{background:#eceff3;color:var(--muted)} .b-info{background:#e3eef9;color:var(--info)}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:8px 0}
+.filters .field{min-width:140px;flex:1}
+.idbig{font-size:1.9rem;font-weight:700;letter-spacing:.04em;font-variant-numeric:tabular-nums;color:var(--accent)}
+.secnav{display:flex;gap:6px;overflow-x:auto;padding:6px 0;scrollbar-width:thin}
+.secnav button{flex:none;border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:4px 10px;font-size:.8rem;cursor:pointer;white-space:nowrap;min-height:36px}
+.secnav button.on{border-color:var(--accent);color:var(--accent);font-weight:700}
+.secnav button i{font-style:normal;font-size:.72rem;color:var(--muted);margin-left:4px}
+.secnav button.full i{color:var(--ok)}
+.qsec{display:none} .qsec.on{display:block}
+.part{font-weight:700;color:var(--muted);font-size:.85rem}
+.stitle{font-size:1.08rem;font-weight:700;color:var(--accent);margin:2px 0 6px}
+.intro{color:var(--muted);font-size:.9rem;margin:2px 0 8px}
+.q{padding:12px 0;border-bottom:1px dashed var(--line)} .q:last-child{border-bottom:0}
+.qt{font-weight:600}
+.qv{font-family:ui-monospace,Consolas,monospace;font-size:.68rem;color:var(--muted);margin-left:6px}
+.qhint{font-size:.78rem;color:var(--muted)}
+.qwarn{font-size:.82rem;color:var(--warn);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{position:relative;display:inline-flex}
+.chip input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.chip span{border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-height:44px;display:inline-flex;align-items:center;gap:8px;background:var(--bg);cursor:pointer;user-select:none}
+.chip input[type=checkbox]+span::before{content:"";width:18px;height:18px;border:2px solid var(--muted);border-radius:4px;flex:none}
+.chip input[type=radio]+span::before{content:"";width:16px;height:16px;border:2px solid var(--muted);border-radius:50%;flex:none}
+.chip input:checked+span{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip input:checked+span::before{border-color:#fff;background:#fff;box-shadow:inset 0 0 0 3px var(--accent)}
+.chip input:focus-visible+span{outline:3px solid var(--accent);outline-offset:2px}
+.chip input:disabled+span{cursor:not-allowed;opacity:.75}
+.othbox{display:flex;gap:6px;align-items:center;flex:1 1 240px}
+.othbox span{font-size:.85rem;color:var(--muted);white-space:nowrap}
+.quick{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--soft);border-radius:10px;padding:8px 10px;margin:6px 0}
+.quick input{max-width:340px;font-family:ui-monospace,Consolas,monospace;letter-spacing:.12em}
+.rt{width:100%;border-collapse:collapse;margin-top:6px}
+.rt th{font-size:.78rem;color:var(--muted);text-align:center;padding:4px;border-bottom:1px solid var(--line)}
+.rt th:nth-child(2){text-align:left}
+.rt td{border-bottom:1px solid var(--line);padding:6px 4px;vertical-align:middle}
+.rt td.n{width:64px;color:var(--muted);font-variant-numeric:tabular-nums;font-size:.85rem}
+.rt td.c{text-align:center;width:84px}
+.rt label{position:relative;display:flex;align-items:center;justify-content:center;min-height:44px;border-radius:10px;cursor:pointer}
+.rt label:hover{background:var(--soft)}
+.rt input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.rt .dot{width:24px;height:24px;border-radius:50%;border:2px solid var(--muted);flex:none}
+.rt .mn{display:none;color:var(--muted);margin-right:6px}
+.rt input:checked+.dot{background:var(--accent);border-color:var(--accent);box-shadow:inset 0 0 0 4px var(--surface)}
+.rt input:focus-visible+.dot{outline:3px solid var(--accent);outline-offset:2px}
+.rt .ml{display:none}
+.rt tr.blank td.it{border-left:3px solid #f0c27a;padding-left:6px}
+@media (max-width:620px){
+  .rt thead{display:none} .rt tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-bottom:1px solid var(--line);padding:8px 0;gap:4px}
+  .rt td{border:0;padding:0} .rt td.it{grid-column:1 / -1} .rt td.n{display:none} .rt .mn{display:inline!important}
+  .rt td.c{width:auto} .rt .ml{display:block;font-size:.72rem;color:var(--muted);margin-left:6px}
+  .rt label{justify-content:flex-start;padding-left:6px;border:1px solid var(--line)}
+  .rt tr.blank td.it{border-left:0;padding-left:0}
+}
+.rank{display:grid;grid-template-columns:1fr 110px;gap:6px;align-items:center;max-width:460px;margin-top:6px}
+.pager{display:flex;justify-content:space-between;gap:8px;margin-top:12px}
+.savebar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.savebar .wrap{display:flex;gap:8px;align-items:center;padding:8px 14px}
+.savebar .st{flex:1;font-size:.85rem;color:var(--muted);min-width:0}
+.instr li{margin:4px 0}
+.chart .row{display:grid;grid-template-columns:minmax(110px,38%) 1fr 74px;gap:8px;align-items:center;font-size:.85rem;margin:3px 0}
+.chart .bar{height:16px;background:var(--accent);border-radius:4px;min-width:2px}
+.chart .num{font-variant-numeric:tabular-nums;text-align:right}
+.center{max-width:460px;margin:40px auto}
+.spick3{display:grid;grid-template-columns:1.3fr 1.3fr .8fr;gap:6px}
+.spick .code{font-size:1.15rem;color:var(--accent);letter-spacing:.04em}
+/* fast entry */
+.fx{max-width:640px;margin:0 auto}
+.fx .top{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fx .top .wide{grid-column:1 / -1}
+.fx .idnext{font-size:1.4rem;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:.03em}
+.fx .meta{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
+.fx .step{min-height:118px}
+.fx .slab{font-size:.8rem;font-weight:700;color:var(--muted)}
+.fx .stext{font-size:1.08rem;font-weight:600;margin:4px 0 10px;line-height:1.45;min-height:3em}
+.fx .keys{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.fx .keys.list{grid-template-columns:1fr 1fr}
+.fx .key{border:2px solid var(--line);background:var(--surface);border-radius:14px;min-height:68px;padding:6px 8px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent;font-family:inherit;color:inherit}
+.fx .keys.list .key{min-height:54px;flex-direction:row;justify-content:flex-start;text-align:left;gap:8px;font-weight:600}
+.fx .key b{font-size:1.35rem;line-height:1;color:var(--accent)}
+.fx .key span{font-size:.82rem}
+.fx .keys.list .key b{font-size:1.05rem;min-width:22px}
+.fx .key.on{background:var(--accent);border-color:var(--accent);color:#fff} .fx .key.on b{color:#fff}
+.fx .key:active{transform:scale(.97)}
+.fx .nav3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.fx .nav3 .btn{min-height:50px}
+.fx .strip{display:flex;flex-direction:column;gap:6px}
+.fx .srow{display:flex;gap:6px;align-items:flex-start}
+.fx .srow>span{flex:none;width:58px;font-size:.72rem;color:var(--muted);font-weight:700;padding-top:4px}
+.fx .cells{display:flex;flex-wrap:wrap;gap:3px}
+.fx .cell{min-width:24px;height:26px;padding:0 3px;border:1px solid var(--line);border-radius:6px;font-size:.78rem;display:inline-flex;align-items:center;justify-content:center;background:#fff8e6;cursor:pointer;font-variant-numeric:tabular-nums;font-family:inherit;color:var(--muted)}
+.fx .cell.f{background:var(--soft);color:var(--ink);font-weight:700}
+.fx .cell.cur{outline:2px solid var(--accent);outline-offset:1px}
+.fx .cell.w{background:#fde8e6;color:var(--bad)}
+.fx .bar2{height:8px;border-radius:999px;background:var(--soft);overflow:hidden} .fx .bar2 i{display:block;height:100%;background:var(--accent);transition:width .15s}
+.fx .done{text-align:center;border-color:var(--ok)} .fx .done .idbig{font-size:2.4rem}
+
+.note{font-size:.85rem;color:var(--muted)}
+code{font-size:.85em;background:var(--soft);padding:0 4px;border-radius:4px;word-break:break-all}
+details>summary{cursor:pointer;font-weight:600;color:var(--accent)}
+[hidden]{display:none!important}
+.ovl{position:fixed;inset:0;z-index:100;background:rgba(15,20,30,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.dlg{max-width:460px;width:100%;margin:0}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="bar">
+      <h1>Chauhan Research<small>વિદ્યાર્થી અનુસૂચિ (હેતુ 2 અને 3) · અધ્યયન અનુભવો અને મૂલ્યાંકન · ધોરણ 8 ગણિત · 72 શાળા · 4 જિલ્લા</small></h1>
+      <span class="pill" id="netPill">…</span>
+    </div>
+    <nav class="tabs" id="tabs" hidden></nav>
+  </div>
+</header>
+<main class="wrap" id="main"><p class="msg" id="boot">લોડ થઈ રહ્યું છે…</p></main>
+<div class="savebar" id="savebar" hidden><div class="wrap"><div class="st" id="saveSt"></div>
+  <button class="btn" id="prevBtn" type="button" aria-label="પાછલો વિભાગ">◀</button><button class="btn" id="nextBtn" type="button" aria-label="આગળનો વિભાગ">▶</button>
+  <button class="btn primary" id="saveBtn" type="button">સેવ કરો</button></div></div>
+
+<script type="module">
+/* ====================== INSTRUMENT (generated from STUDENT PDF Objective 2 & 3, verbatim) ====================== */
+const SECTIONS = [{"id": "info", "obj": "", "title": "સામાન્ય માહિતી", "intro": []}, {"id": "A", "obj": "હેતુ 2", "title": "વિભાગ - A", "intro": [], "qs": [{"k": "table", "head": "શિક્ષક વર્ગખંડમાં ગણિત કઈ રીતે ભણાવે છે?", "items": [{"v": "O2_A01", "no": "1", "gu": "શિક્ષક પ્રકરણની શરૂઆત પૂર્વજ્ઞાન આધારિત પ્રશ્નો દ્વારા કરે છે.", "en": "Starts chapter with prior-knowledge questions", "c": "A_TEACH", "leg": "SA1"}, {"v": "O2_A02", "no": "2", "gu": "શિક્ષક બ્લેકબોર્ડ દ્વારા સમજાવે છે.", "en": "Explains using blackboard", "c": "", "leg": "SA2"}, {"v": "O2_A03", "no": "3", "gu": "શિક્ષક વ્હાઇટબોર્ડ દ્વારા સમજાવે છે.", "en": "Explains using whiteboard", "c": "", "leg": "SA3"}, {"v": "O2_A04", "no": "4", "gu": "શિક્ષક ચાર્ટનો ઉપયોગ કરે છે.", "en": "Uses charts", "c": "A_TEACH", "leg": "SA4"}, {"v": "O2_A05", "no": "5", "gu": "શિક્ષક ગાણિતિક મોડેલનો ઉપયોગ કરે છે.", "en": "Uses mathematical models", "c": "A_TEACH", "leg": "SA5"}, {"v": "O2_A06", "no": "6", "gu": "શિક્ષક જૂથમાં કામ કરવાની તક આપે છે.", "en": "Gives group-work opportunity", "c": "A_TEACH", "leg": "SA6"}, {"v": "O2_A07", "no": "7", "gu": "શિક્ષક વ્યક્તિગત વિદ્યાર્થીને પોતાની ઉકેલવાની રીત સમજાવવા પ્રોત્સાહિત કરે છે.", "en": "Encourages explaining own solution method", "c": "A_TEACH", "leg": "SA7"}, {"v": "O2_A08", "no": "8", "gu": "શિક્ષક પોતે પ્રશ્નો ઉકેલવાની એકથી વધુ ઉકેલ રીતો (વૈકલ્પિક રીતો) બતાવે છે.", "en": "Shows more than one solution method", "c": "A_TEACH", "leg": "SA8"}, {"v": "O2_A09", "no": "9", "gu": "શિક્ષક પ્રવૃત્તિ દ્વારા શીખવાડે છે.", "en": "Teaches through activity", "c": "A_TEACH", "leg": "SA9"}, {"v": "O2_A10", "no": "10", "gu": "શિક્ષક દરેક વિદ્યાર્થીને (ધીમા શીખતા વિદ્યાર્થીઓ સહિત) સમાન તક આપે છે.", "en": "Equal opportunity to every student incl. slow learners", "c": "A_TEACH", "leg": "SA10"}, {"v": "O2_A11", "no": "11", "gu": "શિક્ષક વિદ્યાર્થીઓને પોતાની ભાષામાં સમજાવવાની તક આપે છે.", "en": "Lets students explain in own language", "c": "A_TEACH", "leg": "SA11"}, {"v": "O2_A12", "no": "12", "gu": "શિક્ષક ગણિતમાં પ્રોજેક્ટ દ્વારા સમજાવે છે.", "en": "Explains through projects", "c": "A_TEACH", "leg": "SA12"}, {"v": "O2_A13", "no": "13", "gu": "શિક્ષક ટેકનોલોજી (ગણિતની ઍપ્લિકેશન (એપ))નો ઉપયોગ કરે છે.", "en": "Uses technology (maths app)", "c": "A_TEACH", "leg": "SA13"}, {"v": "O2_A14", "no": "14", "gu": "શિક્ષક \"શા માટે?\" અને \"કેવી રીતે?\" જેવા પ્રશ્નો દ્વારા વિચારવા પ્રેરિત કરે છે.", "en": "Prompts thinking with why/how questions", "c": "A_TEACH", "leg": "SA14"}, {"v": "O2_A15", "no": "15", "gu": "શિક્ષક વર્ગમાં જુદા-જુદા વિદ્યાર્થીઓએ સૂચવેલા ઉકેલોની સરખામણી કરાવીને ચર્ચા કરાવે છે.", "en": "Compares and discusses students' solutions", "c": "A_TEACH", "leg": "SA15"}, {"v": "O2_A16", "no": "16", "gu": "શિક્ષક વાસ્તવિક જીવનની પરિસ્થિતિઓને ગણિત સાથે જોડીને સમજાવે છે.", "en": "Links real-life situations with maths", "c": "A_TEACH", "leg": "SA16"}, {"v": "O2_A17", "no": "17", "gu": "શિક્ષક દૃશ્ય રજૂઆત (ચિત્ર/આલેખ/કોષ્ટક) દ્વારા ગાણિતિક વિચારો સમજાવે છે.", "en": "Explains ideas through visual representation", "c": "A_TEACH", "leg": "SA17"}, {"v": "O2_A18", "no": "18", "gu": "શિક્ષક નવો ખ્યાલ શીખવતી વખતે વિદ્યાર્થીઓ જાતે વિચાર (અન્વેષણ) કરીને શીખે તેવી તક આપે છે.", "en": "Lets students explore new concept themselves", "c": "A_TEACH", "leg": "SA18"}]}]}, {"id": "B", "obj": "હેતુ 2", "title": "(B) વિદ્યાર્થીની ગાણિતિક અનુભૂતિ અને વિચારશક્તિ", "intro": ["નીચે આપેલાં વિધાનો ગણિત પ્રત્યેની તમારી લાગણી અને તમારી પોતાની વિચારવાની/ઉકેલવાની રીત સાથે સંબંધિત છે. તમારા પોતાના અનુભવ મુજબ યોગ્ય વિકલ્પ પસંદ કરો."], "qs": [{"k": "table", "head": "(B-1) ગણિત પ્રત્યેનું વલણ અને આત્મવિશ્વાસ", "items": [{"v": "O2_B1_01", "no": "1", "gu": "મને ગણિત ભણવામાં રસ પડે છે.", "en": "Interested in learning maths", "c": "B1_ATT", "leg": "SB1_1"}, {"v": "O2_B1_02", "no": "2", "gu": "હું ગણિતમાં આત્મવિશ્વાસ અનુભવું છું.", "en": "Feels confident in maths", "c": "B1_ATT", "leg": "SB1_2"}, {"v": "O2_B1_03", "no": "3", "gu": "મને વર્ગ દરમિયાન પ્રશ્ન પૂછવામાં સંકોચ થતો નથી.", "en": "Not hesitant to ask questions in class", "c": "B1_ATT", "leg": "SB1_3"}, {"v": "O2_B1_04", "no": "4", "gu": "હું ભૂલ કરું ત્યારે મને ડર લાગતો નથી.", "en": "Not afraid when making mistakes", "c": "B1_ATT", "leg": "SB1_4"}, {"v": "O2_B1_05", "no": "5", "gu": "મને વર્ગમાં પ્રશ્ન પૂછવા માટે પૂરતો સમય મળે છે.", "en": "Gets enough time to ask questions", "c": "B1_ATT", "leg": "SB1_5"}, {"v": "O2_B1_06", "no": "6", "gu": "હું મારા સહપાઠીઓ સાથે ચર્ચા કરીને શીખું છું.", "en": "Learns by discussing with classmates", "c": "B1_ATT", "leg": "SB1_6"}]}, {"k": "table", "head": "(B-2) ગાણિતિક વિચારશક્તિ (Mathematical Thinking)", "items": [{"v": "O2_B2_01", "no": "1", "gu": "દાખલો ઉકેલતા પહેલાં હું વિચારું છું કે કઈ રીત સૌથી યોગ્ય રહેશે.", "en": "Thinks about best method before solving", "c": "B2_THINK", "leg": "SB2_1"}, {"v": "O2_B2_02", "no": "2", "gu": "હું ગણિતના ખ્યાલોનો રોજિંદા જીવનમાં ઉપયોગ કરી શકું છું.", "en": "Can use maths concepts in daily life", "c": "B2_THINK", "leg": "SB2_2"}, {"v": "O2_B2_03", "no": "3", "gu": "હું પ્રશ્નો ઉકેલવા માટે નવી રીત શોધવાનો પ્રયાસ કરું છું.", "en": "Tries new ways to solve problems", "c": "B2_THINK", "leg": "SB2_3"}, {"v": "O2_B2_04", "no": "4", "gu": "હું મારા જવાબ અને ઉકેલ-પદ્ધતિ માટે કારણ (તર્ક) આપી શકું છું કે તે કેમ સાચું છે.", "en": "Can justify answer and method", "c": "B2_THINK", "leg": "SB2_4"}, {"v": "O2_B2_05", "no": "5", "gu": "ભૂલ થયા પછી હું સમજવાનો પ્રયત્ન કરું છું કે કેમ ભૂલ થઈ.", "en": "Tries to understand why a mistake happened", "c": "B2_THINK", "leg": "SB2_5"}, {"v": "O2_B2_06", "no": "6", "gu": "હું મારા જવાબને ઉદાહરણ અથવા ચિત્ર દ્વારા સમર્થન આપી શકું છું.", "en": "Supports answer with example or picture", "c": "B2_THINK", "leg": "SB2_6"}, {"v": "O2_B2_07", "no": "7", "gu": "હું એક જ પ્રશ્નને અલગ-અલગ રીતોથી ઉકેલી શકું છું.", "en": "Can solve one problem in different ways", "c": "B2_THINK", "leg": "SB2_7"}, {"v": "O2_B2_08", "no": "8", "gu": "હું વાસ્તવિક જીવનની સમસ્યાને ગણિત સાથે જોડી શકું છું.", "en": "Connects real-life problems with maths", "c": "B2_THINK", "leg": "SB2_8"}, {"v": "O2_B2_09", "no": "9", "gu": "હું રોજિંદા જીવનની પરિસ્થિતિને ગાણિતિક સૂત્ર અથવા મોડેલમાં ફેરવી શકું છું.", "en": "Converts daily situations into formula/model", "c": "B2_THINK", "leg": "SB2_9"}, {"v": "O2_B2_10", "no": "10", "gu": "હું દૃશ્ય રજૂઆત (ચિત્ર/આલેખ/કોષ્ટક) દ્વારા મારો જવાબ સમજાવી શકું છું.", "en": "Explains answer through visual representation", "c": "B2_THINK", "leg": "SB2_10"}, {"v": "O2_B2_11", "no": "11", "gu": "હું દૃશ્ય રજૂઆત (ચિત્ર/આલેખ/કોષ્ટક)માં આપેલી માહિતીનું અર્થઘટન કરી શકું છું.", "en": "Interprets information in visual representation", "c": "B2_THINK", "leg": "SB2_11"}, {"v": "O2_B2_12", "no": "12", "gu": "હું મારા ગાણિતિક વિચારો અન્ય વિદ્યાર્થીઓને સ્પષ્ટ રીતે રજૂ કરી શકું છું.", "en": "Presents mathematical ideas clearly to others", "c": "B2_THINK", "leg": "SB2_12"}, {"v": "O2_B2_13", "no": "13", "gu": "અઘરો દાખલો આવે તો પણ હું વારંવાર પ્રયત્ન કરું છું.", "en": "Keeps trying on difficult problems", "c": "B2_THINK", "leg": "SB2_13"}]}]}, {"id": "C", "obj": "હેતુ 2", "title": "(C) ગણિત શીખવાની પસંદગી (Preference)", "intro": ["નીચેના પ્રશ્નોમાં તમને સૌથી વધુ લાગુ પડતો વિકલ્પ પસંદ કરો. જ્યાં એકથી વધુ પસંદગીની છૂટ આપી હોય ત્યાં જ એકથી વધુ વિકલ્પ પસંદ કરો."], "qs": [{"k": "choice", "v": "O2_C1", "no": "(1)", "q": "(1) નીચેનામાંથી કઈ રીતથી તમને ગણિત વધુ સારી રીતે સમજાય છે? (એકથી વધુ પસંદ કરી શકો છો)", "sub": null, "en": "C1 way maths is understood better", "opts": ["પ્રવૃત્તિ દ્વારા", "જૂથ-ચર્ચા દ્વારા", "ઉદાહરણો દ્વારા", "ટેકનોલોજી (વિડિયો/વ્હાઇટબોર્ડ) દ્વારા"], "opts_en": ["Through activity", "Through group discussion", "Through examples", "Through technology (video/whiteboard)"], "oth": null, "raw": ["O2_C1_1", "O2_C1_2", "O2_C1_3", "O2_C1_4"], "clean": "multi", "leg": "C1"}, {"k": "choice", "v": "O2_C2", "no": "(2)", "q": "(2) સૌથી વધુ ગમતી રીત પસંદ કરો (એક જ)", "sub": null, "en": "C2 most liked way (one only)", "opts": ["પ્રવૃત્તિ", "જૂથ ચર્ચા", "ઉદાહરણ", "ટેકનોલોજી"], "opts_en": ["Activity", "Group discussion", "Example", "Technology"], "oth": null, "raw": ["O2_C2_R1", "O2_C2_R2", "O2_C2_R3", "O2_C2_R4"], "clean": "single", "leg": "C2"}, {"k": "rank", "v": "O2_C3", "no": "(3)", "q": "(3) કૃપા કરીને ક્રમ આપો (1 = સૌથી વધુ ગમે 4 = સૌથી ઓછું ગમે):", "items": ["પ્રવૃત્તિ આધારિત", "જૂથ ચર્ચા", "ઉદાહરણ", "ટેકનોલોજી"], "en": "C3 rank", "items_en": ["Activity-based", "Group discussion", "Example", "Technology"], "raw": ["O2_C3_1", "O2_C3_2", "O2_C3_3", "O2_C3_4"], "leg": "C3"}, {"k": "choice", "v": "O2_C4", "no": "(4)", "q": "(4) ગણિતનો વર્ગ વધુ સારો અને રસપ્રદ બને તે માટે તમે શું બદલાવ ઇચ્છો છો?", "sub": null, "en": "C4 desired change in maths class", "opts": ["વધુ પ્રવૃત્તિ આધારિત શિક્ષણ થાય", "વ્હાઇટબોર્ડ/વિડિયો દ્વારા સમજાવવામાં આવે", "જૂથમાં કામ કરવાની વધુ તક મળે", "રોજિંદા જીવનના ઉદાહરણો વધુ આપવામાં આવે", "ગણિતના મોડેલ અને ચાર્ટનો ઉપયોગ થાય", "રમતો દ્વારા ગણિત શીખવવામાં આવે", "પ્રશ્ન પૂછવાની વધુ તક મળે", "ગૃહકાર્ય ઓછું આપવામાં આવે", "શિક્ષક ધીમે અને સરળ ભાષામાં સમજાવે", "અન્ય"], "opts_en": ["More activity-based teaching", "Explain by whiteboard/video", "More group-work opportunity", "More daily-life examples", "Use maths models and charts", "Teach maths through games", "More chance to ask questions", "Less homework", "Teacher explains slowly in simple language", "Other"], "oth": "O2_C4_OTH", "raw": ["O2_C4_R01", "O2_C4_R02", "O2_C4_R03", "O2_C4_R04", "O2_C4_R05", "O2_C4_R06", "O2_C4_R07", "O2_C4_R08", "O2_C4_R09", "O2_C4_R10"], "clean": "single", "leg": "C4"}, {"k": "choice", "v": "O2_C5", "no": "(5)", "q": "(5) જ્યારે તમને ગણિતનો દાખલો ઉકેલવામાં મુશ્કેલી પડે ત્યારે તમે શું કરો છો?", "sub": null, "en": "C5 action when stuck", "opts": ["ફરી પ્રયત્ન કરું છું", "મિત્રને પૂછું છું", "શિક્ષકને પૂછું છું", "છોડી દઉં છું"], "opts_en": ["Try again", "Ask a friend", "Ask the teacher", "Give up"], "oth": null, "raw": ["O2_C5_R1", "O2_C5_R2", "O2_C5_R3", "O2_C5_R4"], "clean": "single", "leg": "C5"}, {"k": "choice", "v": "O2_C6", "no": "(6)", "q": "(6) ગણિત ભણતી વખતે તમને સૌથી વધુ શું મુશ્કેલ લાગે છે? શા માટે?", "sub": "શું મુશ્કેલ લાગે છે?", "en": "C6 most difficult in maths", "opts": ["લાંબા દાખલા ઉકેલવા", "સૂત્રો યાદ રાખવા", "ભાગાકાર", "દશાંશ ગણિત", "ભૂમિતિ", "બીજગણિત", "આંકડાશાસ્ત્ર", "ઝડપથી જવાબ આપવો", "પરીક્ષામાં સમય પૂરતો ન પડવો", "અંગ્રેજી શબ્દો સમજવામાં મુશ્કેલી", "અન્ય"], "opts_en": ["Solving long problems", "Remembering formulas", "Division", "Decimals", "Geometry", "Algebra", "Statistics", "Answering quickly", "Not enough time in exam", "Understanding English words", "Other"], "oth": "O2_C6_OTH", "raw": ["O2_C6_R01", "O2_C6_R02", "O2_C6_R03", "O2_C6_R04", "O2_C6_R05", "O2_C6_R06", "O2_C6_R07", "O2_C6_R08", "O2_C6_R09", "O2_C6_R10", "O2_C6_R11"], "clean": "single", "leg": "C6"}, {"k": "choice", "v": "O2_C6W", "no": "(6)", "q": "", "sub": "શા માટે મુશ્કેલ લાગે છે?", "en": "C6 reason for difficulty", "opts": ["યોગ્ય રીતે સમજાયું નથી", "વધુ પ્રેક્ટિસ નથી મળતી", "ડર લાગે છે", "ઝડપથી શીખવવામાં આવે છે", "ધ્યાન કેન્દ્રિત કરવામાં મુશ્કેલી પડે છે", "અગાઉનો પાયો (આધાર) નબળો છે", "ઉદાહરણ/દાખલા કઠિન લાગે છે", "અન્ય"], "opts_en": ["Not understood properly", "Not enough practice", "Feel afraid", "Taught too fast", "Difficulty concentrating", "Weak prior foundation", "Examples/problems seem hard", "Other"], "oth": "O2_C6W_OTH", "raw": ["O2_C6W_R1", "O2_C6W_R2", "O2_C6W_R3", "O2_C6W_R4", "O2_C6W_R5", "O2_C6W_R6", "O2_C6W_R7", "O2_C6W_R8"], "clean": "single", "leg": "C6R"}, {"k": "choice", "v": "O2_C7", "no": "(7)", "q": "(7) ગણિત વધુ સારી રીતે સમજવા માટે નીચેનામાંથી કઈ બાબત સૌથી વધુ મદદરૂપ થાય છે?", "sub": null, "en": "C7 most helpful for understanding", "opts": ["કારણ સમજાવતી ચર્ચા", "વાસ્તવિક જીવનના ઉદાહરણો", "ચિત્ર/આલેખ દ્વારા સમજ", "વિવિધ ઉકેલોની તુલના", "પ્રવૃત્તિ આધારિત શિક્ષણ", "ટેકનોલોજીનો ઉપયોગ"], "opts_en": ["Discussion explaining reasons", "Real-life examples", "Understanding through pictures/graphs", "Comparing different solutions", "Activity-based teaching", "Use of technology"], "oth": null, "raw": ["O2_C7_R1", "O2_C7_R2", "O2_C7_R3", "O2_C7_R4", "O2_C7_R5", "O2_C7_R6"], "clean": "single", "leg": "C7"}]}, {"id": "O3", "obj": "હેતુ 3", "title": "ધોરણ 8 ના વિદ્યાર્થીઓ માટે ગણિત શિક્ષણમાં મૂલ્યાંકન પ્રક્રિયા અંગે અનુસૂચિ", "intro": ["નીચે આપેલાં વિધાનો તમારા વર્ગમાં લેવાતી કસોટી, પરીક્ષા અને અન્ય મૂલ્યાંકન સંબંધિત તમારા અનુભવ સાથે સંબંધિત છે. કૃપા કરીને યોગ્ય વિકલ્પ પસંદ કરો."], "qs": [{"k": "table", "head": "", "items": [{"v": "O3_01", "no": "1", "gu": "શિક્ષક પ્રકરણના અંતે કસોટી લે છે.", "en": "Teacher tests at end of chapter", "c": "", "leg": "AS1"}, {"v": "O3_02", "no": "2", "gu": "માસિક કસોટી લેવાય છે.", "en": "Monthly test held", "c": "", "leg": "AS2"}, {"v": "O3_02T", "no": "(ક્રમ વગર)", "gu": "ત્રિમાસિક કસોટી લેવાય છે.", "en": "Quarterly test held (unnumbered row in PDF)", "c": "", "leg": "AS2T"}, {"v": "O3_03", "no": "3", "gu": "સત્રાંત વાર્ષિક પરીક્ષા લેવાય છે.", "en": "Term-end/annual exam held", "c": "", "leg": "AS3"}, {"v": "O3_04", "no": "4", "gu": "પરીક્ષામાં વિચાર કરીને જવાબ આપવા પડે તેવા પ્રશ્નો હોય છે.", "en": "Exam has questions requiring thinking", "c": "O3_FORM", "leg": "AS4"}, {"v": "O3_05", "no": "5", "gu": "શિક્ષક મને પરીક્ષા પછી મારા જવાબો અંગે સુધારાત્મક (Constructive) પ્રતિભાવ આપે છે.", "en": "Teacher gives constructive feedback after exam", "c": "O3_FORM", "leg": "AS5"}, {"v": "O3_06", "no": "6", "gu": "મને જવાબ સુધારવાની બીજી તક મળે છે.", "en": "Gets second chance to improve answers", "c": "O3_FORM", "leg": "AS6"}, {"v": "O3_07", "no": "7", "gu": "મૂલ્યાંકન દરમિયાન મને ડર લાગતો નથી.", "en": "Not afraid during assessment", "c": "O3_FORM", "leg": "AS7"}, {"v": "O3_08", "no": "8", "gu": "મૂલ્યાંકનથી મને મારી ભૂલો ઓળખવામાં મદદ મળે છે.", "en": "Assessment helps identify mistakes", "c": "O3_FORM", "leg": "AS8"}, {"v": "O3_09", "no": "9", "gu": "મૂલ્યાંકનથી મને મારી ભૂલો સુધારવામાં મદદ મળે છે.", "en": "Assessment helps correct mistakes", "c": "O3_FORM", "leg": "AS9"}, {"v": "O3_10", "no": "10", "gu": "મૂલ્યાંકન મને મારી પ્રગતિ સમજવામાં મદદ કરે છે.", "en": "Assessment helps understand progress", "c": "O3_FORM", "leg": "AS10"}, {"v": "O3_11", "no": "11", "gu": "પ્રવૃત્તિ/પ્રોજેક્ટ આધારિત મૂલ્યાંકન થાય છે.", "en": "Activity/project-based assessment", "c": "O3_FORM", "leg": "AS11"}, {"v": "O3_12", "no": "12", "gu": "પરીક્ષામાં જવાબ પાછળનું કારણ (શા માટે ?) સ્પષ્ટ કરવાના પ્રશ્નો પુછાય છે.", "en": "Questions asking reason (why)", "c": "O3_FORM", "leg": "AS12"}, {"v": "O3_13", "no": "13", "gu": "પરીક્ષામાં દૃશ્ય રજૂઆત (ચિત્ર/આલેખ)નું અર્થઘટન કરવાના પ્રશ્નો પૂછવામાં આવે છે.", "en": "Questions interpreting visual representation", "c": "O3_FORM", "leg": "AS13"}, {"v": "O3_14", "no": "14", "gu": "પરીક્ષામાં વાસ્તવિક જીવન આધારિત પ્રશ્નો પૂછવામાં આવે છે.", "en": "Real-life-based questions", "c": "O3_FORM", "leg": "AS14"}, {"v": "O3_15", "no": "15", "gu": "પરીક્ષામાં એક જ પ્રશ્નના એકથી વધુ યોગ્ય ઉકેલો સ્વીકારવામાં આવે છે.", "en": "More than one correct solution accepted", "c": "O3_FORM", "leg": "AS15"}, {"v": "O3_16", "no": "16", "gu": "ગુણ આપતી વખતે માત્ર અંતિમ જવાબ નહીં, પરંતુ ઉકેલ પાછળનું તર્ક (reasoning) પણ ધ્યાનમાં લેવાય છે.", "en": "Reasoning considered in marking", "c": "O3_FORM", "leg": "AS16"}, {"v": "O3_17", "no": "17", "gu": "પરીક્ષા/મૂલ્યાંકનમાં મને મારી ઉકેલ-પદ્ધતિ મૌખિક અથવા લેખિત રીતે સમજાવવાની તક મળે છે.", "en": "Chance to explain solution orally/in writing", "c": "O3_FORM", "leg": "AS17"}, {"v": "O3_18", "no": "18", "gu": "પરીક્ષામાં વાસ્તવિક પરિસ્થિતિને ગાણિતિક મોડેલ/સમીકરણમાં રૂપાંતરિત કરવાના પ્રશ્નો પુછાય છે.", "en": "Questions converting real situation into model/equation", "c": "O3_FORM", "leg": "AS18"}, {"v": "O3_19", "no": "19", "gu": "પરીક્ષામાં સરળથી અઘરા ક્રમમાં (વધતી કઠિનતા મુજબ) પ્રશ્નો પુછાય છે.", "en": "Questions ordered easy to difficult", "c": "O3_FORM", "leg": "AS19"}, {"v": "O3_20", "no": "20", "gu": "મને મારા પોતાના અથવા મારા સહપાઠીના જવાબનું મૂલ્યાંકન કરવાની તક મળે છે. (સ્વ/સાથી-મૂલ્યાંકન)", "en": "Self/peer assessment opportunity", "c": "O3_FORM", "leg": "AS20"}, {"v": "O3_21", "no": "21", "gu": "પ્રકરણ દરમિયાન નાના-નાના ટેસ્ટ/ક્વિઝ (formative check) નિયમિત લેવાય છે.", "en": "Small tests/quizzes regularly (formative check)", "c": "O3_FORM", "leg": "AS21"}, {"v": "O3_22", "no": "22", "gu": "પરીક્ષામાં ખ્યાલ આધારિત (concept-based) પ્રશ્નો પૂછાય છે, માત્ર ગોખેલા સૂત્રો પર આધારિત નહીં.", "en": "Concept-based questions, not rote formulas", "c": "O3_FORM", "leg": "AS22"}, {"v": "O3_23", "no": "23", "gu": "પરીક્ષામાં રોજિંદા જીવનમાં ગણિતના ઉપયોગ સાથે સંબંધિત (application-based) પ્રશ્નો પૂછાય છે.", "en": "Application-based questions", "c": "O3_FORM", "leg": "AS23"}]}]}, {"id": "D", "obj": "હેતુ 3", "title": "હેતુ 3 — પ્રશ્ન (1)–(3)", "intro": [], "qs": [{"k": "choice", "v": "O3_D1", "no": "(1)", "q": "(1) કસોટી/મૂલ્યાંકન પછી શિક્ષકના સૂચનો/પ્રતિભાવથી તમને શું સુધારવામાં સૌથી વધુ મદદ મળે છે?", "sub": null, "en": "D1 most helpful from teacher feedback", "opts": ["ભૂલો સમજવામાં મદદ મળે છે", "સાચી રીતથી જવાબ લખતા શીખું છું", "વધુ પ્રેક્ટિસ કરવાની સમજ મળે છે", "આત્મવિશ્વાસ વધે છે", "સમય વ્યવસ્થાપન શીખું છું", "ક્યાં વિષયમાં નબળાઈ છે તે ખબર પડે છે", "આગામી પરીક્ષા માટે તૈયારી સારી થાય છે", "શિક્ષક ફરી સમજાવે છે", "અન્ય"], "opts_en": ["Helps understand mistakes", "Learn to write answers correctly", "Understand need for more practice", "Confidence increases", "Learn time management", "Know weak areas", "Better preparation for next exam", "Teacher explains again", "Other"], "oth": "O3_D1_OTH", "raw": ["O3_D1_R1", "O3_D1_R2", "O3_D1_R3", "O3_D1_R4", "O3_D1_R5", "O3_D1_R6", "O3_D1_R7", "O3_D1_R8", "O3_D1_R9"], "clean": "single", "leg": "D1"}, {"k": "choice", "v": "O3_D2", "no": "(2)", "q": "(2) તમને કયા પ્રકારનું મૂલ્યાંકન વધુ સારું લાગે છે?", "sub": null, "en": "D2 preferred type of assessment", "opts": ["લેખિત પરીક્ષા", "પ્રવૃત્તિ આધારિત", "પ્રોજેક્ટ આધારિત"], "opts_en": ["Written exam", "Activity-based", "Project-based"], "oth": null, "raw": ["O3_D2_R1", "O3_D2_R2", "O3_D2_R3"], "clean": "single", "leg": "D2"}, {"k": "choice", "v": "O3_D3", "no": "(3)", "q": "(3) મૂલ્યાંકન દરમિયાન તમારો ડર ઓછો થાય અને વધુ શીખવા મળે તે માટે શું બદલાવ જોઈએ?", "sub": null, "en": "D3 change to reduce fear and learn more", "opts": ["સરળ અને સમજણ આધારિત પ્રશ્નો પૂછવામાં આવે", "વધુ પ્રવૃત્તિ આધારિત મૂલ્યાંકન થાય", "પ્રોજેક્ટ આધારિત મૂલ્યાંકન વધારવું", "પરીક્ષા પહેલા પુનરાવર્તન કરાવવું", "વધુ સમય આપવામાં આવે", "શિક્ષક પ્રોત્સાહન આપે", "નાના નાના ટેસ્ટ લેવાય", "ગુણ કરતાં સમજ પર વધુ ભાર મૂકવો", "મિત્રો સાથે ચર્ચા કરવાની તક મળે", "અન્ય"], "opts_en": ["Simple understanding-based questions", "More activity-based assessment", "Increase project-based assessment", "Revision before exam", "More time", "Teacher encourages", "Small tests", "Emphasis on understanding over marks", "Chance to discuss with friends", "Other"], "oth": "O3_D3_OTH", "raw": ["O3_D3_R01", "O3_D3_R02", "O3_D3_R03", "O3_D3_R04", "O3_D3_R05", "O3_D3_R06", "O3_D3_R07", "O3_D3_R08", "O3_D3_R09", "O3_D3_R10"], "clean": "single", "leg": "D3"}]}];
+const CONSTRUCTS = [{"id": "A_TEACH", "gu": "વર્ગખંડ અધ્યાપન પ્રથા", "en": "Classroom teaching practice (16 items)"}, {"id": "B1_ATT", "gu": "ગણિત પ્રત્યે વલણ અને આત્મવિશ્વાસ", "en": "Attitude and confidence (B-1)"}, {"id": "B2_THINK", "gu": "ગાણિતિક વિચારશક્તિ", "en": "Mathematical thinking (B-2)"}, {"id": "O3_FORM", "gu": "રચનાત્મક/સક્ષમતા આધારિત મૂલ્યાંકન અનુભવ", "en": "Formative/competency-based assessment experience (20 items)"}];
+const DISTRICTS = [{"id": "D01", "en": "Vav-Tharad", "gu": "વાવ-થરાદ", "n": 1, "l": "VT"}, {"id": "D02", "en": "Ahmedabad", "gu": "અમદાવાદ", "n": 2, "l": "A"}, {"id": "D03", "en": "Bhavnagar", "gu": "ભાવનગર", "n": 3, "l": "B"}, {"id": "D04", "en": "Navsari", "gu": "નવસારી", "n": 4, "l": "N"}];
+const STYPES = [{"n": 1, "en": "Government", "gu": "સરકારી", "l": "G"}, {"n": 2, "en": "Grant-in-Aid", "gu": "અનુદાનિત", "l": "GIA"}, {"n": 3, "en": "Self-Financed (Private)", "gu": "સ્વનિર્ભર (ખાનગી)", "l": "P"}];
+const COVER = {"title": "વિદ્યાર્થીઓના અધ્યયન અનુભવો અને મૂલ્યાંકન અનુસૂચિ", "sub": "(ધોરણ 8ના ગણિત શિક્ષણમાં NCF- SE- 2023 મુજબ અધ્યાપનશાસ્ત્રમાં)", "instr": ["(1) આ કોઈ પરીક્ષા નથી. તેથી અહીં કોઈ જવાબ સાચો કે ખોટો નથી.", "(2) દરેક વિધાન ધ્યાનપૂર્વક વાંચો અને તમારા અનુભવને સૌથી વધુ અનુરૂપ લાગતો એક જ વિકલ્પ પસંદ કરીને (✓) ની નિશાની કરો.", "(3) કોઈપણ વિધાનનો જવાબ ખાલી રાખશો નહીં.", "(4) પ્રશ્નોના જવાબ તમારા પોતાના અનુભવ અને અભિપ્રાયના આધારે આપશો. અન્ય વિદ્યાર્થીઓ સાથે ચર્ચા કર્યા વગર સ્વતંત્ર રીતે પ્રતિભાવ આપશો.", "(5) આપના દ્વારા આપવામાં આવેલા તમામ પ્રતિભાવો સંપૂર્ણપણે ગોપનીય રાખવામાં આવશે અને તેનો ઉપયોગ માત્ર સંશોધનના હેતુ માટે જ કરવામાં આવશે.", "(6) ઉદાહરણ: જો વિધાન હોય \"શિક્ષક બોર્ડ દ્વારા સમજાવે છે.\" અને તમારા શિક્ષક લગભગ દરેક વખતે બોર્ડનો ઉપયોગ કરતા હોય, તો \"નિયમિત રીતે (✓)\" ની નિશાની કરો. જો શિક્ષક ક્યારેક જ બોર્ડનો ઉપયોગ કરતા હોય, તો \"ક્યારેક (✓)\" અને જો ક્યારેય ઉપયોગ ન કરતા હોય, તો \"ક્યારેય નહીં (✓)\" ની નિશાની કરો.", "(7) માહિતી ભરતી વખતે કોઈ પ્રશ્ન હોય તો સંશોધક અથવા શિક્ષકનો સંપર્ક કરશો.", "(8) આપના સાચા અને નિખાલસ સહકાર બદલ હાર્દિક આભાર"]};
+const APP_VERSION = "1.8";
+const BACKEND = "firebase";   // "claude" = Claude artifact database · "firebase" = own Firebase project (Play Store / installable app)
+const FB_VER = "10.12.2";
+const TARGET_N = 2000;
+/* School code = district letter + type + "S" + number, e.g. AGS01 = Ahmedabad Government School 01, AGIAS03, APS02, VTGS01, BPS05, NGIAS12 */
+const CODE_RE = /^(VT|A|B|N)(GIA|G|P)S(\d{2})$/;
+function parseCode(c){ const m = CODE_RE.exec(String(c || "").trim().toUpperCase()); if (!m) return null;
+  return {district:DISTRICTS.find(d => d.l === m[1]).id, type:STYPES.find(t => t.l === m[2]).n, dl:m[1], tl:m[2], no:Number(m[3])}; }
+const makeCode = (dl, tl, n) => `${dl}${tl}S${String(n).padStart(2, "0")}`;
+const codesInUse = () => [...new Set([...[...S.students.values()].map(r => r.SCHOOL_ID), ...S.schools.keys()])].filter(parseCode).sort();
+function schoolPicker(id, value, onchange){
+  const hid = h("input", {type:"hidden", id, value:""});
+  const dS = h("select", {"aria-label":"જિલ્લો", "data-p":"d"}, h("option", {value:""}, "જિલ્લો"), ...DISTRICTS.map(d => h("option", {value:d.l}, `${d.l} · ${d.gu}`)));
+  const tS = h("select", {"aria-label":"શાળાનો પ્રકાર", "data-p":"t"}, h("option", {value:""}, "પ્રકાર"), ...STYPES.map(t => h("option", {value:t.l}, `${t.l} · ${t.gu}`)));
+  const nS = h("select", {"aria-label":"શાળા નંબર", "data-p":"n"}, h("option", {value:""}, "નં."), ...Array.from({length:40}, (_, i) => h("option", {value:String(i + 1)}, String(i + 1).padStart(2, "0"))));
+  const out = h("b", {class:"code", id:id + "_code"}, "—");
+  const upd = fire => { const c = dS.value && tS.value && nS.value ? makeCode(dS.value, tS.value, nS.value) : ""; hid.value = c; out.textContent = c || "—"; if (fire && onchange) onchange(c); };
+  hid._set = c => { const p = parseCode(c); dS.value = p ? p.dl : ""; tS.value = p ? p.tl : ""; nS.value = p ? String(p.no) : ""; upd(false); };
+  [dS, tS, nS].forEach(e => e.onchange = () => upd(true));
+  hid._set(value);
+  return h("div", {class:"spick"}, h("div", {class:"spick3"}, dS, tS, nS), h("div", {class:"note"}, "શાળા કોડ: ", out), hid);
+}
+const SCALE = [{code:3, gu:"નિયમિત રીતે", en:"Regularly"}, {code:2, gu:"ક્યારેક", en:"Sometimes"}, {code:1, gu:"ક્યારેય નહીં", en:"Never"}]; // paper column order
+const INVALID = 98, NORESP = 99;
+const ITEMS = [], QS = [], TABLES = [];
+for (const s of SECTIONS) for (const q of (s.qs || [])) {
+  const obj = s.obj === "હેતુ 3" ? 3 : 2;
+  if (q.k === "table") { q.sec = s.id; q.obj = obj; TABLES.push(q); q.items.forEach(it => ITEMS.push(Object.assign(it, {sec:s.id, obj, head:q.head || s.title}))); }
+  else QS.push(Object.assign(q, {sec:s.id, obj}));
+}
+const ITEM = new Map(ITEMS.map(i => [i.v, i]));
+const secVars = id => { const out = []; const s = SECTIONS.find(x => x.id === id);
+  for (const q of (s.qs || [])) { if (q.k === "table") q.items.forEach(i => out.push(i.v)); else { out.push(...q.raw); if (q.oth) out.push(q.oth); } } return out; };
+const RAW2 = ["A", "B", "C"].flatMap(secVars), RAW3 = ["O3", "D"].flatMap(secVars);
+const RAW = RAW2.concat(RAW3);
+const RAW_NUM = new Set(RAW.filter(v => !/_OTH$/.test(v)));
+const CON_ITEMS = Object.fromEntries(CONSTRUCTS.map(c => [c.id, ITEMS.filter(i => i.c === c.id).map(i => i.v)]));
+const distOf = id => DISTRICTS.find(d => d.id === id);
+const typeOf = n => STYPES.find(t => t.n === Number(n));
+
+/* ====================== helpers ====================== */
+const $ = s => document.querySelector(s);
+const _app = Element.prototype.append;
+function add(el, ...k){ k.flat(Infinity).forEach(c => { if (c != null && c !== false) _app.call(el, c); }); return el; }
+function h(tag, attrs, ...kids){
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v === false || v == null) continue;
+    if (k === "class") e.className = v; else if (k === "text") e.textContent = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v === true ? "" : v);
+  }
+  kids.flat(Infinity).forEach(c => c != null && c !== false && add(e, c.nodeType ? c : document.createTextNode(String(c))));
+  return e;
+}
+const today = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+const nowIso = () => new Date().toISOString();
+const fmtTime = s => s ? new Date(s).toLocaleString("en-GB", {day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit"}) : "";
+const isEmpty = v => v === "" || v == null;
+const r2 = x => x === "" || x == null || !isFinite(x) ? "" : Math.round(x * 100) / 100;
+const pct = (a, b) => b ? Math.round(a / b * 1000) / 10 : "";
+function ask(text, opts){
+  opts = opts || {};
+  return new Promise(res => {
+    const inp = opts.input ? h("input", {type:"text", id:"dlgIn", autocomplete:"off", "aria-label":"પુષ્ટિ"}) : null;
+    const done = v => { ov.remove(); res(v); };
+    const ok = h("button", {class:"btn " + (opts.danger ? "danger" : "primary"), type:"button", onclick:() => done(inp ? inp.value : true)}, opts.okText || "હા, આગળ વધો");
+    const ov = h("div", {class:"ovl", role:"dialog", "aria-modal":"true"}, h("div", {class:"card dlg"}, h("p", {style:"white-space:pre-wrap;margin-top:0"}, text), inp,
+      h("div", {class:"chips", style:"justify-content:flex-end;margin-top:10px"}, h("button", {class:"btn", type:"button", onclick:() => done(inp ? null : false)}, "રદ કરો"), ok)));
+    ov.addEventListener("keydown", e => { if (e.key === "Escape") done(inp ? null : false); else if (e.key === "Enter" && inp) done(inp.value); });
+    document.body.append(ov); (inp || ok).focus();
+  });
+}
+const NAMES = new Map();
+const who = x => !x ? "" : NAMES.get(x) || (/^u_/.test(String(x)) ? "સભ્ય" : String(x));
+function say(text, kind, el){ const m = el || $("#msg"); if (!m) return; m.textContent = ""; add(m, ...[].concat(text)); m.className = "msg " + (kind || ""); m.hidden = false; }
+
+/* ====================== state & cloud ====================== */
+const S = {db:null, user:null, role:null, me:"", students:new Map(), second:new Map(), verify:new Map(), schools:new Map(), audit:[], pending:0, connected:false,
+           route:"", form:null, dl:null, userCap:null, fb:null, users:new Map(), peek:new Map(), peekTried:new Set()};
+const isAdmin = () => S.role === "admin";
+async function retry1(fn){ try { return await fn(); } catch (e) { if (e && e.code === "unavailable") { await new Promise(r => setTimeout(r, 400 + Math.random() * 900)); return fn(); } throw e; } }
+async function tracked(fn, label){
+  S.pending++; updateNet();
+  const slow = setTimeout(() => say(`${label}: ઇન્ટરનેટ ધીમું છે — રાહ જુઓ, પેજ બંધ ન કરો.`, "warn"), 6000);
+  try { return await retry1(fn); } finally { clearTimeout(slow); S.pending--; updateNet(); }
+}
+const put = (path, data) => tracked(() => S.db.doc(path).set(data), path);
+const del = path => tracked(() => S.db.doc(path).delete(), path);
+function audit(action, sid, changes, extra){
+  if (!S.db) return Promise.resolve();
+  const body = Object.assign({at:nowIso(), uid:S.me, action, sid:sid || "", n:(changes || []).length, changes:(changes || []).slice(0, 250)}, extra || {});
+  return retry1(() => S.db.collection("audit").add(body)).catch(e => console.warn("audit failed", e));
+}
+function updateNet(){
+  const p = $("#netPill"); if (!p) return; p.className = "pill";
+  if (!navigator.onLine) { p.textContent = "ઑફલાઇન — સેવ નહીં થાય"; p.classList.add("bad"); return; }
+  if (S.pending) { p.textContent = `સેવ થઈ રહ્યું… (${S.pending})`; p.classList.add("warn"); return; }
+  p.textContent = S.connected ? "✓ ક્લાઉડ જોડાયેલ" : "જોડાઈ રહ્યું…"; if (S.connected) p.classList.add("ok");
+}
+addEventListener("online", updateNet); addEventListener("offline", updateNet);
+
+async function boot(){
+  updateNet();
+  if (BACKEND === "firebase") return bootFirebase();
+  const cl = window.claude;
+  if (!cl || typeof cl.use !== "function") return fatal("આ ફોર્મ claude.ai ની લિંક પરથી ખોલો (Claude એપ અથવા બ્રાઉઝરમાં સાઇન-ઇન કરીને).");
+  const [db, user, dl] = await Promise.all([cl.use("db"), cl.use("user"), cl.use("downloads")]);
+  S.dl = dl; S.userCap = user;
+  if (!db) return fatal("ક્લાઉડ ડેટાબેઝ મળ્યો નહીં. claude.ai માં સાઇન-ઇન કરીને આ લિંક ફરી ખોલો. (સંશોધકે તમને આ ફોર્મ Share કર્યું હોવું જોઈએ.)");
+  const me = user ? await user.me() : {id:null, name:""};
+  const owner = user ? await user.isOwner() : false;
+  const canW = user ? await user.can("data.write") : null;
+  S.role = owner ? "admin" : (canW === false ? null : "entry");
+  S.me = me.id || "viewer"; S.user = me; if (me.id && me.name) NAMES.set(me.id, me.name);
+  if (!S.role) { const m = $("#main"); m.textContent = "";
+    add(m, h("div", {class:"card center"}, h("h2", {}, "ફક્ત જોવાની પરવાનગી"), h("p", {}, "ડેટા ભરવા માટે સંશોધકે તમને Share માં 'Contributor' તરીકે ઉમેરવા પડશે."))); return; }
+  S.db = db; startSubs(); renderShell(); route();
+}
+
+/* ====================== Firebase backend (installable app / Play Store) ====================== */
+const FB_COL = c => c === "users" ? "users" : "s23_" + c;
+function fbAdapter(F, fdb){
+  const ref = path => { const i = path.indexOf("/"); return F.doc(fdb, FB_COL(path.slice(0, i)), path.slice(i + 1)); };
+  const snap = sn => ({docs:sn.docs.map(x => ({id:x.id, data:() => x.data()})), metadata:sn.metadata || {}});
+  const q = (c, cons) => ({
+    where:(f, op, v) => q(c, cons.concat([F.where(f, op, v)])), orderBy:(f, d) => q(c, cons.concat([F.orderBy(f, d)])), limit:n => q(c, cons.concat([F.limit(n)])),
+    add:d => F.addDoc(F.collection(fdb, FB_COL(c)), d),
+    onSnapshot:(next, err) => F.onSnapshot(F.query(F.collection(fdb, FB_COL(c)), ...cons), {includeMetadataChanges:true}, sn => next(snap(sn)), err)});
+  return {doc:path => ({get:async () => { const x = await F.getDoc(ref(path)); return {id:x.id, exists:x.exists(), data:() => x.data()}; },
+                       set:d => F.setDoc(ref(path), d), delete:() => F.deleteDoc(ref(path))}),
+          collection:c => q(c, [])};
+}
+let meUnsub = null;
+async function bootFirebase(){
+  const c = window.FIREBASE_CONFIG || {};
+  const miss = ["apiKey", "authDomain", "projectId", "appId"].filter(k => !c[k] || /PASTE|YOUR_/i.test(String(c[k])));
+  if (miss.length) return fatal("ક્લાઉડ ગોઠવાયું નથી: firebase-config.js માં " + miss.join(", ") + " ભરો (સેટઅપ ગાઇડ પગલું 3).");
+  const base = `https://www.gstatic.com/firebasejs/${FB_VER}/`;
+  let A, U, F;
+  try { [A, U, F] = await Promise.all([import(base + "firebase-app.js"), import(base + "firebase-auth.js"), import(base + "firebase-firestore.js")]); }
+  catch (e) { return fatal("Firebase લોડ ન થયું — ઇન્ટરનેટ ચાલુ કરી એપ ફરી ખોલો."); }
+  const app = A.initializeApp(c); let fdb;
+  try { fdb = F.initializeFirestore(app, {localCache:F.persistentLocalCache({tabManager:F.persistentMultipleTabManager()})}); } catch (e) { fdb = F.getFirestore(app); }
+  S.fb = {A, U, F, app, fdb, auth:U.getAuth(app)};
+  U.onAuthStateChanged(S.fb.auth, u => {
+    stopSubs(); if (meUnsub) { meUnsub(); meUnsub = null; } S.role = null;
+    if (!u) return renderLogin();
+    S.me = u.uid;
+    meUnsub = F.onSnapshot(F.doc(fdb, "users", u.uid), async sn => {
+      const d = sn.exists() ? sn.data() : null;
+      if (!d) { try { await F.setDoc(F.doc(fdb, "users", u.uid), {uid:u.uid, email:u.email || "", name:(S.pendingName || u.email || "").trim(), role:"", requestedAt:nowIso()}); } catch (e) { renderPending(u, null, e); } return; }
+      const role = d.role === "admin" || d.role === "entry" ? d.role : null;
+      S.user = {id:u.uid, name:d.name || u.email, email:u.email}; NAMES.set(u.uid, S.user.name);
+      if (!role) { stopSubs(); S.role = null; return renderPending(u, d); }
+      if (role === S.role && S.db) return;
+      stopSubs(); S.role = role; S.db = fbAdapter(F, fdb); startSubs(); renderShell(); route();
+    }, e => renderPending(u, null, e));
+  });
+}
+function authMsg(e){ const c = (e && e.code) || "";
+  return /invalid-credential|wrong-password|user-not-found|invalid-email/.test(c) ? "ઇમેઇલ અથવા પાસવર્ડ ખોટો છે." : /email-already-in-use/.test(c) ? "આ ઇમેઇલથી ખાતું પહેલેથી છે — 'પ્રવેશ' કરો." :
+    /weak-password/.test(c) ? "પાસવર્ડ ઓછામાં ઓછા 6 અક્ષરનો રાખો." : /network/.test(c) ? "ઇન્ટરનેટ જોડાણ નથી." : /too-many/.test(c) ? "ઘણા પ્રયત્ન થયા — થોડી વાર પછી ફરી કરો." : "ન થયું: " + c; }
+function renderLogin(mode){
+  mode = mode || "in"; $("#tabs").hidden = true; $("#savebar").hidden = true; S.route = "";
+  const m = $("#main"); m.textContent = "";
+  const nm = h("input", {type:"text", id:"lgName", autocomplete:"name", placeholder:"તમારું નામ"});
+  const em = h("input", {type:"email", id:"lgEmail", autocomplete:"username", inputmode:"email"});
+  const pw = h("input", {type:"password", id:"lgPass", autocomplete:mode === "in" ? "current-password" : "new-password"});
+  const out = h("p", {class:"msg", hidden:true}); const btn = h("button", {class:"btn primary", type:"submit", style:"width:100%"}, mode === "in" ? "પ્રવેશ કરો" : "ખાતું બનાવો");
+  const U = S.fb.U, auth = S.fb.auth;
+  const f = h("form", {class:"card center", onsubmit:async e => {
+    e.preventDefault(); btn.disabled = true; out.hidden = true;
+    try {
+      if (mode === "in") await U.signInWithEmailAndPassword(auth, em.value.trim(), pw.value);
+      else { if (!nm.value.trim()) { btn.disabled = false; return say("નામ લખો.", "bad", out); } S.pendingName = nm.value.trim(); await U.createUserWithEmailAndPassword(auth, em.value.trim(), pw.value); }
+    } catch (er) { say(authMsg(er), "bad", out); } finally { btn.disabled = false; }
+  }}, h("h2", {}, "Chauhan Research"), h("p", {class:"note"}, "ધોરણ 8 ગણિત સંશોધન — વિદ્યાર્થી અનુસૂચિ (હેતુ 2 અને 3)"),
+    mode === "up" ? h("div", {class:"field"}, h("label", {for:"lgName"}, "નામ"), nm) : null,
+    h("div", {class:"field"}, h("label", {for:"lgEmail"}, "ઇમેઇલ"), em), h("div", {class:"field"}, h("label", {for:"lgPass"}, mode === "in" ? "પાસવર્ડ" : "નવો પાસવર્ડ (6+ અક્ષર)"), pw),
+    h("p", {}, btn), out,
+    h("p", {class:"note"}, mode === "in" ? ["નવા સભ્ય છો? ", h("a", {href:"#", onclick:e => { e.preventDefault(); renderLogin("up"); }}, "નવું ખાતું બનાવો"), " · ",
+      h("a", {href:"#", onclick:async e => { e.preventDefault(); if (!em.value.trim()) return say("ઉપર ઇમેઇલ લખો, પછી આ દબાવો.", "warn", out);
+        try { await U.sendPasswordResetEmail(auth, em.value.trim()); say("પાસવર્ડ બદલવાની લિંક ઇમેઇલ પર મોકલી છે.", "ok", out); } catch (er) { say(authMsg(er), "bad", out); } }}, "પાસવર્ડ ભૂલી ગયા")]
+      : ["ખાતું છે? ", h("a", {href:"#", onclick:e => { e.preventDefault(); renderLogin("in"); }}, "પ્રવેશ કરો")]),
+    h("p", {class:"note"}, h("a", {href:"privacy.html", target:"_blank", rel:"noopener"}, "ગોપનીયતા નીતિ / Privacy policy")));
+  add(m, f);
+}
+function renderPending(u, d, err){
+  $("#tabs").hidden = true; $("#savebar").hidden = true; S.route = "";
+  const m = $("#main"); m.textContent = "";
+  add(m, h("div", {class:"card center"}, h("h2", {}, "મંજૂરીની રાહ"), h("p", {}, "ખાતું બન્યું છે: ", h("b", {}, u.email || "")),
+    h("p", {}, "સંશોધક (એડમિન) એપના 'એડમિન → ટીમ સભ્યો' માં તમને મંજૂરી આપે પછી આ સ્ક્રીન આપમેળે ખૂલી જશે."),
+    err ? h("p", {class:"msg bad"}, "ક્લાઉડ સાથે જોડાણ ન થયું: " + (err.code || err.message)) : null,
+    h("button", {class:"btn", type:"button", onclick:() => S.fb.U.signOut(S.fb.auth)}, "બહાર નીકળો")));
+}
+function stopSubs(){ subs.forEach(u => { try { u(); } catch {} }); subs = []; S.db = null; S.connected = false;
+  ["students", "second", "verify", "schools", "users"].forEach(k => S[k] = new Map()); S.audit = []; S.peek = new Map(); S.peekTried = new Set(); DERIVED = null; }
+async function allocId(sid){
+  if (BACKEND !== "firebase") {
+    let id = nextId(sid);
+    for (let k = 0; k < 8; k++) { const x = await S.db.doc("students/" + id).get(); if (!x.exists) break; id = sid + "-" + String(Number(id.split("-")[1]) + 1).padStart(3, "0"); }
+    return id;
+  }
+  if (!navigator.onLine) throw {code:"offline", message:"ID માટે ઇન્ટરનેટ જરૂરી છે"};
+  const {F, fdb} = S.fb; const ref = F.doc(fdb, FB_COL("counters"), sid);
+  const n = await F.runTransaction(fdb, async tx => { const x = await tx.get(ref); const cur = x.exists() ? (x.data().n || 0) : 0; tx.set(ref, {n:cur + 1, at:nowIso(), by:S.me}); return cur + 1; });
+  return sid + "-" + String(n).padStart(3, "0");
+}
+async function predictId(sid){
+  if (BACKEND !== "firebase") return nextId(sid);
+  try { const x = await S.db.doc("counters/" + sid).get(); return sid + "-" + String((x.exists ? (x.data().n || 0) : 0) + 1).padStart(3, "0"); } catch { return sid + "-…"; }
+}
+function fatal(t){ const m = $("#main"); m.textContent = ""; add(m, h("p", {class:"msg bad"}, t)); }
+let subs = [];
+function startSubs(){
+  const watch = (col, key, opt) => {
+    let q = S.db.collection(col); if (opt) q = opt(q);
+    subs.push(q.onSnapshot(sn => {
+      if (key === "audit") S.audit = sn.docs.map(d => Object.assign({_id:d.id}, d.data()));
+      else S[key] = new Map(sn.docs.map(d => [d.id, Object.assign({}, d.data())]));
+      if (key === "students") { S.connected = BACKEND === "firebase" ? (!(sn.metadata && sn.metadata.fromCache) || S.connected) : true; updateNet(); resolveNames(); }
+      if (key === "users") S.users.forEach((u, id) => u.name && NAMES.set(id, u.name));
+      DERIVED = null; refreshView();
+    }, e => { console.warn(col, e); if (key === "students") say("ક્લાઉડ ડેટા વાંચી શકાયો નહીં: " + (e.code || e.message), "bad"); }));
+  };
+  const own = BACKEND === "firebase" && !isAdmin();
+  watch("students", "students", own ? q => q.where("_createdBy", "==", S.me) : null);
+  watch("second", "second", own ? q => q.where("_createdBy", "==", S.me) : null);
+  watch("verify", "verify", own ? q => q.where("owner", "==", S.me) : null);
+  watch("schools", "schools");
+  if (isAdmin()) watch("audit", "audit", q => q.orderBy("at", "desc").limit(300));
+  if (isAdmin() && BACKEND === "firebase") watch("users", "users");
+  setTimeout(() => { if (!S.connected) say("ક્લાઉડ ડેટા હજી પહોંચ્યો નથી — ઇન્ટરનેટ તપાસો. જોડાણ આવતાં આપમેળે દેખાશે.", "warn"); }, 10000);
+}
+let nameTimer = null;
+function resolveNames(){
+  if (!S.userCap) return; clearTimeout(nameTimer);
+  nameTimer = setTimeout(async () => {
+    const ids = new Set();
+    for (const r of S.students.values()) ["_updatedBy", "_createdBy"].forEach(k => r[k] && /^u_/.test(r[k]) && ids.add(r[k]));
+    for (const v of S.verify.values()) v.by && /^u_/.test(v.by) && ids.add(v.by);
+    S.audit.forEach(a => a.uid && /^u_/.test(a.uid) && ids.add(a.uid));
+    const need = [...ids].filter(i => !NAMES.has(i)); if (!need.length) return;
+    try { const ps = await S.userCap.profiles(need); let got = false; for (const i of need) if (ps[i] && ps[i].name) { NAMES.set(i, ps[i].name); got = true; } if (got) refreshView(); } catch {}
+  }, 400);
+}
+let refreshTimer = null;
+const LIVE = new Set(["dash", "list", "check", "analysis", "codebook", "admin"]);
+function refreshView(){
+  clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(() => {
+    if (S.route === "form" || S.route === "second") return formMeta();
+    if (S.route === "fast") return $("#fx_s") ? FX.meta() : route(true);
+    if (LIVE.has(S.route)) return route(true);
+    const m = $("#main"); if (!m || $("#staleNote")) return;
+    m.prepend(h("p", {class:"msg warn", id:"staleNote"}, "ક્લાઉડમાં નવો ફેરફાર આવ્યો છે. ", h("button", {class:"btn small", type:"button", onclick:() => route(true)}, "તાજું કરો")));
+  }, 200);
+}
+
+/* ====================== derived record (school master + clean codes) ====================== */
+const school = sid => { const p = parseCode(sid); return Object.assign({}, S.schools.get(sid) || {}, p ? {district:p.district, type:p.type} : {}); };
+function isVerified(id){ const r = S.students.get(id), v = S.verify.get(id); return !!(r && v && v.version === r._version); }
+function answeredChoice(r, q){ return q.raw.some(v => r[v] === 1) || (q.oth && !isEmpty(r[q.oth])); }
+function cleanRow(r){
+  const c = {};
+  c.GENDER = r.GENDER === 1 || r.GENDER === 2 ? r.GENDER : NORESP;
+  for (const it of ITEMS) c[it.v] = [1, 2, 3].includes(r[it.v]) ? r[it.v] : NORESP;
+  for (const q of QS) {
+    if (q.k === "rank") {
+      const vals = q.raw.map(v => r[v]); const any = vals.some(x => !isEmpty(x));
+      const ok = any && vals.slice().sort().join() === "1,2,3,4";
+      q.raw.forEach((v, i) => { c[v] = !any ? NORESP : ok ? vals[i] : INVALID; });
+    } else if (q.clean === "multi") {
+      const ans = answeredChoice(r, q); q.raw.forEach(v => { c[v] = ans ? (r[v] === 1 ? 1 : 0) : NORESP; });
+    } else {
+      const ticks = q.raw.map((v, i) => r[v] === 1 ? i + 1 : 0).filter(Boolean);
+      c[q.v] = ticks.length === 1 ? ticks[0] : ticks.length > 1 ? INVALID : NORESP;
+      q.raw.forEach(v => { c[v] = isEmpty(r[v]) ? "" : r[v]; });
+    }
+    if (q.oth) c[q.oth] = r[q.oth] || "";
+  }
+  for (const con of CONSTRUCTS) {
+    const xs = CON_ITEMS[con.id].map(v => c[v]).filter(x => x >= 1 && x <= 3);
+    c[con.id] = xs.length >= 0.8 * CON_ITEMS[con.id].length ? r2(xs.reduce((a, b) => a + b, 0) / xs.length) : "";
+  }
+  return c;
+}
+function units(r){
+  const u = [{key:"GENDER", label:"જાતિ", ok:!isEmpty(r.GENDER), sec:"info"}];
+  for (const it of ITEMS) u.push({key:it.v, label:`${SECTIONS.find(s => s.id === it.sec).obj} ${it.sec === "O3" ? "મૂલ્યાંકન" : it.sec}-${it.no}`, ok:!isEmpty(r[it.v]), sec:it.sec});
+  for (const q of QS) u.push({key:q.v, label:`${q.obj === 3 ? "હેતુ 3" : "C"} ${q.no}${q.sub ? " " + q.sub : ""}`, ok:q.k === "rank" ? q.raw.some(v => !isEmpty(r[v])) : answeredChoice(r, q), sec:q.sec});
+  return u;
+}
+let DERIVED = null;
+function derived(){
+  if (DERIVED) return DERIVED;
+  const rolls = new Map();
+  for (const r of S.students.values()) if (!isEmpty(r.ROLL_NO)) { const k = r.SCHOOL_ID + "|" + String(r.ROLL_NO).trim(); rolls.set(k, (rolls.get(k) || []).concat(r.STUDENT_ID)); }
+  const out = new Map();
+  for (const [id, r] of S.students) {
+    const sc = school(r.SCHOOL_ID); const us = units(r); const miss = us.filter(u => !u.ok);
+    const ver = isVerified(id);
+    const d = {id, r, sc, district:sc.district || "", stype:sc.type || "", clean:cleanRow(r), missing:miss, answered:us.length - miss.length, total:us.length,
+               entry:miss.length ? "Incomplete" : "Complete", verified:ver, vby:ver ? S.verify.get(id).by : "", vat:ver ? S.verify.get(id).at : ""};
+    d.status = ver ? 3 : miss.length ? 1 : 2;
+    d.issues = validate(d, rolls);
+    out.set(id, d);
+  }
+  DERIVED = out; return out;
+}
+function validate(d, rolls){
+  const r = d.r, c = d.clean, I = [];
+  const add = (lvl, code, t) => I.push({lvl, code, t});
+  if (!parseCode(r.SCHOOL_ID)) add("err", "V02", `શાળા કોડ ${r.SCHOOL_ID || "?"} અમાન્ય (દા.ત. AGS01)`);
+  if (isEmpty(r.GENDER)) add("warn", "V04", "જાતિ ખાલી");
+  for (const it of ITEMS) if (!isEmpty(r[it.v]) && ![1, 2, 3].includes(r[it.v])) add("err", "V05", `${it.v}: અમાન્ય મૂલ્ય ${r[it.v]}`);
+  for (const q of QS) {
+    const lab = `${q.obj === 3 ? "હેતુ 3" : "C"} ${q.no}${q.sub ? " (" + q.sub + ")" : ""}`;
+    if (q.k === "rank") { if (q.raw.some(v => c[v] === INVALID)) add("warn", "V07", `${lab}: ક્રમ 1–4 એક-એક વાર નથી → 98`); continue; }
+    if (q.clean === "single" && c[q.v] === INVALID) add("warn", "V06", `${lab}: એકથી વધુ ✓ → 98`);
+    if (q.oth) { const oi = q.raw[q.raw.length - 1]; const txt = !isEmpty(r[q.oth]);
+      if (txt && r[oi] !== 1) add("warn", "V08", `${lab}: 'અન્ય' લખાણ છે પણ ✓ નથી`); if (!txt && r[oi] === 1) add("info", "V08", `${lab}: 'અન્ય' ✓ છે પણ લખાણ નથી`); }
+  }
+  if (d.missing.length) add("info", "V09", `${d.missing.length} ખાલી: ${d.missing.slice(0, 8).map(u => u.label).join(", ")}${d.missing.length > 8 ? "…" : ""}`);
+  const vals = ITEMS.map(i => r[i.v]).filter(x => !isEmpty(x));
+  if (vals.length === ITEMS.length && new Set(vals).size === 1) add("warn", "V10", `બધાં ${ITEMS.length} વિધાનમાં એક જ જવાબ — પેપર ફરી જુઓ`);
+  if (!isEmpty(r.ROLL_NO)) { const dup = rolls.get(r.SCHOOL_ID + "|" + String(r.ROLL_NO).trim()) || []; if (dup.length > 1) add("warn", "V11", `એ જ શાળા + રોલ નંબર બીજા ID માં: ${dup.filter(x => x !== r.STUDENT_ID).join(", ")}`); }
+  if (d.verified && (S.verify.get(d.id).by === r._updatedBy)) add("info", "V14", "છેલ્લો ફેરફાર કરનાર અને ચકાસનાર એક જ વ્યક્તિ");
+  return I;
+}
+
+/* ====================== shell & routing ====================== */
+const TABS = [["dash", "ડેશબોર્ડ"], ["fast", "⚡ ઝડપી એન્ટ્રી"], ["list", "વિદ્યાર્થી યાદી"], ["check", "ચકાસણી"], ["analysis", "વિશ્લેષણ"], ["schools", "શાળા કોડ"],
+              ["codebook", "કોડબુક"], ["admin", "એડમિન"]];
+function renderShell(){
+  const t = $("#tabs"); t.textContent = ""; t.hidden = false;
+  TABS.forEach(([k, l]) => { if (k === "admin" && !isAdmin()) return; add(t, h("a", {href:"#" + k, "data-k":k}, l)); });
+  add(t, h("span", {class:"pill", style:"align-self:center"}, (S.user.name || "તમે") + (isAdmin() ? " · એડમિન" : " · ડેટા એન્ટ્રી")));
+  if (BACKEND === "firebase") add(t, h("a", {href:"./teacher.html", style:"background:var(--soft)"}, "👩‍🏫 શિક્ષક ફોર્મ →"));
+  if (BACKEND === "firebase") add(t, h("a", {href:"./test.html", style:"background:var(--soft)"}, "📝 સિદ્ધિ કસોટી →"));
+  if (BACKEND === "firebase") add(t, h("a", {href:"./anxiety.html", style:"background:var(--soft)"}, "😟 ચિંતા માપદંડ →"));
+  if (BACKEND === "firebase") add(t, h("a", {href:"#", onclick:async e => { e.preventDefault();
+    if ((S.form && S.form.dirty) || FX.dirty()) { if (!(await ask("સેવ ન થયેલ જવાબ છે (આ ફોન પર સચવાયેલા રહેશે). છતાં બહાર નીકળવું છે?"))) return; }
+    S.fb.U.signOut(S.fb.auth); }}, "બહાર નીકળો"));
+}
+addEventListener("hashchange", () => route());
+addEventListener("beforeunload", e => { if ((S.form && S.form.dirty) || S.pending || (S.route === "fast" && FX.dirty())) { e.preventDefault(); e.returnValue = ""; } });
+async function route(soft){
+  if (!S.role) return;
+  const hash = location.hash.slice(1) || (isAdmin() ? "dash" : "fast");
+  const cut = hash.indexOf("-"); const name = cut < 0 ? hash : hash.slice(0, cut); const arg = cut < 0 ? "" : hash.slice(cut + 1);
+  if ((S.route === "form" || S.route === "second") && S.form && S.form.dirty && !soft && !(name === S.route && arg === S.form.id)) {
+    const back = `#${S.route}-${S.form.id}`; const target = location.hash;
+    history.replaceState(null, "", back);
+    if (!(await ask("આ ફોર્મમાં સેવ ન થયેલ ફેરફાર છે (ડ્રાફ્ટ આ ઉપકરણ પર સચવાયો છે). છોડીને આગળ જવું છે?"))) return;
+    S.form.dirty = false; history.replaceState(null, "", target);
+  }
+  if (S.route === "fast" && name !== "fast" && !soft && FX.dirty()) {
+    const target = location.hash; history.replaceState(null, "", "#fast");
+    if (!(await ask("આ વિદ્યાર્થીના જવાબ હજી સેવ થયા નથી (આ ઉપકરણ પર સચવાયેલા છે). છોડીને આગળ જવું છે?"))) return;
+    history.replaceState(null, "", target);
+  }
+  if (soft && name === "fast" && S.route === "fast" && $("#fx_s")) return FX.meta();
+  if (soft && (name === "form" || name === "second") && name === S.route) return;
+  S.route = name;
+  document.querySelectorAll("#tabs a").forEach(a => a.classList.toggle("on", a.dataset.k === name));
+  $("#savebar").hidden = !(name === "form" || name === "second");
+  const m = $("#main"); const keep = soft ? scrollY : 0;
+  m.textContent = ""; add(m, h("p", {class:"msg", id:"msg", hidden:true}));
+  const R = {dash:viewDash, reg:viewReg, fast:viewFast, list:viewList, form:() => viewForm(arg, false), second:() => viewForm(arg, true), check:viewCheck, analysis:viewAnalysis,
+             schools:viewSchools, codebook:viewCodebook, admin:() => isAdmin() ? viewAdmin() : viewDash()}[name] || viewDash;
+  R();
+  if (soft) scrollTo(0, keep);
+}
+const badge = d => d.verified ? h("span", {class:"badge b-ok"}, "ચકાસાયેલ 🔒") : d.entry === "Complete" ? h("span", {class:"badge b-info"}, "Complete") : h("span", {class:"badge b-warn"}, "અધૂરું");
+const schoolLabel = sid => { const s = school(sid); return sid + (s.name ? " · " + s.name : ""); };
+
+/* ====================== DASHBOARD ====================== */
+function countBy(list, f){ const m = new Map(); list.forEach(d => { const k = f(d); m.set(k, (m.get(k) || 0) + 1); }); return m; }
+function viewDash(){
+  const m = $("#main"); const D = [...derived().values()];
+  const n = D.length, comp = D.filter(d => d.entry === "Complete").length, ver = D.filter(d => d.verified).length;
+  const warn = D.filter(d => d.issues.some(i => i.lvl !== "info")).length;
+  add(m, h("div", {class:"card"}, h("h2", {}, BACKEND === "firebase" && !isAdmin() ? "તમે ભરેલા વિદ્યાર્થી" : "ડેટા એન્ટ્રી પ્રગતિ"),
+    h("div", {class:"stats"},
+      ...[["નોંધાયેલ વિદ્યાર્થી", n, `લક્ષ્ય આશરે ${TARGET_N}`], ["સંપૂર્ણ ભરાયેલ", comp, pct(comp, n) + "%"], ["અધૂરા", n - comp, ""], ["ચકાસાયેલ (લૉક)", ver, pct(ver, n) + "%"],
+          ["ચેતવણીવાળા", warn, "ચકાસણી ટૅબ જુઓ"], ["બીજી એન્ટ્રી", [...S.second.keys()].filter(k => S.students.has(k)).length, `ભલામણ ≥ ${Math.ceil(n * 0.1)}`]]
+        .map(([a, b, c]) => h("div", {class:"stat"}, h("b", {}, String(b)), h("span", {}, a), c ? h("div", {class:"note"}, c) : null))),
+    h("div", {class:"progress", title:"ચકાસાયેલ / લક્ષ્ય"}, h("i", {style:`width:${Math.min(100, ver / TARGET_N * 100)}%`})),
+    h("p", {class:"note"}, `ચકાસાયેલ ${ver} / ${TARGET_N}. નવો વિદ્યાર્થી ઉમેરવા '⚡ ઝડપી એન્ટ્રી' ટૅબ ખોલો.`)));
+  const grp = (title, keys, f, lab) => {
+    const rows = keys.map(k => { const L = D.filter(d => f(d) === k);
+      return h("tr", {}, h("td", {}, lab(k)), ...[L.length, L.filter(d => d.entry === "Complete").length, L.filter(d => d.verified).length, L.filter(d => d.r.GENDER === 1).length, L.filter(d => d.r.GENDER === 2).length].map(x => h("td", {class:"num"}, String(x)))); });
+    return h("div", {class:"card"}, h("h2", {}, title), h("div", {class:"scroll"}, h("table", {class:"t"}, h("tr", {}, h("th", {}, ""), ...["નોંધાયેલ", "સંપૂર્ણ", "ચકાસાયેલ", "કુમાર", "કન્યા"].map(x => h("th", {class:"num"}, x))), ...rows)));
+  };
+  add(m, grp("જિલ્લાવાર", DISTRICTS.map(d => d.id).concat([""]), d => d.district, k => k ? distOf(k).gu + " (" + k + ")" : "જિલ્લો નક્કી નથી"));
+  add(m, grp("શાળાના પ્રકાર મુજબ", STYPES.map(t => t.n).concat([""]), d => d.stype || "", k => k ? typeOf(k).gu : "પ્રકાર નક્કી નથી"));
+  const bySchool = countBy(D, d => d.r.SCHOOL_ID);
+  const sRows = codesInUse().map(s => { const L = D.filter(d => d.r.SCHOOL_ID === s); const sc = school(s);
+    return h("tr", {}, h("td", {}, h("a", {href:"#list", onclick:() => { LF.s = s; }}, schoolLabel(s))), h("td", {}, sc.district ? distOf(sc.district)?.gu : "—"), h("td", {}, sc.type ? typeOf(sc.type)?.gu : "—"),
+      h("td", {class:"num"}, sc.expected ? String(sc.expected) : ""), h("td", {class:"num"}, String(L.length)), h("td", {class:"num"}, String(L.filter(d => d.verified).length))); });
+  add(m, h("div", {class:"card"}, h("h2", {}, "શાળાવાર"), sRows.length ? h("div", {class:"scroll"}, h("table", {class:"t"},
+    h("tr", {}, ...["શાળા", "જિલ્લો", "પ્રકાર", "અપેક્ષિત", "નોંધાયેલ", "ચકાસાયેલ"].map((x, i) => h("th", {class:i > 2 ? "num" : ""}, x))), ...sRows)) :
+    h("p", {class:"note"}, "હજી કોઈ શાળાનો ડેટા નથી.")));
+  const byUser = countBy(D, d => d.r._createdBy);
+  add(m, h("div", {class:"card"}, h("h2", {}, "કોણે કેટલા ભર્યા"), h("table", {class:"t"}, h("tr", {}, h("th", {}, "વ્યક્તિ"), h("th", {class:"num"}, "નોંધાયેલ")),
+    ...[...byUser].sort((a, b) => b[1] - a[1]).map(([u, c]) => h("tr", {}, h("td", {}, who(u) || "—"), h("td", {class:"num"}, String(c)))))));
+}
+
+/* ====================== REGISTRATION ====================== */
+function nextId(sid){
+  let mx = 0; for (const id of S.students.keys()) if (id.startsWith(sid + "-")) mx = Math.max(mx, Number(id.split("-")[1]) || 0);
+  return sid + "-" + String(mx + 1).padStart(3, "0");
+}
+const RG = {d:"", s:"", date:""};
+function viewReg(){
+  const m = $("#main");
+  const info = h("div", {class:"note", id:"rg_info"});
+  const showInfo = () => { const c = $("#rg_s") ? $("#rg_s").value : RG.s; const s = school(c); info.textContent = c ? `જિલ્લો: ${distOf(s.district).gu} · પ્રકાર: ${typeOf(s.type).gu} · નવું ID: ${nextId(c)}` : ""; };
+  const picker = schoolPicker("rg_s", RG.s, c => { RG.s = c; showInfo(); });
+  const sSel = picker.querySelector("#rg_s");
+  const g = h("div", {class:"chips", role:"radiogroup", "aria-label":"જાતિ"}, ...[[1, "કુમાર"], [2, "કન્યા"]].map(([v, l]) => h("label", {class:"chip"}, h("input", {type:"radio", name:"rg_g", value:String(v)}), h("span", {}, l))));
+  const roll = h("input", {type:"text", id:"rg_roll", inputmode:"numeric", placeholder:"વૈકલ્પિક — ફક્ત પેપર શોધવા માટે"});
+  const date = h("input", {type:"date", id:"rg_date", value:RG.date || today()});
+  const btn = h("button", {class:"btn primary", type:"button", id:"rg_go", onclick:register}, "નોંધણી કરો અને ફોર્મ ખોલો");
+  add(m, h("div", {class:"card"}, h("h2", {}, "નવા વિદ્યાર્થીની નોંધણી (Student Master)"),
+    h("p", {class:"note"}, "વિદ્યાર્થીનું નામ ભરવાનું નથી. નોંધણી પછી મળતું ID પેપર (હેતુ 2-3) પર અને એ જ વિદ્યાર્થીના હેતુ 4 અને 6 ના પેપર પર લખો."),
+    h("div", {class:"grid2"}, h("div", {class:"field"}, h("span", {class:"lbl"}, "શાળા કોડ * (જિલ્લો · પ્રકાર · નંબર)"), picker),
+      h("div", {class:"field"}, h("span", {class:"lbl"}, "જાતિ (પ્રશ્ન 6)"), g), h("div", {class:"field"}, h("label", {for:"rg_roll"}, "રોલ નંબર (ખાનગી, નિકાસમાં નહીં)"), roll),
+      h("div", {class:"field"}, h("label", {for:"rg_date"}, "માહિતી એકત્રીકરણ તારીખ"), date)), info, h("p", {}, btn)));
+  showInfo();
+  async function register(){
+    const sid = sSel.value; if (!sid) return say("શાળા પસંદ કરો.", "bad");
+    const gv = m.querySelector("input[name=rg_g]:checked"); const rn = roll.value.trim();
+    if (rn) { const dup = [...S.students.values()].find(r => r.SCHOOL_ID === sid && String(r.ROLL_NO || "").trim() === rn);
+      if (dup && !(await ask(`${sid} માં રોલ નંબર ${rn} પહેલેથી ${dup.STUDENT_ID} તરીકે નોંધાયેલ છે. છતાં નવી નોંધણી કરવી છે?`))) return; }
+    btn.disabled = true;
+    try {
+      const id = await allocId(sid);
+      const rec = {STUDENT_ID:id, SCHOOL_ID:sid, STANDARD:8, GENDER:gv ? Number(gv.value) : null, ROLL_NO:rn, COLLECTION_DATE:date.value || "", ENTRY_NOTE:"",
+                   _createdAt:nowIso(), _createdBy:S.me, _updatedAt:nowIso(), _updatedBy:S.me, _version:1};
+      Object.keys(rec).forEach(k => rec[k] === null && delete rec[k]);
+      await put("students/" + id, rec); S.students.set(id, rec); DERIVED = null;
+      audit("create", id, [{v:"SCHOOL_ID", o:"", n:sid}]); RG.date = date.value;
+      S.newId = id; location.hash = "#form-" + id;
+    } catch (e) { say("નોંધણી ન થઈ: " + (e.code || e.message), "bad"); btn.disabled = false; }
+  }
+}
+
+/* ====================== FAST ENTRY (one paper ≈ 1 minute, one thumb) ====================== */
+const STEPS = [{k:"gender", grp:"જાતિ", lab:"સામાન્ય માહિતી (6)", text:"જાતિ"}];
+for (const s of SECTIONS) for (const q of (s.qs || [])) {
+  if (q.k === "table") q.items.forEach(it => { const grp = s.id === "O3" ? "મૂલ્યાંકન" : s.id === "B" ? (it.v.startsWith("O2_B1") ? "B-1" : "B-2") : s.id;
+    STEPS.push({k:"rate", grp, v:it.v, lab:`${s.obj} · ${grp === "મૂલ્યાંકન" ? "મૂલ્યાંકન વિધાન" : "વિભાગ " + grp} · ${it.no}`, text:it.gu}); });
+  else if (q.k === "rank") q.items.forEach((it, i) => STEPS.push({k:"rank", grp:"C", q, i, lab:`હેતુ 2 · C ${q.no} · ક્રમ`, text:it, sub:q.q}));
+  else STEPS.push({k:"choice", grp:s.id === "D" ? "હેતુ 3 પ્ર." : "C", q, lab:`${s.obj} · ${s.id === "D" ? "" : "C "}${q.no}`, text:[q.q, q.sub].filter(Boolean).join(" — ")});
+}
+const FX = {i:0, d:{}, multi:false, t0:0, saved:null,
+  dirty(){ return Object.keys(this.d).some(k => !isEmpty(this.d[k])); },
+  pred:"", async meta(){ const o = $("#fx_next"); if (!o) return; const sid = $("#fx_s").value; if (!sid) { o.textContent = "—"; this.pred = ""; return; }
+    const p = await predictId(sid); if ($("#fx_s") && $("#fx_s").value === sid) { this.pred = p; o.textContent = p; } }};
+const FKEY = "s23_fast_draft", PKEY = "s23_fast_prefs";
+const lsGet = k => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch { return null; } };
+const lsSet = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+const fxKeep = () => lsSet(FKEY, FX.dirty() ? {d:FX.d, i:FX.i, t0:FX.t0} : null);
+function stepFilled(st){
+  const d = FX.d;
+  if (st.k === "gender") return !isEmpty(d.GENDER);
+  if (st.k === "rate") return !isEmpty(d[st.v]);
+  if (st.k === "rank") return !isEmpty(d[st.q.raw[st.i]]);
+  return st.q.raw.some(v => d[v] === 1) || (st.q.oth && !isEmpty(d[st.q.oth]));
+}
+function stepText(st){
+  const d = FX.d;
+  if (st.k === "gender") return isEmpty(d.GENDER) ? "·" : String(d.GENDER);
+  if (st.k === "rate") return isEmpty(d[st.v]) ? "·" : String(d[st.v]);           // the code itself: 3 નિયમિત, 2 ક્યારેક, 1 ક્યારેય નહીં
+  if (st.k === "rank") { const x = d[st.q.raw[st.i]]; return isEmpty(x) ? "·" : String(x); }
+  const t = st.q.raw.map((v, j) => d[v] === 1 ? j + 1 : 0).filter(Boolean); return t.length ? t.join("+") : "·";
+}
+function stepWarn(st){
+  if (st.k === "choice") return st.q.clean === "single" && st.q.raw.filter(v => FX.d[v] === 1).length > 1;
+  if (st.k === "rank") { const xs = st.q.raw.map(v => FX.d[v]); return xs.every(x => !isEmpty(x)) && xs.slice().sort().join() !== "1,2,3,4"; }
+  return false;
+}
+function setChoice(q, idx, toggle){
+  const cur = q.raw.map(v => FX.d[v] === 1);
+  if (toggle) cur[idx] = !cur[idx]; else { cur.fill(false); cur[idx] = true; }
+  const any = cur.some(Boolean) || (q.oth && !isEmpty(FX.d[q.oth]));
+  q.raw.forEach((v, j) => { FX.d[v] = any ? (cur[j] ? 1 : 0) : null; });
+}
+function clearStep(st){
+  if (st.k === "gender") FX.d.GENDER = null; else if (st.k === "rate") FX.d[st.v] = null; else if (st.k === "rank") FX.d[st.q.raw[st.i]] = null;
+  else { st.q.raw.forEach(v => FX.d[v] = null); if (st.q.oth) FX.d[st.q.oth] = null; }
+}
+function fxGo(i){ FX.i = Math.max(0, Math.min(STEPS.length, i)); FX.multi = false; fxRender(); }
+function fxTap(idx){
+  const st = STEPS[FX.i]; if (!st) return;
+  if (!FX.t0) FX.t0 = Date.now();
+  if (st.k === "gender") { FX.d.GENDER = idx + 1; return fxNext(); }
+  if (st.k === "rate") { FX.d[st.v] = SCALE[idx].code; return fxNext(); }
+  if (st.k === "rank") { FX.d[st.q.raw[st.i]] = idx + 1; return fxNext(); }
+  const q = st.q; const isOth = q.oth && idx === q.raw.length - 1;
+  const toggle = q.clean === "multi" || FX.multi;
+  setChoice(q, idx, toggle);
+  if (toggle || isOth) { fxRender(); if (isOth && FX.d[q.raw[idx]] === 1) setTimeout(() => $("#fx_oth") && $("#fx_oth").focus(), 30); return; }
+  fxNext();
+}
+function fxNext(){ fxKeep(); fxGo(FX.i + 1); }
+function keyBtn(n, label, on, onclick){ return h("button", {type:"button", class:"key" + (on ? " on" : ""), onclick, "data-k":String(n)}, h("b", {}, String(n)), h("span", {}, label)); }
+function fxRender(){
+  const box = $("#fxStep"); if (!box) return; box.textContent = "";
+  const st = STEPS[FX.i];
+  const filled = STEPS.filter(stepFilled).length;
+  $("#fxProg").style.width = (filled / STEPS.length * 100) + "%";
+  $("#fxCount").textContent = `${filled}/${STEPS.length} ભર્યા`;
+  if (!st) {
+    const blanks = STEPS.filter(x => !stepFilled(x)).length, warns = STEPS.filter(stepWarn).length;
+    add(box, h("div", {class:"slab"}, "અંત"), h("div", {class:"stext"}, blanks ? `${blanks} ખાના ખાલી છે (પીળી પટ્ટીમાં '·'). પેપર પર પણ ખાલી હોય તો જ સેવ કરો.` : "બધા પ્રશ્ન ભરાયા. નીચેની પટ્ટી પેપર સાથે એક નજર મેળવી સેવ કરો."),
+      warns ? h("p", {class:"qwarn"}, `⚠ ${warns} પ્રશ્નમાં એકથી વધુ ✓ / ક્રમ ભૂલ — પેપર મુજબ હોય તો બરાબર (98 તરીકે ગણાશે).`) : null,
+      h("button", {type:"button", class:"btn primary", style:"width:100%;min-height:60px;font-size:1.1rem", id:"fx_save2", onclick:fxSave}, "✓ સેવ કરો અને આગળનો વિદ્યાર્થી"));
+  } else {
+    add(box, h("div", {class:"slab"}, `${st.lab}`), st.sub ? h("div", {class:"qhint"}, st.sub) : null, h("div", {class:"stext"}, st.text));
+    if (st.k === "gender") add(box, h("div", {class:"keys", style:"grid-template-columns:1fr 1fr"}, ...[["કુમાર", 1], ["કન્યા", 2]].map(([l, n], i) => keyBtn(n, l, FX.d.GENDER === n, () => fxTap(i)))));
+    else if (st.k === "rate") add(box, h("div", {class:"keys"}, ...SCALE.map((s, i) => keyBtn(s.code, s.gu, FX.d[st.v] === s.code, () => fxTap(i)))));
+    else if (st.k === "rank") add(box, h("div", {class:"keys", style:"grid-template-columns:repeat(4,1fr)"}, ...[1, 2, 3, 4].map((n, i) => keyBtn(n, n === 1 ? "સૌથી વધુ" : n === 4 ? "સૌથી ઓછું" : "", FX.d[st.q.raw[st.i]] === n, () => fxTap(i)))));
+    else {
+      const q = st.q;
+      add(box, h("div", {class:"qhint", style:"margin-bottom:6px"}, q.clean === "multi" ? "એકથી વધુ પસંદ કરી શકાય — પસંદ કરી 'આગળ ▶' દબાવો." : "એક વિકલ્પ દબાવો — આપમેળે આગળ જશે."),
+        h("div", {class:"keys list"}, ...q.opts.map((o, i) => keyBtn(i + 1, o, FX.d[q.raw[i]] === 1, () => fxTap(i)))));
+      if (q.oth && FX.d[q.raw[q.raw.length - 1]] === 1) {
+        const inp = h("input", {type:"text", id:"fx_oth", placeholder:"અન્ય — પેપર પર લખેલું", value:FX.d[q.oth] || ""});
+        inp.addEventListener("input", () => { FX.d[q.oth] = inp.value; fxKeep(); });
+        inp.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); fxNext(); } });
+        add(box, h("div", {style:"margin-top:8px"}, inp));
+      }
+      if (q.clean === "single") add(box, h("label", {class:"note", style:"display:flex;gap:6px;align-items:center;margin-top:8px"},
+        h("input", {type:"checkbox", id:"fx_multi", checked:FX.multi, onchange:e => { FX.multi = e.target.checked; }}), "પેપર પર એકથી વધુ ✓ છે (બધા ટિક કરવા)"));
+      if (stepWarn(st)) add(box, h("div", {class:"qwarn"}, "⚠ એકથી વધુ ✓ — વિશ્લેષણમાં 98"));
+    }
+  }
+  // strip
+  const strip = $("#fxStrip"); strip.textContent = ""; let row = null, grp = null;
+  STEPS.forEach((x, i) => {
+    if (x.grp !== grp) { grp = x.grp; row = h("div", {class:"cells"}); add(strip, h("div", {class:"srow"}, h("span", {}, grp), row)); }
+    add(row, h("button", {type:"button", class:"cell" + (stepFilled(x) ? " f" : "") + (i === FX.i ? " cur" : "") + (stepWarn(x) ? " w" : ""), title:x.lab, "aria-label":x.lab, onclick:() => fxGo(i)}, stepText(x)));
+  });
+  $("#fx_back").disabled = FX.i === 0; $("#fx_fwd").textContent = st ? "આગળ ▶" : "—"; $("#fx_fwd").disabled = !st; $("#fx_blank").disabled = !st;
+}
+let fxTimer = null;
+function viewFast(){
+  const m = $("#main");
+  const pr = lsGet(PKEY) || {};
+  const sSel = schoolPicker("fx_s", parseCode(pr.s) ? pr.s : "", c => { FX.meta(); lsSet(PKEY, Object.assign(lsGet(PKEY) || {}, {s:c})); });
+  const date = h("input", {type:"date", id:"fx_date", value:pr.date || today()});
+  const roll = h("input", {type:"text", id:"fx_roll", inputmode:"numeric", placeholder:"વૈકલ્પિક"});
+  date.onchange = () => lsSet(PKEY, Object.assign(lsGet(PKEY) || {}, {date:date.value}));
+  const dr = lsGet(FKEY);
+  if (dr && dr.d && !FX.dirty()) { FX.d = dr.d; FX.i = dr.i || 0; FX.t0 = dr.t0 || 0; }
+  add(m, h("div", {class:"fx"},
+    h("div", {class:"card", style:"padding:10px 12px"},
+      h("div", {class:"top"}, h("div", {class:"field wide"}, h("span", {class:"lbl"}, "શાળા કોડ (જિલ્લો · પ્રકાર · નંબર) — યાદ રહેશે"), sSel),
+        h("div", {class:"field"}, h("label", {for:"fx_roll"}, "રોલ નં."), roll), h("div", {class:"field"}, h("label", {for:"fx_date"}, "તારીખ"), date)),
+      h("div", {class:"meta", style:"margin-top:8px"}, h("div", {}, "આ પેપરનું ID: ", h("span", {class:"idnext", id:"fx_next"}, "—")), h("div", {id:"fx_time"}, "⏱ 0:00"))),
+    h("p", {class:"msg", id:"msg", hidden:true}), h("div", {id:"fxDone"}),
+    h("div", {class:"card step", style:"padding:12px"}, h("div", {class:"meta"}, h("span", {id:"fxCount"}), h("a", {href:"#reg", class:"note"}, "વિગતવાર ફોર્મ")),
+      h("div", {class:"bar2", style:"margin:6px 0 10px"}, h("i", {id:"fxProg"})), h("div", {id:"fxStep"}),
+      h("div", {class:"nav3"}, h("button", {type:"button", class:"btn", id:"fx_back", onclick:() => fxGo(FX.i - 1)}, "◀ પાછળ"),
+        h("button", {type:"button", class:"btn", id:"fx_blank", onclick:() => { const st = STEPS[FX.i]; if (st) { clearStep(st); fxNext(); } }}, "0 ખાલી"),
+        h("button", {type:"button", class:"btn", id:"fx_fwd", onclick:() => fxNext()}, "આગળ ▶"))),
+    h("div", {class:"card", style:"padding:10px 12px"}, h("div", {class:"lbl", style:"margin-bottom:6px"}, "પેપર સાથે મેળવો — ખાનું દબાવી સીધા ત્યાં જાઓ (A, B, હેતુ 3: 3 = નિયમિત, 2 = ક્યારેક, 1 = ક્યારેય નહીં · C: વિકલ્પ ક્રમ)"), h("div", {class:"strip", id:"fxStrip"}),
+      h("button", {type:"button", class:"btn primary", style:"width:100%;margin-top:10px", id:"fx_save", onclick:fxSave}, "✓ સેવ કરો"))));
+  if (dr && dr.d && FX.dirty()) say("આ ઉપકરણ પર અધૂરો વિદ્યાર્થી મળ્યો — ત્યાંથી આગળ ભરો.", "warn");
+  FX.meta(); fxRender();
+  clearInterval(fxTimer);
+  fxTimer = setInterval(() => { const o = $("#fx_time"); if (!o || S.route !== "fast") return clearInterval(fxTimer); const s = FX.t0 ? Math.round((Date.now() - FX.t0) / 1000) : 0; o.textContent = `⏱ ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }, 1000);
+}
+addEventListener("keydown", e => {
+  if (S.route !== "fast" || document.querySelector(".ovl")) return;
+  const t = e.target; if (t && (t.tagName === "INPUT" && t.type !== "checkbox" || t.tagName === "SELECT" || t.tagName === "TEXTAREA")) return;
+  if (/^[1-9]$/.test(e.key)) { const b = document.querySelector(`#fxStep .key[data-k="${e.key}"]`); if (b) { e.preventDefault(); b.click(); } }
+  else if (e.key === "0") { e.preventDefault(); $("#fx_blank").click(); }
+  else if (e.key === "Backspace") { e.preventDefault(); fxGo(FX.i - 1); }
+  else if (e.key === "Enter") { e.preventDefault(); STEPS[FX.i] ? fxNext() : fxSave(); }
+});
+let fxSaving = false;
+async function fxSave(){
+  if (fxSaving) return;
+  const sid = $("#fx_s").value; if (!sid) { say("ઉપર શાળા કોડ પસંદ કરો (જિલ્લો, પ્રકાર, નંબર).", "bad"); scrollTo(0, 0); return; }
+  if (!FX.dirty()) return say("હજી કોઈ જવાબ ભર્યો નથી.", "warn");
+  const blanks = STEPS.filter(x => !stepFilled(x)).length;
+  if (blanks && !(await ask(`${blanks} ખાના ખાલી છે. પેપર પર પણ ખાલી હોય તો જ સેવ કરો (99 = જવાબ નથી).`, {okText:"હા, સેવ કરો"}))) return;
+  const rn = $("#fx_roll").value.trim();
+  if (rn) { const dup = [...S.students.values()].find(r => r.SCHOOL_ID === sid && String(r.ROLL_NO || "").trim() === rn);
+    if (dup && !(await ask(`${sid} માં રોલ નં. ${rn} પહેલેથી ${dup.STUDENT_ID} તરીકે છે. છતાં નવો વિદ્યાર્થી સેવ કરવો છે?`))) return; }
+  fxSaving = true; $("#fx_save").disabled = true;
+  try {
+    const predicted = FX.pred || nextId(sid); const id = await allocId(sid);
+    const secs = FX.t0 ? Math.round((Date.now() - FX.t0) / 1000) : null;
+    const rec = Object.assign({STUDENT_ID:id, SCHOOL_ID:sid, STANDARD:8, ROLL_NO:rn, COLLECTION_DATE:$("#fx_date").value || ""}, FX.d,
+      {ENTRY_NOTE:"", _createdAt:nowIso(), _createdBy:S.me, _updatedAt:nowIso(), _updatedBy:S.me, _version:1, _entrySecs:secs});
+    for (const k of Object.keys(rec)) if (rec[k] === null || rec[k] === "") delete rec[k];
+    await put("students/" + id, rec); S.students.set(id, rec); DERIVED = null;
+    audit("create", id, [{v:"SCHOOL_ID", o:"", n:sid}], {mode:"fast", secs});
+    lsSet(PKEY, Object.assign(lsGet(PKEY) || {}, {s:sid, date:$("#fx_date").value}));
+    FX.d = {}; FX.i = 0; FX.t0 = 0; FX.multi = false; lsSet(FKEY, null);
+    $("#fx_roll").value = ""; say("", ""); $("#msg").hidden = true;
+    const done = $("#fxDone"); done.textContent = "";
+    add(done, h("div", {class:"card done", id:"fxDoneCard"}, h("div", {class:"lbl"}, "✓ સેવ થયું — આ ID પેપર પર લખો"), h("div", {class:"idbig"}, id),
+      id !== predicted ? h("p", {class:"msg warn"}, `ધ્યાન: ${predicted} બીજા વપરાશકર્તાએ લઈ લીધું હતું — આ પેપરનું ID ${id} છે.`) : null,
+      h("p", {class:"note"}, secs ? `સમય: ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}` : "", " · ", h("a", {href:"#form-" + id}, "આ રેકોર્ડ સુધારો")),
+      BACKEND === "firebase" ? h("p", {class:"note"}, "આ જ વિદ્યાર્થીનાં બીજાં પેપર (એ જ ID): ", h("a", {href:"./test.html#form-" + id, class:"btn small", style:"text-decoration:none;display:inline-flex;align-items:center"}, "📝 કસોટી"), " ",
+        h("a", {href:"./anxiety.html#form-" + id, class:"btn small", style:"text-decoration:none;display:inline-flex;align-items:center"}, "😟 ચિંતા માપદંડ")) : null,
+      h("button", {type:"button", class:"btn small", onclick:() => { done.textContent = ""; }}, "બંધ કરો — આગળનો વિદ્યાર્થી નીચે શરૂ છે")));
+    FX.meta(); fxRender(); scrollTo(0, 0);
+  } catch (e) { say(e && (e.code === "offline" || e.code === "unavailable") ? "ઇન્ટરનેટ નથી — નવું ID આપવા ઇન્ટરનેટ જરૂરી છે. જવાબ આ ફોનમાં સચવાયેલા છે; ઇન્ટરનેટ આવે ત્યારે 'સેવ કરો' દબાવો." :
+    "સેવ ન થયું: " + (e.code || e.message) + ". જવાબ આ ઉપકરણ પર સચવાયેલા છે — ફરી 'સેવ કરો' દબાવો.", "bad"); }
+  finally { fxSaving = false; const b = $("#fx_save"); if (b) b.disabled = false; }
+}
+
+/* ====================== LIST ====================== */
+const LF = {d:"", s:"", st:"", q:"", n:200};
+function viewList(){
+  const m = $("#main"); const all = [...derived().values()].sort((a, b) => a.id < b.id ? -1 : 1);
+  const dSel = h("select", {id:"lf_d"}, h("option", {value:""}, "બધા"), ...DISTRICTS.map(d => h("option", {value:d.id}, d.gu)));
+  const sSel = h("select", {id:"lf_s"}, h("option", {value:""}, "બધી"), ...codesInUse().map(s => h("option", {value:s}, schoolLabel(s))));
+  const stSel = h("select", {id:"lf_st"}, ...[["", "બધા"], ["1", "અધૂરા"], ["2", "Complete (ચકાસણી બાકી)"], ["3", "ચકાસાયેલ"], ["w", "ચેતવણીવાળા"]].map(([v, l]) => h("option", {value:v}, l)));
+  const q = h("input", {type:"search", id:"lf_q", placeholder:"ID / રોલ નં.", value:LF.q});
+  dSel.value = LF.d; sSel.value = LF.s; stSel.value = LF.st;
+  const upd = () => { LF.d = dSel.value; LF.s = sSel.value; LF.st = stSel.value; LF.q = q.value.trim(); LF.n = 200; route(true); };
+  [dSel, sSel, stSel].forEach(e => e.onchange = upd); q.onchange = upd;
+  const L = all.filter(d => (!LF.d || d.district === LF.d) && (!LF.s || d.r.SCHOOL_ID === LF.s) &&
+    (!LF.st || (LF.st === "w" ? d.issues.some(i => i.lvl !== "info") : String(d.status) === LF.st)) &&
+    (!LF.q || d.id.includes(LF.q.toUpperCase()) || String(d.r.ROLL_NO || "") === LF.q));
+  add(m, h("div", {class:"card"}, h("h2", {}, `વિદ્યાર્થી રેકોર્ડ (${L.length} / ${all.length})`),
+    h("div", {class:"filters"}, h("div", {class:"field"}, h("label", {for:"lf_d"}, "જિલ્લો"), dSel), h("div", {class:"field"}, h("label", {for:"lf_s"}, "શાળા"), sSel),
+      h("div", {class:"field"}, h("label", {for:"lf_st"}, "સ્થિતિ"), stSel), h("div", {class:"field"}, h("label", {for:"lf_q"}, "શોધો"), q)),
+    L.length ? h("div", {class:"scroll"}, h("table", {class:"t"}, h("tr", {}, ...["ID", "શાળા", "જાતિ", "સ્થિતિ", "જવાબ", "છેલ્લો ફેરફાર", ""].map(x => h("th", {}, x))),
+      ...L.slice(0, LF.n).map(d => h("tr", {}, h("td", {}, h("a", {href:"#form-" + d.id}, h("b", {}, d.id))), h("td", {}, d.r.SCHOOL_ID),
+        h("td", {}, d.r.GENDER === 1 ? "કુમાર" : d.r.GENDER === 2 ? "કન્યા" : "—"), h("td", {}, badge(d), d.issues.some(i => i.lvl !== "info") ? h("span", {class:"badge b-warn", style:"margin-left:4px"}, "⚠") : ""),
+        h("td", {class:"num"}, `${d.answered}/${d.total}`), h("td", {class:"note"}, fmtTime(d.r._updatedAt) + " · " + who(d.r._updatedBy)),
+        h("td", {}, h("a", {href:"#second-" + d.id, class:"note"}, S.second.has(d.id) ? "2જી ✓" : "2જી એન્ટ્રી")))))) : h("p", {class:"note"}, "કોઈ રેકોર્ડ નથી."),
+    L.length > LF.n ? h("button", {class:"btn", type:"button", onclick:() => { LF.n += 400; route(true); }}, "વધુ બતાવો") : null));
+}
+
+/* ====================== FORM ====================== */
+const DKEY = (mode, id) => `s23_draft_${mode}_${id}`;
+const lastChecked = {};
+function scaleHead(){ return h("thead", {}, h("tr", {}, h("th", {}, "ક્રમ"), h("th", {}, "વિધાન"), ...SCALE.map(s => h("th", {}, s.gu)))); }
+function renderTable(q){
+  const box = h("div", {class:"q", "data-t":q.items[0].v});
+  const tb = h("tbody");
+  q.items.forEach(it => {
+    add(tb, h("tr", {"data-row":it.v}, h("td", {class:"n"}, it.no), h("td", {class:"it"}, h("span", {class:"mn"}, it.no + "."), it.gu, h("span", {class:"qv"}, it.v)),
+      ...SCALE.map(s => { const id = "r_" + it.v + "_" + s.code;
+        return h("td", {class:"c"}, h("label", {for:id, title:s.gu}, h("input", {type:"radio", name:it.v, value:String(s.code), id, "data-v":it.v, "aria-label":it.gu + " — " + s.gu}), h("span", {class:"dot"}), h("span", {class:"ml"}, s.gu))); })));
+  });
+  const qi = h("input", {type:"text", inputmode:"numeric", autocomplete:"off", "data-quick":"1", maxlength:String(q.items.length), "aria-label":"ઝડપી એન્ટ્રી " + (q.head || "")});
+  qi.addEventListener("input", () => {
+    const s = qi.value.replace(/[^0-3]/g, "").slice(0, q.items.length); if (s !== qi.value) qi.value = s;
+    q.items.forEach((it, i) => { const ch = s[i]; const root = box;
+      root.querySelectorAll(`input[name="${it.v}"]`).forEach(r => r.checked = false); lastChecked[it.v] = null;
+      if (ch && ch !== "0") { const code = Number(ch); const r = root.querySelector("#" + CSS.escape("r_" + it.v + "_" + code)); r.checked = true; lastChecked[it.v] = String(code); } });
+    markDirty();
+  });
+  add(box, q.head ? h("div", {class:"qt"}, q.head) : null,
+    h("div", {class:"quick"}, h("b", {}, "ઝડપી એન્ટ્રી"), qi, h("span", {class:"qhint"}, "કોડ: 3 = નિયમિત રીતે, 2 = ક્યારેક, 1 = ક્યારેય નહીં, 0 = ખાલી")),
+    h("table", {class:"rt"}, scaleHead(), tb));
+  return box;
+}
+function syncQuick(root){
+  root.querySelectorAll("input[data-quick]").forEach(qi => {
+    const rows = [...qi.closest(".q").querySelectorAll("tr[data-row]")];
+    let s = rows.map(tr => { const c = tr.querySelector("input:checked"); return c ? String(4 - Number(c.value)) : "0"; }).join("");
+    s = s.replace(/0+$/, ""); if (document.activeElement !== qi) qi.value = s;
+    rows.forEach(tr => tr.classList.toggle("blank", !tr.querySelector("input:checked")));
+  });
+}
+function renderChoice(q){
+  const box = h("div", {class:"q", "data-q":q.v});
+  const hint = q.clean === "multi" ? "એકથી વધુ વિકલ્પ પસંદ કરી શકાય (પ્રશ્નમાં છૂટ છે)." : "એક જ વિકલ્પ. પેપર પર એકથી વધુ ✓ હોય તો જેમ છે તેમ બધા ટિક કરો — વિશ્લેષણમાં 98 (અમાન્ય) ગણાશે.";
+  add(box, q.q ? h("div", {class:"qt"}, q.q, h("span", {class:"qv"}, q.v)) : null, q.sub ? h("div", {class:"qt", style:"color:var(--muted)"}, q.sub, q.q ? "" : h("span", {class:"qv"}, q.v)) : null,
+    h("div", {class:"qhint"}, hint),
+    h("div", {class:"chips"}, ...q.opts.map((o, i) => h("label", {class:"chip", for:"c_" + q.raw[i]}, h("input", {type:"checkbox", id:"c_" + q.raw[i], "data-v":q.raw[i]}), h("span", {}, o))),
+      q.oth ? h("div", {class:"othbox"}, h("span", {}, "અન્ય:"), h("input", {type:"text", id:"f_" + q.oth, "data-v":q.oth, "aria-label":"અન્ય લખાણ"})) : null),
+    h("div", {class:"qwarn", "data-w":q.v}));
+  if (q.oth) box.querySelector("#" + CSS.escape("f_" + q.oth)).addEventListener("input", e => { const cb = box.querySelector("#" + CSS.escape("c_" + q.raw[q.raw.length - 1])); if (e.target.value.trim()) cb.checked = true; });
+  return box;
+}
+function renderRank(q){
+  return h("div", {class:"q", "data-q":q.v}, h("div", {class:"qt"}, q.q, h("span", {class:"qv"}, q.raw[0] + "–4")),
+    h("div", {class:"qhint"}, "પેપર પર જે આંકડો લખ્યો હોય તે જ પસંદ કરો. ચારેય 1–4 એક-એક વાર ન હોય તો વિશ્લેષણમાં 98."),
+    h("div", {class:"rank"}, ...q.items.flatMap((it, i) => [h("label", {for:"f_" + q.raw[i]}, it), h("select", {id:"f_" + q.raw[i], "data-v":q.raw[i]}, h("option", {value:""}, "—"), ...[1, 2, 3, 4].map(n => h("option", {value:String(n)}, String(n))))])),
+    h("div", {class:"qwarn", "data-w":q.v}));
+}
+function readForm(root){
+  const d = {};
+  for (const it of ITEMS) { const c = root.querySelector(`input[name="${it.v}"]:checked`); d[it.v] = c ? Number(c.value) : null; }
+  for (const q of QS) {
+    if (q.k === "rank") { q.raw.forEach(v => { const s = root.querySelector("#" + CSS.escape("f_" + v)).value; d[v] = s ? Number(s) : null; }); continue; }
+    const ticks = q.raw.map(v => root.querySelector("#" + CSS.escape("c_" + v)).checked);
+    const oth = q.oth ? root.querySelector("#" + CSS.escape("f_" + q.oth)).value.trim() : "";
+    const any = ticks.some(Boolean) || oth !== "";
+    q.raw.forEach((v, i) => { d[v] = any ? (ticks[i] ? 1 : 0) : null; });  // whole question blank stays missing, never 0
+    if (q.oth) d[q.oth] = oth;
+  }
+  return d;
+}
+function fillForm(root, r){
+  root.querySelectorAll("[data-v]").forEach(e => { if (e.type === "radio" || e.type === "checkbox") e.checked = false; else e.value = ""; });
+  Object.keys(lastChecked).forEach(k => delete lastChecked[k]);
+  for (const it of ITEMS) if (!isEmpty(r[it.v])) { const e = root.querySelector("#" + CSS.escape("r_" + it.v + "_" + r[it.v])); if (e) { e.checked = true; lastChecked[it.v] = String(r[it.v]); } }
+  for (const q of QS) {
+    if (q.k === "rank") { q.raw.forEach(v => { root.querySelector("#" + CSS.escape("f_" + v)).value = isEmpty(r[v]) ? "" : String(r[v]); }); continue; }
+    q.raw.forEach(v => { root.querySelector("#" + CSS.escape("c_" + v)).checked = r[v] === 1; });
+    if (q.oth) root.querySelector("#" + CSS.escape("f_" + q.oth)).value = r[q.oth] || "";
+  }
+  syncQuick(root);
+}
+function viewForm(arg, second){
+  const m = $("#main"); const id = String(arg || "").toUpperCase();
+  let base = S.students.get(id);
+  if (!base && S.peek.has(id)) {
+    base = S.peek.get(id);
+    if (!second && !isAdmin()) { add(m, h("div", {class:"card"}, h("p", {class:"msg warn"}, `${id} બીજા સભ્યે ભરેલું છે. તમે ફક્ત `, h("a", {href:"#second-" + id}, "બીજી એન્ટ્રી (ડબલ-એન્ટ્રી)"), " કરી શકો."))); $("#savebar").hidden = true; return; }
+  }
+  if (!base && BACKEND === "firebase" && id && !S.peekTried.has(id)) {
+    S.peekTried.add(id); add(m, h("p", {class:"msg"}, `${id} શોધી રહ્યા છીએ…`));
+    S.db.doc("students/" + id).get().then(x => { if (x.exists) S.peek.set(id, x.data()); if (location.hash.endsWith(id)) route(); }).catch(() => route());
+    $("#savebar").hidden = true; return;
+  }
+  if (!base) { add(m, h("div", {class:"card"}, h("p", {class:"msg bad"}, `${id || "ID"} નામનો વિદ્યાર્થી નોંધાયેલ નથી. `, h("a", {href:"#reg"}, "નવી નોંધણી કરો"), " અથવા ", h("a", {href:"#list"}, "યાદીમાંથી ખોલો"), "."))); $("#savebar").hidden = true; return; }
+  const fresh = S.newId === id; S.newId = null;
+  S.form = {id, second, dirty:false, sec:0, loadedVersion:null};
+  const gSel = h("div", {class:"chips", role:"radiogroup", "aria-label":"જાતિ"}, ...[[1, "કુમાર"], [2, "કન્યા"]].map(([v, l]) => h("label", {class:"chip"}, h("input", {type:"radio", name:"GENDER", value:String(v), id:"g_" + v}), h("span", {}, l))));
+  const sSel = schoolPicker("a_SCHOOL", base.SCHOOL_ID, () => { schInfo(); markDirty(); });
+  const roll = h("input", {type:"text", id:"a_ROLL", inputmode:"numeric"}); const date = h("input", {type:"date", id:"a_DATE"}); const note = h("input", {type:"text", id:"a_NOTE", placeholder:"દા.ત. પાનું 4 ફાટેલું, C(6) માં બે ✓…"});
+  const head = h("div", {class:"card"},
+    h("div", {style:"display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:space-between"},
+      h("div", {}, h("div", {class:"lbl"}, second ? "બીજી એન્ટ્રી (ડબલ-એન્ટ્રી ચકાસણી) — મુખ્ય રેકોર્ડને અસર નહીં કરે" : "વિદ્યાર્થી ID (પેપર પર લખો)"), h("div", {class:"idbig"}, id)),
+      h("div", {id:"a_STATUS", class:"note", style:"text-align:right"})),
+    fresh ? h("p", {class:"msg ok"}, `✓ નોંધણી થઈ. આ ID `, h("b", {}, id), " હેતુ 2-3, 4 અને 6 ના પેપર પર લખો, પછી નીચે જવાબ ભરો.") : null,
+    h("div", {class:"chips", id:"a_ADMINBTN"}));
+  const nav = h("div", {class:"secnav", id:"secnav"});
+  const qroot = h("form", {id:"qroot", autocomplete:"off", onsubmit:e => e.preventDefault()});
+  const secs = SECTIONS.map((s, si) => {
+    const body = [];
+    if (s.id === "info") {
+      body.push(h("details", {}, h("summary", {}, "પેપરનું શીર્ષક અને સૂચનાઓ"), h("p", {style:"font-weight:700;margin:6px 0 0"}, COVER.title), h("p", {class:"intro"}, COVER.sub),
+        h("ol", {class:"instr", style:"list-style:none;padding:0"}, ...COVER.instr.map(t => h("li", {}, t)))));
+      body.push(h("div", {class:"grid2"},
+        h("div", {class:"field"}, h("span", {class:"lbl"}, "(6) જાતિ"), gSel),
+        second ? null : h("div", {class:"field"}, h("span", {class:"lbl"}, "(3) શાળા કોડ — જિલ્લો (5) અને પ્રકાર (2) કોડ પરથી"), sSel, h("div", {class:"note", id:"a_SCH"})),
+        second ? null : h("div", {class:"field"}, h("label", {for:"a_ROLL"}, "(4) રોલ નંબર (ખાનગી)"), roll),
+        second ? null : h("div", {class:"field"}, h("label", {for:"a_DATE"}, "એકત્રીકરણ તારીખ"), date),
+        h("div", {class:"field"}, h("label", {for:"a_NOTE"}, "એન્ટ્રી નોંધ"), note)),
+        h("p", {class:"note"}, "(1) વિદ્યાર્થીનું નામ — ભરવાનું નથી (અનામી ID)."));
+    } else {
+      body.push(...(s.intro || []).map(t => h("div", {class:"intro"}, t)));
+      for (const q of s.qs) body.push(q.k === "table" ? renderTable(q) : q.k === "rank" ? renderRank(q) : renderChoice(q));
+    }
+    add(nav, h("button", {type:"button", "data-i":si, onclick:() => showSec(si)}, s.id === "info" ? "માહિતી" : s.id === "O3" ? "હેતુ 3 વિધાન" : s.id === "D" ? "હેતુ 3 પ્રશ્ન" : "વિભાગ " + s.id, h("i", {})));
+    return h("section", {class:"card qsec", "data-i":si, "data-s":s.id}, s.obj ? h("div", {class:"part"}, s.obj) : null, h("div", {class:"stitle"}, s.title), ...body,
+      h("div", {class:"pager"}, si > 0 ? h("button", {class:"btn", type:"button", onclick:() => showSec(si - 1)}, "◀ પાછળ") : h("span"),
+        si < SECTIONS.length - 1 ? h("button", {class:"btn primary", type:"button", onclick:() => showSec(si + 1)}, "આગળ ▶") : h("button", {class:"btn primary", type:"button", onclick:save}, "સેવ કરો")));
+  });
+  add(qroot, ...secs);
+  add(m, head, h("div", {class:"card", style:"padding:8px 14px"}, nav), qroot, h("div", {class:"card"}, h("h2", {}, "આ રેકોર્ડની ચકાસણી"), h("div", {id:"qcOut", class:"note"})));
+  qroot.addEventListener("click", e => {
+    const t = e.target; if (t.tagName !== "INPUT" || t.type !== "radio") return;
+    if (lastChecked[t.name] === t.value) { t.checked = false; lastChecked[t.name] = null; markDirty(); } else lastChecked[t.name] = t.value;
+  });
+  [qroot, roll, date, note].forEach(e => { e.addEventListener("input", markDirty); e.addEventListener("change", markDirty); });
+  gSel.addEventListener("change", markDirty);
+  $("#saveBtn").onclick = save; $("#prevBtn").onclick = () => showSec(S.form.sec - 1); $("#nextBtn").onclick = () => showSec(S.form.sec + 1);
+  loadIntoForm(); showSec(fresh ? 1 : 0);
+}
+function schInfo(){ const o = $("#a_SCH"); if (!o) return; const s = school($("#a_SCHOOL").value);
+  o.textContent = s.district ? `જિલ્લો: ${distOf(s.district).gu} (${s.district}) · પ્રકાર: ${typeOf(s.type).gu}` : "શાળા કોડ પસંદ કરો"; }
+function formData(){
+  const F = S.form; const d = readForm($("#qroot"));
+  const g = document.querySelector("input[name=GENDER]:checked"); d.GENDER = g ? Number(g.value) : null;
+  d.ENTRY_NOTE = $("#a_NOTE").value.trim();
+  if (!F.second) { d.SCHOOL_ID = $("#a_SCHOOL").value; d.ROLL_NO = $("#a_ROLL").value.trim(); d.COLLECTION_DATE = $("#a_DATE").value; }
+  return d;
+}
+function loadIntoForm(){
+  const F = S.form; const rec = (F.second ? S.second : S.students).get(F.id) || {};
+  fillForm($("#qroot"), rec);
+  document.querySelectorAll("input[name=GENDER]").forEach(e => e.checked = Number(e.value) === rec.GENDER);
+  $("#a_NOTE").value = rec.ENTRY_NOTE || "";
+  if (!F.second) { $("#a_SCHOOL")._set(rec.SCHOOL_ID); $("#a_ROLL").value = rec.ROLL_NO || ""; $("#a_DATE").value = rec.COLLECTION_DATE || ""; schInfo(); }
+  F.loadedVersion = (F.second ? S.second : S.students).has(F.id) ? (rec._version || 0) : null; F.dirty = false;
+  formMeta(); progress(); applyLock();
+  let dr = null; try { dr = JSON.parse(localStorage.getItem(DKEY(F.second ? 2 : 1, F.id)) || "null"); } catch {}
+  if (dr && dr.at > (rec._updatedAt || "") && !isLocked()) {
+    say([`આ ઉપકરણ પર સેવ ન થયેલો ડ્રાફ્ટ મળ્યો (${fmtTime(dr.at)}). `,
+      h("button", {class:"btn small", type:"button", onclick:() => { fillForm($("#qroot"), dr.data); document.querySelectorAll("input[name=GENDER]").forEach(e => e.checked = Number(e.value) === dr.data.GENDER); $("#a_NOTE").value = dr.data.ENTRY_NOTE || ""; if (!F.second) { if (dr.data.SCHOOL_ID) $("#a_SCHOOL")._set(dr.data.SCHOOL_ID); $("#a_ROLL").value = dr.data.ROLL_NO || ""; $("#a_DATE").value = dr.data.COLLECTION_DATE || ""; schInfo(); } markDirty(); say("ડ્રાફ્ટ પાછો લાવ્યા — હવે 'સેવ કરો' દબાવો.", "warn"); }}, "ડ્રાફ્ટ પાછો લાવો"), " ",
+      h("button", {class:"btn small", type:"button", onclick:() => { try { localStorage.removeItem(DKEY(F.second ? 2 : 1, F.id)); } catch {} $("#msg").hidden = true; }}, "કાઢો")], "warn");
+  }
+}
+const isLocked = () => S.form && !S.form.second && isVerified(S.form.id);
+function applyLock(){
+  const lock = isLocked();
+  document.querySelectorAll("#qroot input, #qroot select").forEach(e => e.disabled = lock);
+  $("#saveBtn").hidden = lock;
+}
+function formMeta(){
+  const F = S.form; if (!F || !$("#a_STATUS")) return;
+  const d = derived().get(F.id); const rec = (F.second ? S.second : S.students).get(F.id);
+  const out = $("#a_STATUS"); out.textContent = "";
+  if (F.second) add(out, rec ? `બીજી એન્ટ્રી સેવ: ${fmtTime(rec._updatedAt)} · ${who(rec._updatedBy)}` : "બીજી એન્ટ્રી હજી સેવ નથી");
+  else if (d) add(out, badge(d), h("div", {}, `${schoolLabel(d.r.SCHOOL_ID)}`), h("div", {}, `ભર્યું: ${who(d.r._createdBy)} · છેલ્લો ફેરફાર ${fmtTime(d.r._updatedAt)} (${who(d.r._updatedBy)}) · આવૃત્તિ ${d.r._version}`),
+    d.verified ? h("div", {}, `ચકાસ્યું: ${who(d.vby)} · ${fmtTime(d.vat)}`) : null);
+  const ab = $("#a_ADMINBTN"); ab.textContent = "";
+  if (!F.second && d) {
+    if (isAdmin() && !d.verified) add(ab, h("button", {class:"btn small primary", type:"button", id:"verBtn", onclick:verify}, "પેપર સાથે મેળવ્યું — ચકાસો અને લૉક કરો"));
+    if (isAdmin() && d.verified) add(ab, h("button", {class:"btn small", type:"button", id:"unlockBtn", onclick:unlock}, "અનલૉક (કારણ સાથે)"));
+    if (d.verified && !isAdmin()) add(ab, h("span", {class:"note"}, "🔒 ચકાસાયેલ — ફેરફાર માટે સંશોધકને જણાવો."));
+    if (isAdmin()) add(ab, h("button", {class:"btn small danger", type:"button", onclick:() => deleteStudent(F.id)}, "રેકોર્ડ કાઢો"));
+    add(ab, h("a", {class:"btn small", href:"#second-" + F.id, style:"text-decoration:none;display:inline-flex;align-items:center"}, "બીજી એન્ટ્રી"));
+  } else if (F.second) add(ab, h("a", {class:"btn small", href:"#form-" + F.id, style:"text-decoration:none;display:inline-flex;align-items:center"}, "મુખ્ય રેકોર્ડ"));
+  if (rec && F.loadedVersion != null && (rec._version || 0) !== F.loadedVersion && !F.dirty) { loadIntoForm(); return; }
+  applyLock(); showQC();
+}
+function showQC(){
+  const o = $("#qcOut"); if (!o || !S.form) return; o.textContent = "";
+  if (S.form.second) { add(o, "બીજી એન્ટ્રીની સરખામણી 'ચકાસણી' ટૅબમાં દેખાશે."); return; }
+  const d = derived().get(S.form.id); if (!d) return;
+  if (!d.issues.length) { add(o, h("span", {class:"badge b-ok"}, "કોઈ સમસ્યા નથી")); return; }
+  d.issues.forEach(i => add(o, h("div", {}, h("span", {class:"badge " + (i.lvl === "err" ? "b-bad" : i.lvl === "warn" ? "b-warn" : "b-mut")}, i.code), " ", i.t)));
+}
+function showSec(i){
+  if (!S.form) return; i = Math.max(0, Math.min(SECTIONS.length - 1, i)); S.form.sec = i;
+  document.querySelectorAll(".qsec").forEach(s => s.classList.toggle("on", Number(s.dataset.i) === i));
+  document.querySelectorAll("#secnav button").forEach(b => b.classList.toggle("on", Number(b.dataset.i) === i));
+  $("#prevBtn").disabled = i === 0; $("#nextBtn").disabled = i === SECTIONS.length - 1;
+  const s = document.querySelector(`.qsec[data-i="${i}"]`); if (s) { s.scrollIntoView({block:"start"}); scrollBy(0, -130); }
+}
+function progress(){
+  if (!S.form || !$("#qroot")) return;
+  const d = formData(); const us = units(d);
+  document.querySelectorAll("#secnav button").forEach(b => { const sid = SECTIONS[Number(b.dataset.i)].id; const L = us.filter(u => u.sec === sid);
+    const a = L.filter(u => u.ok).length; b.querySelector("i").textContent = L.length ? `${a}/${L.length}` : ""; b.classList.toggle("full", L.length > 0 && a === L.length); });
+  const a = us.filter(u => u.ok).length;
+  $("#saveSt").textContent = `${S.form.id}${S.form.second ? " (2જી)" : ""} · જવાબ ${a}/${us.length}${S.form.dirty ? " · સેવ બાકી" : ""}${isLocked() ? " · 🔒" : ""}`;
+  const c = cleanRow(d);
+  for (const q of QS) { const w = document.querySelector(`[data-w="${q.v}"]`); if (!w) continue;
+    w.textContent = q.k === "rank" ? (q.raw.some(v => c[v] === INVALID) ? "⚠ ક્રમ 1–4 એક-એક વાર નથી (98)" : "") : q.clean === "single" && c[q.v] === INVALID ? "⚠ એકથી વધુ ✓ — clean ડેટામાં 98" : ""; }
+  syncQuick($("#qroot"));
+}
+let draftTimer = null;
+function markDirty(){
+  if (!S.form || isLocked()) return; S.form.dirty = true; progress();
+  clearTimeout(draftTimer);
+  draftTimer = setTimeout(() => { try { localStorage.setItem(DKEY(S.form.second ? 2 : 1, S.form.id), JSON.stringify({at:nowIso(), data:formData()})); } catch {} }, 600);
+}
+const CMP_FIELDS = ["SCHOOL_ID", "GENDER", "ROLL_NO", "COLLECTION_DATE", "ENTRY_NOTE"].concat(RAW);
+let saving = false;
+async function save(){
+  if (saving || !S.form) return;
+  const F = S.form; const col = F.second ? "second" : "students"; const store = F.second ? S.second : S.students;
+  if (isLocked()) return say("આ રેકોર્ડ ચકાસાયેલ અને લૉક છે.", "warn");
+  const d = formData(); const prev = store.get(F.id);
+  if (!F.second && !d.SCHOOL_ID) return say("શાળા કોડ ફરજિયાત છે (જિલ્લો, પ્રકાર, નંબર).", "bad");
+  if (F.second && !S.students.has(F.id) && !S.peek.has(F.id)) return say("મુખ્ય રેકોર્ડ કાઢી નખાયો છે.", "bad");
+  if (prev && F.loadedVersion != null && (prev._version || 0) !== F.loadedVersion && !(await ask(`${F.id} તમે ખોલ્યા પછી બીજા વપરાશકર્તાએ બદલ્યું છે (આવૃત્તિ ${prev._version}). તમારો ફેરફાર તેના પર લખવો છે?`))) return;
+  if (!F.second && prev && d.SCHOOL_ID !== prev.SCHOOL_ID && !(await ask(`શાળા ${prev.SCHOOL_ID} → ${d.SCHOOL_ID} બદલાશે. ID (${F.id}) એ જ રહેશે. આગળ વધવું છે?`))) return;
+  const rec = Object.assign({}, F.second ? {STUDENT_ID:F.id} : {STUDENT_ID:F.id, STANDARD:8}, d);
+  for (const k of Object.keys(rec)) if (rec[k] === null || rec[k] === "") delete rec[k];
+  rec._createdAt = prev?._createdAt || nowIso(); rec._createdBy = prev?._createdBy || S.me; rec._updatedAt = nowIso(); rec._updatedBy = S.me; rec._version = (prev?._version || 0) + 1;
+  const changes = CMP_FIELDS.filter(k => String(prev?.[k] ?? "") !== String(rec[k] ?? "")).map(k => ({v:k, o:prev?.[k] ?? "", n:rec[k] ?? ""}));
+  if (prev && !changes.length) { F.dirty = false; progress(); return say("કોઈ ફેરફાર નથી.", "ok"); }
+  saving = true; $("#saveBtn").disabled = true; $("#saveSt").textContent = "સેવ થઈ રહ્યું છે…";
+  try {
+    await put(`${col}/${F.id}`, rec); store.set(F.id, rec); DERIVED = null;
+    audit(prev ? "update" : "create", F.id + (F.second ? " (2nd)" : ""), changes.filter(c => c.v !== "ROLL_NO"));
+    F.loadedVersion = rec._version; F.dirty = false;
+    try { localStorage.removeItem(DKEY(F.second ? 2 : 1, F.id)); } catch {}
+    const dd = derived().get(F.id);
+    say([`✓ ${F.id} ક્લાઉડમાં સેવ થયું${F.second ? " (બીજી એન્ટ્રી)" : ` — જવાબ ${dd.answered}/${dd.total}`}. `, F.second ? "" : h("a", {href:"#fast"}, "આગળનો વિદ્યાર્થી →")], "ok");
+    formMeta(); progress();
+  } catch (e) {
+    const c = e && e.code || "";
+    say(c === "invalid_argument" || c === "permission-denied" ? "સેવ નકારાયું: તમારા ખાતાને પરવાનગી નથી. સંશોધકનો સંપર્ક કરો." :
+        c === "quota_exceeded" ? "ક્લાઉડ ડેટાબેઝની મર્યાદા પૂરી થઈ — સંશોધકને જણાવો." : "સેવ ન થયું: " + (c || e.message) + ". ડ્રાફ્ટ આ ઉપકરણ પર સચવાયો છે — ફરી 'સેવ કરો' દબાવો.", "bad");
+    $("#saveSt").textContent = "સેવ ન થયું";
+  } finally { saving = false; $("#saveBtn").disabled = false; }
+}
+async function verify(){
+  const F = S.form; const r = S.students.get(F.id); if (!r || !isAdmin()) return;
+  if (F.dirty) return say("પહેલાં ફેરફાર સેવ કરો, પછી ચકાસો.", "warn");
+  const d = derived().get(F.id);
+  const self = r._createdBy === S.me || r._updatedBy === S.me;
+  const msg = [`${F.id}: પેપર સાથે દરેક જવાબ મેળવ્યો છે? ચકાસ્યા પછી રેકોર્ડ લૉક થશે.`];
+  if (d.missing.length) msg.push(`${d.missing.length} પ્રશ્ન ખાલી છે — પેપર પર પણ ખાલી હોય તો જ આગળ વધો (99 = જવાબ નથી).`);
+  if (self) msg.push("નોંધ: આ રેકોર્ડ તમે પોતે ભર્યો/બદલ્યો છે. શક્ય હોય તો બીજી વ્યક્તિ ચકાસે.");
+  if (!(await ask(msg.join("\n\n"), {okText:"ચકાસ્યું — લૉક કરો"}))) return;
+  try { await put("verify/" + F.id, {STUDENT_ID:F.id, version:r._version, by:S.me, at:nowIso(), owner:r._createdBy || ""}); S.verify.set(F.id, {version:r._version, by:S.me, at:nowIso()}); DERIVED = null;
+    audit("verify", F.id, [{v:"Q_STATUS", o:d.status, n:3}]); say(`${F.id} ચકાસાયેલ અને લૉક.`, "ok"); formMeta(); progress(); }
+  catch (e) { say("ચકાસણી નોંધાઈ નહીં: " + (e.code || e.message), "bad"); }
+}
+async function unlock(){
+  const F = S.form; const why = await ask(`${F.id} અનલૉક કરવાનું કારણ લખો (ઑડિટમાં નોંધાશે):`, {input:true, okText:"અનલૉક"});
+  if (!why || !why.trim()) return;
+  try { await del("verify/" + F.id); S.verify.delete(F.id); DERIVED = null; audit("unlock", F.id, [], {reason:why.trim()}); say(`${F.id} અનલૉક. ફેરફાર કરી સેવ કરો, પછી ફરી ચકાસો.`, "warn"); formMeta(); progress(); }
+  catch (e) { say("અનલૉક ન થયું: " + (e.code || e.message), "bad"); }
+}
+async function deleteStudent(id){
+  const t = await ask(`${id} કાયમ માટે કાઢવા માટે ID ફરી લખો. (એડમિન 'ઑડિટ' માંથી પાછું લાવી શકશે.)`, {input:true, danger:true, okText:"કાઢો"});
+  if (!t || t.trim().toUpperCase() !== id) return t != null && say("ID મેળ ખાતું નથી — કાઢ્યું નથી.", "warn");
+  const snap = S.students.get(id); const sec = S.second.get(id);
+  try {
+    await audit("delete", id, [], {snapshot:snap, snapshot2:sec || null});
+    await del("students/" + id); if (S.verify.has(id)) await del("verify/" + id); if (sec) await del("second/" + id);
+    S.students.delete(id); S.form = null; DERIVED = null; location.hash = "#list";
+  } catch (e) { say("કાઢી શકાયું નહીં: " + (e.code || e.message), "bad"); }
+}
+
+/* ====================== VALIDATION + DOUBLE ENTRY ====================== */
+const CF = {lvl:"", code:""};
+function viewCheck(){
+  const m = $("#main"); const D = [...derived().values()];
+  const codes = {V02:"શાળા કોડ અમાન્ય", V04:"જાતિ ખાલી", V05:"અમાન્ય મૂલ્ય", V06:"એકથી વધુ ✓ (98)", V07:"ક્રમ ભૂલ (98)", V08:"'અન્ય' મેળ નથી", V09:"ખાલી જવાબ", V10:"બધે એક જ જવાબ", V11:"રોલ નંબર ડુપ્લિકેટ", V14:"સ્વ-ચકાસણી"};
+  const cnt = {}; D.forEach(d => d.issues.forEach(i => { cnt[i.code] = (cnt[i.code] || 0) + 1; }));
+  add(m, h("div", {class:"card"}, h("h2", {}, "ચકાસણી નિયમો — સારાંશ"),
+    h("table", {class:"t"}, h("tr", {}, h("th", {}, "કોડ"), h("th", {}, "નિયમ"), h("th", {class:"num"}, "રેકોર્ડ")),
+      ...Object.entries(codes).map(([k, v]) => h("tr", {}, h("td", {}, h("a", {href:"#check", onclick:() => { CF.code = CF.code === k ? "" : k; route(true); }}, k)), h("td", {}, v), h("td", {class:"num"}, String(cnt[k] || 0))))),
+    h("p", {class:"note"}, "ખાલી, 98 અને 99 ક્યારેય 0 કે 'ક્યારેય નહીં' તરીકે ગણાતા નથી. raw ડેટા ક્યારેય બદલાતો નથી; clean કોડ raw પરથી ગણાય છે.")));
+  const L = D.filter(d => d.issues.some(i => (!CF.code || i.code === CF.code) && (CF.code || i.lvl !== "info")));
+  add(m, h("div", {class:"card"}, h("h2", {}, `${CF.code ? CF.code + " — " : "ભૂલ/ચેતવણીવાળા "}રેકોર્ડ (${L.length})`),
+    L.length ? h("div", {class:"scroll"}, h("table", {class:"t"}, h("tr", {}, h("th", {}, "ID"), h("th", {}, "સ્થિતિ"), h("th", {}, "મુદ્દા")),
+      ...L.slice(0, 500).map(d => h("tr", {}, h("td", {}, h("a", {href:"#form-" + d.id}, d.id)), h("td", {}, badge(d)),
+        h("td", {}, ...d.issues.filter(i => !CF.code || i.code === CF.code).map(i => h("div", {}, h("span", {class:"badge " + (i.lvl === "err" ? "b-bad" : i.lvl === "warn" ? "b-warn" : "b-mut")}, i.code), " ", i.t))))))) :
+      h("p", {class:"note"}, "કોઈ નથી.")));
+  add(m, doubleEntryCard());
+}
+function kappa(pairs, cats){
+  const n = pairs.length; if (!n) return "";
+  const po = pairs.filter(([a, b]) => a === b).length / n;
+  const pe = cats.reduce((s, c) => s + (pairs.filter(p => p[0] === c).length / n) * (pairs.filter(p => p[1] === c).length / n), 0);
+  return pe === 1 ? "" : r2((po - pe) / (1 - pe));
+}
+function doubleEntryCard(){
+  const ids = [...S.second.keys()].filter(id => S.students.has(id)).sort();
+  const box = h("div", {class:"card"}, h("h2", {}, "ડબલ-એન્ટ્રી સહમતિ (V13)"));
+  if (!ids.length) { add(box, h("p", {class:"note"}, "બીજી એન્ટ્રી હજી નથી. આશરે 10% પેપર બીજી વ્યક્તિ 'બીજી એન્ટ્રી' થી ભરે; અહીં સહમતિ % અને κ દેખાશે.")); return box; }
+  const fields = ["GENDER"].concat(RAW.filter(v => !/_OTH$/.test(v)));
+  let tot = 0, same = 0; const diff = []; const pairs = []; let samePerson = 0;
+  ids.forEach(id => { const a = S.students.get(id), b = S.second.get(id); if (a._createdBy === b._createdBy) samePerson++;
+    fields.forEach(k => { const x = a[k] ?? "", y = b[k] ?? ""; tot++; if (String(x) === String(y)) same++; else diff.push([id, k, x === "" ? "ખાલી" : x, y === "" ? "ખાલી" : y]);
+      if (ITEM.has(k) && x !== "" && y !== "") pairs.push([x, y]); }); });
+  add(box, h("p", {}, h("b", {}, `${ids.length} પેપર · ${tot} કોડેડ ખાનાં · સહમતિ ${pct(same, tot)}% · 3-બિંદુ વિધાનો માટે Cohen's κ = ${kappa(pairs, [1, 2, 3])}`)),
+    samePerson ? h("p", {class:"msg warn"}, `${samePerson} પેપરમાં બંને એન્ટ્રી એક જ વ્યક્તિએ કરી છે — તે સાચી ડબલ-એન્ટ્રી ગણાય નહીં.`) : null,
+    diff.length ? h("div", {class:"scroll"}, h("table", {class:"t"}, h("tr", {}, ...["ID", "Variable", "મુખ્ય", "બીજી"].map(x => h("th", {}, x))),
+      ...diff.slice(0, 400).map(r => h("tr", {}, h("td", {}, h("a", {href:"#form-" + r[0]}, r[0])), ...r.slice(1).map(c => h("td", {}, String(c))))))) : h("p", {}, "કોઈ તફાવત નથી."),
+    h("p", {class:"note"}, "તફાવત હોય ત્યાં પેપર જોઈને મુખ્ય રેકોર્ડ સુધારો. બીજી એન્ટ્રી ફક્ત ગુણવત્તા માપવા માટે છે; વિશ્લેષણમાં વપરાતી નથી."));
+  return box;
+}
+
+/* ====================== statistics ====================== */
+const mean = xs => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : NaN;
+const sd = xs => { if (xs.length < 2) return NaN; const m = mean(xs); return Math.sqrt(xs.reduce((a, b) => a + (b - m) ** 2, 0) / (xs.length - 1)); };
+const median = xs => { if (!xs.length) return NaN; const s = xs.slice().sort((a, b) => a - b); const k = s.length >> 1; return s.length % 2 ? s[k] : (s[k - 1] + s[k]) / 2; };
+const level3 = x => !isFinite(x) ? "" : x <= 1.66 ? "નીચું" : x <= 2.33 ? "મધ્યમ" : "ઊંચું";
+function alpha(rows){ // rows: complete cases (arrays of k items)
+  const n = rows.length, k = rows[0] ? rows[0].length : 0; if (n < 3 || k < 2) return {a:NaN, n};
+  const vars = Array.from({length:k}, (_, j) => sd(rows.map(r => r[j])) ** 2); const tot = sd(rows.map(r => r.reduce((a, b) => a + b, 0))) ** 2;
+  return {a:k / (k - 1) * (1 - vars.reduce((a, b) => a + b, 0) / tot), n};
+}
+function pearson(x, y){ const n = x.length; if (n < 3) return NaN; const mx = mean(x), my = mean(y); let sxy = 0, sxx = 0, syy = 0;
+  for (let i = 0; i < n; i++) { sxy += (x[i] - mx) * (y[i] - my); sxx += (x[i] - mx) ** 2; syy += (y[i] - my) ** 2; } return sxy / Math.sqrt(sxx * syy); }
+function ranks(x){ const idx = x.map((v, i) => [v, i]).sort((a, b) => a[0] - b[0]); const r = new Array(x.length);
+  for (let i = 0; i < idx.length;) { let j = i; while (j + 1 < idx.length && idx[j + 1][0] === idx[i][0]) j++; const rk = (i + j) / 2 + 1; for (let k = i; k <= j; k++) r[idx[k][1]] = rk; i = j + 1; } return r; }
+const spearman = (x, y) => pearson(ranks(x), ranks(y));
+function reliability(D, con){
+  const vs = CON_ITEMS[con.id]; const rows = D.map(d => vs.map(v => d.clean[v])).filter(r => r.every(x => x >= 1 && x <= 3));
+  const all = alpha(rows);
+  const items = vs.map((v, j) => { const rest = rows.map(r => r.reduce((a, b) => a + b, 0) - r[j]); const del = alpha(rows.map(r => r.filter((_, k) => k !== j)));
+    return {v, r:pearson(rows.map(r => r[j]), rest), aDel:del.a}; });
+  return {a:all.a, n:rows.length, k:vs.length, items};
+}
+const fmt = (x, d = 2) => isFinite(x) ? Number(x).toFixed(d) : "—";
+
+/* ====================== ANALYSIS ====================== */
+const AF = {d:"", t:"", g:"", ver:null, sec:"A", grp:"district"};
+function analysisSet(){
+  const all = [...derived().values()]; if (AF.ver === null) AF.ver = all.some(d => d.verified);
+  return all.filter(d => (!AF.ver || d.verified) && (!AF.d || d.district === AF.d) && (!AF.t || String(d.stype) === AF.t) && (!AF.g || String(d.r.GENDER) === AF.g));
+}
+const GROUPS = {district:{gu:"જિલ્લો", keys:() => DISTRICTS.map(d => d.id), of:d => d.district, lab:k => distOf(k).gu},
+                type:{gu:"શાળાનો પ્રકાર", keys:() => STYPES.map(t => t.n), of:d => Number(d.stype), lab:k => typeOf(k).gu},
+                gender:{gu:"જાતિ", keys:() => [1, 2], of:d => d.r.GENDER, lab:k => k === 1 ? "કુમાર" : "કન્યા"}};
+function itemStats(D, v){
+  const xs = D.map(d => d.clean[v]); const val = xs.filter(x => x >= 1 && x <= 3);
+  return {n:val.length, miss:xs.length - val.length, f:SCALE.map(s => val.filter(x => x === s.code).length), m:mean(val), sd:sd(val), md:median(val)};
+}
+function choiceStats(D, q){
+  if (q.k === "rank") return q.items.map((it, i) => { const xs = D.map(d => d.clean[q.raw[i]]).filter(x => x >= 1 && x <= 4); return {o:it, n:xs.length, m:mean(xs), first:xs.filter(x => x === 1).length}; });
+  if (q.clean === "multi") { const ans = D.filter(d => d.clean[q.raw[0]] !== NORESP); return {ans:ans.length, miss:D.length - ans.length, rows:q.opts.map((o, i) => ({o, f:ans.filter(d => d.clean[q.raw[i]] === 1).length}))}; }
+  const xs = D.map(d => d.clean[q.v]); const val = xs.filter(x => x >= 1 && x < INVALID);
+  return {n:val.length, inv:xs.filter(x => x === INVALID).length, miss:xs.filter(x => x === NORESP).length, rows:q.opts.map((o, i) => ({o, f:val.filter(x => x === i + 1).length}))};
+}
+function viewAnalysis(){
+  const m = $("#main"); const D = analysisSet();
+  const sel = (id, label, opts, key) => { const s = h("select", {id}, ...opts.map(([v, l]) => h("option", {value:String(v)}, l))); s.value = String(AF[key]); s.onchange = () => { AF[key] = s.value; route(true); }; return h("div", {class:"field"}, h("label", {for:id}, label), s); };
+  const ver = h("input", {type:"checkbox", id:"af_ver", checked:AF.ver}); ver.onchange = () => { AF.ver = ver.checked; route(true); };
+  add(m, h("div", {class:"card"}, h("h2", {}, `વર્ણનાત્મક વિશ્લેષણ (N = ${D.length})`),
+    h("div", {class:"filters"}, sel("af_d", "જિલ્લો", [["", "બધા"]].concat(DISTRICTS.map(d => [d.id, d.gu])), "d"), sel("af_t", "પ્રકાર", [["", "બધા"]].concat(STYPES.map(t => [t.n, t.gu])), "t"),
+      sel("af_g", "જાતિ", [["", "બધા"], [1, "કુમાર"], [2, "કન્યા"]], "g"), h("label", {class:"note", style:"display:flex;gap:6px;align-items:center"}, ver, "ફક્ત ચકાસાયેલ (લૉક) રેકોર્ડ")),
+    h("p", {class:"note"}, "અહીં ફક્ત વર્ણનાત્મક આંકડા છે. χ², t, ANOVA, Mann–Whitney, Kruskal–Wallis, ICC/multilevel વગેરે સાર્થકતા કસોટી એડમિન ટૅબના SPSS પેકેજ (અથવા Python engine) થી ચકાસાયેલ ડેટા પર ચલાવો."),
+    !AF.ver ? h("p", {class:"msg warn"}, "ચકાસણી બાકી હોય તેવા રેકોર્ડ પણ સામેલ છે — પ્રકરણ 4 માટે ફક્ત ચકાસાયેલ ડેટા વાપરો.") : null));
+  if (!D.length) { add(m, h("p", {class:"note"}, "આ પસંદગી માટે કોઈ રેકોર્ડ નથી.")); return; }
+  // constructs
+  const con = CONSTRUCTS.map(c => { const xs = D.map(d => d.clean[c.id]).filter(x => x !== ""); const rel = reliability(D, c); return {c, xs, rel}; });
+  add(m, h("div", {class:"card"}, h("h2", {}, "રચના ગુણ (1–3) અને વિશ્વસનીયતા"),
+    h("div", {class:"scroll"}, h("table", {class:"t"}, h("tr", {}, ...["રચના", "વિધાન", "N", "મધ્યક", "SD", "સ્તર", "Cronbach α", "α માટે n"].map((x, i) => h("th", {class:i > 1 ? "num" : ""}, x))),
+      ...con.map(({c, xs, rel}) => h("tr", {}, h("td", {}, c.gu, h("span", {class:"qv"}, c.id)), h("td", {class:"num"}, String(rel.k)), h("td", {class:"num"}, String(xs.length)), h("td", {class:"num"}, fmt(mean(xs))),
+        h("td", {class:"num"}, fmt(sd(xs))), h("td", {class:"num"}, level3(mean(xs))), h("td", {class:"num"}, fmt(rel.a, 3)), h("td", {class:"num"}, String(rel.n)))))),
+    h("p", {class:"note"}, "રચના ગુણ ત્યારે જ ગણાય જ્યારે ઓછામાં ઓછા 80% વિધાનના માન્ય જવાબ હોય. સ્તર: 1.00–1.66 નીચું, 1.67–2.33 મધ્યમ, 2.34–3.00 ઊંચું (3 = નિયમિત). α ફક્ત બધા વિધાનના જવાબવાળા પર."),
+    h("details", {}, h("summary", {}, "વિધાન-કુલ સહસંબંધ (corrected item-total r) અને α if item deleted"),
+      ...con.map(({c, rel}) => h("div", {}, h("h3", {}, c.gu), h("table", {class:"t"}, h("tr", {}, ...["વિધાન", "r (item-rest)", "α if deleted"].map((x, i) => h("th", {class:i ? "num" : ""}, x))),
+        ...rel.items.map(it => h("tr", {style:it.r < 0.3 ? "color:var(--warn)" : ""}, h("td", {}, it.v + " " + ITEM.get(it.v).gu), h("td", {class:"num"}, fmt(it.r, 3)), h("td", {class:"num"}, fmt(it.aDel, 3))))))))));
+  // group comparison
+  const G = GROUPS[AF.grp];
+  add(m, h("div", {class:"card"}, h("h2", {}, "જૂથવાર રચના ગુણ (મધ્યક, SD, n)"),
+    h("div", {class:"filters"}, sel("af_grp", "જૂથ", Object.entries(GROUPS).map(([k, g]) => [k, g.gu]), "grp")),
+    h("div", {class:"scroll"}, h("table", {class:"t"}, h("tr", {}, h("th", {}, "રચના"), ...G.keys().map(k => h("th", {class:"num"}, G.lab(k)))),
+      ...CONSTRUCTS.map(c => h("tr", {}, h("td", {}, c.gu), ...G.keys().map(k => { const xs = D.filter(d => G.of(d) === k).map(d => d.clean[c.id]).filter(x => x !== "");
+        return h("td", {class:"num"}, xs.length ? `${fmt(mean(xs))} (${fmt(sd(xs))}) n=${xs.length}` : "—"); })))))));
+  // correlations
+  const cm = CONSTRUCTS.map(a => CONSTRUCTS.map(b => { const P = D.filter(d => d.clean[a.id] !== "" && d.clean[b.id] !== ""); return {rho:spearman(P.map(d => d.clean[a.id]), P.map(d => d.clean[b.id])), n:P.length}; }));
+  add(m, h("div", {class:"card"}, h("h2", {}, "રચનાઓ વચ્ચે Spearman ρ"), h("div", {class:"scroll"}, h("table", {class:"t"}, h("tr", {}, h("th", {}, ""), ...CONSTRUCTS.map(c => h("th", {class:"num"}, c.id))),
+    ...CONSTRUCTS.map((a, i) => h("tr", {}, h("td", {}, a.id), ...cm[i].map((x, j) => h("td", {class:"num"}, i === j ? "1" : `${fmt(x.rho, 3)} (n=${x.n})`)))))),
+    h("p", {class:"note"}, "p-મૂલ્ય, 95% CI અને Holm સુધારણા SPSS/Python માં.")));
+  // items
+  const secOpts = [["A", "વિભાગ A"], ["B", "વિભાગ B"], ["C", "વિભાગ C"], ["O3", "હેતુ 3 વિધાન"], ["D", "હેતુ 3 પ્રશ્ન"]];
+  const box = h("div", {class:"card"}, h("h2", {}, "વિધાનવાર / પ્રશ્નવાર"), h("div", {class:"filters"}, sel("af_sec", "વિભાગ", secOpts, "sec")));
+  const s = SECTIONS.find(x => x.id === AF.sec);
+  for (const q of s.qs) {
+    if (q.k === "table") {
+      add(box, q.head ? h("h3", {}, q.head) : null, h("div", {class:"scroll"}, h("table", {class:"t"},
+        h("tr", {}, ...["ક્રમ", "વિધાન", "n", ...SCALE.map(x => x.gu + " %"), "ખાલી", "મધ્યક", "SD", "મધ્યસ્થ"].map((x, i) => h("th", {class:i > 1 ? "num" : ""}, x))),
+        ...q.items.map(it => { const st = itemStats(D, it.v);
+          return h("tr", {}, h("td", {}, it.no), h("td", {}, it.gu, h("span", {class:"qv"}, it.v)), h("td", {class:"num"}, String(st.n)), ...st.f.map(f => h("td", {class:"num"}, st.n ? `${f} (${pct(f, st.n)}%)` : "—")),
+            h("td", {class:"num"}, String(st.miss)), h("td", {class:"num"}, fmt(st.m)), h("td", {class:"num"}, fmt(st.sd)), h("td", {class:"num"}, fmt(st.md, 1))); }))));
+    } else {
+      const st = choiceStats(D, q);
+      const title = h("h3", {}, (q.q || q.no) + (q.sub ? " — " + q.sub : ""));
+      if (q.k === "rank") add(box, title, h("table", {class:"t"}, h("tr", {}, ...["વિકલ્પ", "n", "સરેરાશ ક્રમ", "ક્રમ 1 (%)"].map((x, i) => h("th", {class:i ? "num" : ""}, x))),
+        ...st.map(x => h("tr", {}, h("td", {}, x.o), h("td", {class:"num"}, String(x.n)), h("td", {class:"num"}, fmt(x.m)), h("td", {class:"num"}, `${x.first} (${pct(x.first, x.n)}%)`)))), h("p", {class:"note"}, "ઓછો સરેરાશ ક્રમ = વધુ ગમે. અમાન્ય ક્રમ (98) બાકાત."));
+      else { const base = q.clean === "multi" ? st.ans : st.n;
+        add(box, title, h("div", {class:"chart"}, ...st.rows.map(x => h("div", {class:"row"}, h("span", {}, x.o), h("div", {class:"bar", style:`width:${base ? x.f / base * 100 : 0}%`}), h("span", {class:"num"}, `${x.f} (${pct(x.f, base)}%)`)))),
+          h("p", {class:"note"}, q.clean === "multi" ? `% = જવાબ આપનાર ${st.ans} પૈકી (એકથી વધુ પસંદગી); જવાબ નથી ${st.miss}` : `માન્ય n = ${st.n}; એકથી વધુ ✓ (98) = ${st.inv}; જવાબ નથી (99) = ${st.miss}`)); }
+    }
+  }
+  add(m, box);
+}
+
+/* ====================== SCHOOL CODES (optional details) ====================== */
+function viewSchools(){
+  const m = $("#main"); const adm = isAdmin();
+  const counts = countBy([...S.students.values()], r => r.SCHOOL_ID);
+  const codes = codesInUse();
+  add(m, h("div", {class:"card"}, h("h2", {}, "શાળા કોડ"),
+    h("p", {class:"note"}, "શાળાનું નામ જરૂરી નથી. કોડ = જિલ્લો + પ્રકાર + S + નંબર. જિલ્લો: VT વાવ-થરાદ, A અમદાવાદ, B ભાવનગર, N નવસારી. પ્રકાર: G સરકારી, GIA અનુદાનિત, P સ્વનિર્ભર (ખાનગી). દા.ત. AGS01 = અમદાવાદ સરકારી શાળા 01, APS01 = અમદાવાદ ખાનગી શાળા 01, VTGIAS03 = વાવ-થરાદ અનુદાનિત શાળા 03."),
+    h("p", {class:"note"}, "વિદ્યાર્થી ભરતી વખતે કોડ પસંદ કરો — જિલ્લો અને પ્રકાર કોડ પરથી આપમેળે આવે છે. નીચેની યાદી આપમેળે બને છે."),
+    codes.length ? h("div", {class:"scroll"}, h("table", {class:"t"}, h("tr", {}, ...["કોડ", "જિલ્લો", "પ્રકાર", "નોંધાયેલ", "અપેક્ષિત (વૈકલ્પિક)", ""].map(x => h("th", {}, x))),
+      ...codes.map(c => { const s = school(c);
+        const ex = h("input", {type:"number", min:"0", max:"300", value:s.expected ?? "", disabled:!adm, "aria-label":c + " અપેક્ષિત", style:"max-width:100px"});
+        const b = adm ? h("button", {class:"btn small", type:"button", onclick:async () => {
+          const rec = Object.assign({}, S.schools.get(c) || {}, {SID:c, updatedAt:nowIso(), updatedBy:S.me}); if (ex.value === "") delete rec.expected; else rec.expected = Number(ex.value);
+          try { await put("schools/" + c, rec); audit("school", c, [{v:"expected", o:s.expected ?? "", n:rec.expected ?? ""}]); say(`${c} સેવ થયું.`, "ok"); }
+          catch (e) { say("સેવ ન થયું: " + (e.code || e.message), "bad"); } }}, "સેવ") : "";
+        return h("tr", {}, h("td", {}, h("b", {}, c)), h("td", {}, distOf(s.district).gu), h("td", {}, typeOf(s.type).gu), h("td", {class:"num"}, String(counts.get(c) || 0)), h("td", {}, ex), h("td", {}, b)); }))) :
+      h("p", {class:"note"}, "હજી કોઈ શાળા કોડ વપરાયો નથી."),
+    h("p", {class:"note"}, `કુલ ${codes.length} શાળા કોડ · ` + DISTRICTS.map(d => `${d.gu} ${codes.filter(c => school(c).district === d.id).length}`).join(" · ") + " (લક્ષ્ય: દરેક જિલ્લામાં 18)")));
+}
+
+/* ====================== CODEBOOK ====================== */
+function codebookRows(){
+  const R = [];
+  const add = o => R.push(Object.assign({table:"", sec:"", no:"", gu:"", en:"", type:"", codes:"", missing:"", level:"nominal", rc:"", construct:"", leg:"", spss:true, fmt:"F2.0"}, o));
+  const M = `${INVALID} = Invalid (multiple marks / invalid rank); ${NORESP} = No response`;
+  add({name:"STUDENT_ID", table:"Student_Master", gu:"વિદ્યાર્થી ID (અનામી)", en:"Anonymous student ID", type:"ID", codes:"school code + serial, e.g. AGS01-001", fmt:"A12"});
+  add({name:"SCHOOL_ID", table:"Student_Master", no:"(3)", gu:"શાળા ID", en:"School code (district letter + type + S + number)", type:"ID", codes:"VT/A/B/N + G/GIA/P + S + 01…, e.g. AGS01 = Ahmedabad Government School 01", fmt:"A8"});
+  add({name:"SCHOOL_N", table:"derived", gu:"શાળા ક્રમ (સંખ્યા)", en:"School number (for multilevel models)", type:"numeric", codes:"1…k in sorted school-code order"});
+  add({name:"DISTRICT", table:"derived from SCHOOL_ID", no:"(5)", gu:"જિલ્લો", en:"District", type:"single", codes:DISTRICTS.map(d => `${d.n} = ${d.en} (${d.id})`).join("; "), fmt:"F1.0"});
+  add({name:"SCHOOL_TYPE", table:"derived from SCHOOL_ID", no:"(2)", gu:"શાળાનો પ્રકાર", en:"School type", type:"single", codes:STYPES.map(t => `${t.n} = ${t.en}`).join("; "), fmt:"F1.0"});
+  add({name:"STANDARD", table:"Student_Master", gu:"ધોરણ", en:"Standard", type:"constant", codes:"8"});
+  add({name:"GENDER", table:"Student_Master", no:"(6)", gu:"જાતિ", en:"Gender", type:"single", codes:"1 = Boy (કુમાર); 2 = Girl (કન્યા)", missing:`${NORESP} = No response`});
+  add({name:"COLLECTION_DATE", table:"Student_Master", gu:"માહિતી એકત્રીકરણ તારીખ", en:"Date of data collection", type:"date", fmt:"A10"});
+  add({name:"Q_STATUS", table:"Student_Master", gu:"પ્રશ્નાવલિ સ્થિતિ", en:"Questionnaire status", type:"single", codes:"1 = Incomplete; 2 = Complete; 3 = Verified & locked", level:"ordinal", fmt:"F1.0"});
+  for (const s of SECTIONS) for (const q of (s.qs || [])) {
+    const table = s.obj === "હેતુ 3" ? "Objective3_Responses" : "Objective2_Responses";
+    if (q.k === "table") { q.items.forEach(it => add({name:it.v, table, sec:s.id, no:it.no, gu:it.gu, en:it.en, type:"single (3-point)", codes:"3 = Regularly (નિયમિત રીતે); 2 = Sometimes (ક્યારેક); 1 = Never (ક્યારેય નહીં)",
+      missing:`${NORESP} = No response`, level:"ordinal", rc:"raw = clean", construct:it.c, leg:it.leg})); continue; }
+    if (q.k === "rank") { q.raw.forEach((v, i) => add({name:v, table, sec:s.id, no:q.no, gu:`${q.q} → ${q.items[i]}`, en:`C3 rank given to ${q.items_en[i]} (1 = most liked)`, type:"rank 1–4", codes:"1–4",
+      missing:`${INVALID} = Invalid rank set; ${NORESP} = No response`, level:"ordinal", rc:"raw = clean if valid", leg:`C3_${i + 1}`})); continue; }
+    const ql = (q.q || "") + (q.sub ? " " + q.sub : "");
+    if (q.clean === "multi") q.raw.forEach((v, i) => add({name:v, table, sec:s.id, no:q.no, gu:`${ql} → ${q.opts[i]}`, en:`${q.en}: ${q.opts_en[i]}`, type:"multiple (binary)", codes:"1 = Selected; 0 = Not selected",
+      missing:`${NORESP} = Question not answered`, rc:"raw = clean", leg:`${q.leg}_${i + 1}`, group:q.v}));
+    else {
+      add({name:q.v, table, sec:s.id, no:q.no, gu:ql, en:q.en + " (one option)", type:"single", codes:q.opts_en.map((o, i) => `${i + 1} = ${o} (${q.opts[i]})`).join("; "), missing:M, rc:"clean (from raw marks)", leg:q.leg, opts:q.opts, opts_en:q.opts_en});
+      q.raw.forEach((v, i) => add({name:v, table, sec:s.id, no:q.no, gu:`${ql} → ${q.opts[i]} (✓ જેમનું તેમ)`, en:`${q.en}: marked ${q.opts_en[i]} (raw)`, type:"raw mark (binary)", codes:"1 = Marked; 0 = Not marked",
+        missing:"blank = question not answered", rc:"raw", leg:`${q.leg}_${i + 1}`, group:q.v}));
+    }
+    if (q.oth) add({name:q.oth, table, sec:s.id, no:q.no, gu:`${ql} → અન્ય (લખાણ)`, en:`${q.en}: other (text)`, type:"text", rc:"raw", fmt:"A500", leg:q.leg + "_OTH"});
+  }
+  CONSTRUCTS.forEach(c => add({name:c.id, table:"derived", gu:c.gu + " — સરેરાશ (1–3)", en:c.en + " — mean, ≥80% items answered", type:"derived score", codes:"1.00–3.00 (higher = more frequent)", level:"scale", rc:"clean (derived)", construct:c.id, fmt:"F4.2"}));
+  return R;
+}
+let CB = null; const codebook = () => CB || (CB = codebookRows());
+const CB_COLS = [["name", "Variable"], ["table", "Table"], ["sec", "Section"], ["no", "Q No"], ["gu", "Gujarati label (PDF)"], ["en", "English label"], ["type", "Type"], ["codes", "Codes / value labels"],
+  ["missing", "Missing"], ["level", "Measurement level"], ["rc", "Raw / clean"], ["construct", "Construct"], ["leg", "Legacy code"]];
+function viewCodebook(){
+  const m = $("#main"); const R = codebook();
+  add(m, h("div", {class:"card"}, h("h2", {}, `કોડબુક (${R.length} variables)`),
+    h("p", {class:"note"}, "3-બિંદુ કોડ: 3 = નિયમિત રીતે, 2 = ક્યારેક, 1 = ક્યારેય નહીં. 98 = અમાન્ય (એકથી વધુ ✓ / ક્રમ ભૂલ), 99 = જવાબ નથી. રોલ નંબર કોડબુક અને નિકાસમાં નથી."),
+    h("div", {class:"scroll"}, h("table", {class:"t"}, h("tr", {}, ...CB_COLS.map(c => h("th", {}, c[1]))), ...R.map(r => h("tr", {}, ...CB_COLS.map(c => h("td", {}, String(r[c[0]] ?? "")))))))));
+}
+
+/* ====================== ADMIN ====================== */
+const EXP = {ver:true};
+function viewAdmin(){
+  const m = $("#main"); const D = [...derived().values()];
+  const nver = D.filter(d => d.verified).length;
+  const ver = h("input", {type:"checkbox", id:"exp_ver", checked:EXP.ver}); ver.onchange = () => { EXP.ver = ver.checked; };
+  add(m, h("div", {class:"card"}, h("h2", {}, "નિકાસ (Export)"),
+    h("label", {class:"note", style:"display:flex;gap:6px;align-items:center"}, ver, `વિશ્લેષણ શીટ ફક્ત ચકાસાયેલ રેકોર્ડ પર (${nver} / ${D.length})`),
+    h("div", {class:"chips"},
+      h("button", {class:"btn primary", type:"button", onclick:() => download(`Student_Obj2-3_Data_${today()}.xlsx`, buildWorkbook())}, "Excel workbook (16 શીટ)"),
+      h("button", {class:"btn", type:"button", onclick:() => download(`Student_Obj2-3_SPSS_${today()}.zip`, spssZip())}, "SPSS પેકેજ (.csv + .sps)"),
+      h("button", {class:"btn", type:"button", onclick:() => download(`Student_Obj2-3_raw_${today()}.csv`, toCsv(rawRows(false)))}, "Raw CSV"),
+      h("button", {class:"btn", type:"button", onclick:() => download(`Student_Obj2-3_backup_${today()}.json`, JSON.stringify(backupObj()))}, "બેકઅપ (JSON)")),
+    h("p", {class:"note"}, "Excel માં raw (05, 06) અને clean (15) અલગ શીટ છે. .sav ફાઇલ: SPSS માં .sps ચલાવવાથી બને, અથવા CSV મોકલો — Python થી .sav અને પ્રકરણ 4 આંકડા તૈયાર થશે. અઠવાડિયે એક વાર બેકઅપ ડાઉનલોડ કરો.")));
+  const queue = D.filter(d => !d.verified && d.entry === "Complete").sort((a, b) => a.id < b.id ? -1 : 1);
+  add(m, h("div", {class:"card"}, h("h2", {}, `ચકાસણી બાકી (Complete, ${queue.length})`),
+    queue.length ? h("div", {class:"scroll", style:"max-height:40vh"}, h("table", {class:"t"}, ...queue.slice(0, 300).map(d => h("tr", {}, h("td", {}, h("a", {href:"#form-" + d.id}, d.id)), h("td", {}, d.r.SCHOOL_ID),
+      h("td", {class:"note"}, "ભર્યું: " + who(d.r._createdBy)), h("td", {}, d.issues.some(i => i.lvl !== "info") ? h("span", {class:"badge b-warn"}, "⚠") : ""))))) : h("p", {class:"note"}, "કોઈ બાકી નથી.")));
+  if (BACKEND === "firebase") add(m, teamCard()); else add(m, h("div", {class:"card"}, h("h2", {}, "ટીમને ઉમેરવી"),
+    h("ol", {}, h("li", {}, "ઉપર જમણે Share → વ્યક્તિ ઉમેરો → ભૂમિકા 'Contributor' (ડેટા ભરી શકે, ચકાસી/લૉક ન કરી શકે)."), h("li", {}, "'Editor' આપશો તો તે શાળા માસ્ટર અને ચકાસણી પણ બદલી શકે — ફક્ત વિશ્વાસપાત્ર સહ-સંશોધકને."),
+      h("li", {}, "ડેટા એન્ટ્રી કરનારે claude.ai માં સાઇન-ઇન કરીને લિંક ખોલવી."))));
+  const file = h("input", {type:"file", accept:".json,application/json", id:"rst"});
+  add(m, h("div", {class:"card"}, h("h2", {}, "બેકઅપ પરથી પાછું લાવો"), h("p", {class:"note"}, "ફક્ત ખૂટતા રેકોર્ડ ઉમેરાશે; હાલના રેકોર્ડ બદલાશે નહીં."), file,
+    h("p", {}, h("button", {class:"btn", type:"button", onclick:() => file.files[0] && restore(file.files[0])}, "પાછું લાવો"))));
+  add(m, h("div", {class:"card"}, h("h2", {}, "ઑડિટ (છેલ્લા 300 ફેરફાર)"), h("div", {class:"scroll", style:"max-height:50vh"}, h("table", {class:"t"},
+    h("tr", {}, ...["સમય", "વ્યક્તિ", "ક્રિયા", "ID", "ફેરફાર", ""].map(x => h("th", {}, x))),
+    ...S.audit.map(a => h("tr", {}, h("td", {class:"note"}, fmtTime(a.at)), h("td", {}, who(a.uid)), h("td", {}, a.action), h("td", {}, a.sid || ""),
+      h("td", {class:"note"}, a.reason ? "કારણ: " + a.reason : (a.changes || []).slice(0, 4).map(c => `${c.v}: ${c.o === "" ? "∅" : c.o}→${c.n === "" ? "∅" : c.n}`).join("; ") + ((a.n || 0) > 4 ? ` … (${a.n})` : "")),
+      h("td", {}, a.action === "delete" && a.snapshot && !S.students.has(a.sid) ? h("button", {class:"btn small", type:"button", onclick:() => undelete(a)}, "પાછું લાવો") : "")))))));
+}
+
+function teamCard(){
+  const us = [...S.users.values()].sort((a, b) => (a.role ? 1 : 0) - (b.role ? 1 : 0) || String(a.name).localeCompare(String(b.name)));
+  const counts = countBy([...S.students.values()], r => r._createdBy);
+  return h("div", {class:"card"}, h("h2", {}, `ટીમ સભ્યો (${us.length})`),
+    h("p", {class:"note"}, "નવો સભ્ય એપમાં 'નવું ખાતું બનાવો' કરે, પછી અહીં 'ડેટા એન્ટ્રી' પસંદ કરી સેવ કરો. 'એડમિન' ફક્ત વિશ્વાસપાત્ર સહ-સંશોધકને આપો (ચકાસણી, લૉક, નિકાસ)."),
+    us.length ? h("div", {class:"scroll"}, h("table", {class:"t"}, h("tr", {}, ...["નામ", "ઇમેઇલ", "ભૂમિકા", "ભરેલા", ""].map(x => h("th", {}, x))),
+      ...us.map(u => { const sel = h("select", {"aria-label":"ભૂમિકા " + (u.name || "")}, ...[["", "— મંજૂરી બાકી / બંધ —"], ["entry", "ડેટા એન્ટ્રી"], ["admin", "એડમિન"]].map(([v, l]) => h("option", {value:v}, l))); sel.value = u.role || "";
+        const self = u.uid === S.me;
+        return h("tr", {style:u.role ? "" : "background:#fff8e6"}, h("td", {}, u.name || "—"), h("td", {class:"note"}, u.email || ""), h("td", {}, sel), h("td", {class:"num"}, String(counts.get(u.uid) || 0)),
+          h("td", {}, h("button", {class:"btn small", type:"button", disabled:self, onclick:async () => {
+            try { await put("users/" + u.uid, Object.assign({}, u, {role:sel.value, approvedBy:S.me, approvedAt:nowIso()})); audit("role", "", [{v:u.email || u.uid, o:u.role || "", n:sel.value}]); say(`${u.name || u.email}: ભૂમિકા સેવ થઈ.`, "ok"); }
+            catch (e) { say("સેવ ન થયું: " + (e.code || e.message), "bad"); } }}, self ? "તમે" : "સેવ"))); }))) : h("p", {class:"note"}, "હજી કોઈ ખાતું નથી."));
+}
+async function undelete(a){
+  if (!(await ask(`${a.sid} પાછું લાવવું છે? (ચકાસણી ફરી કરવી પડશે)`))) return;
+  try { await put("students/" + a.sid, a.snapshot); if (a.snapshot2) await put("second/" + a.sid, a.snapshot2); audit("undelete", a.sid, []); say(`${a.sid} પાછું આવ્યું.`, "ok"); }
+  catch (e) { say("ન થયું: " + (e.code || e.message), "bad"); }
+}
+function backupObj(){ const o = c => Object.fromEntries(S[c]); return {app:"student-obj2-3", version:APP_VERSION, at:nowIso(), students:o("students"), second:o("second"), verify:o("verify"), schools:o("schools")}; }
+async function restore(file){
+  let b; try { b = JSON.parse(await file.text()); } catch { return say("ફાઇલ વાંચી શકાઈ નહીં.", "bad"); }
+  if (b.app !== "student-obj2-3") return say("આ આ એપનો બેકઅપ નથી.", "bad");
+  const todo = [];
+  for (const c of ["schools", "students", "second"]) for (const [id, r] of Object.entries(b[c] || {})) if (!S[c].has(id)) todo.push([c, id, r]);
+  if (!todo.length) return say("ઉમેરવા જેવું કંઈ નથી — બધા રેકોર્ડ હાજર છે.", "ok");
+  if (!(await ask(`${todo.length} ખૂટતા રેકોર્ડ ઉમેરવા છે? (ચકાસણી સ્થિતિ પાછી આવતી નથી — ફરી ચકાસવું પડશે)`))) return;
+  try { for (const [c, id, r] of todo) await put(`${c}/${id}`, r); audit("restore", "", [], {n:todo.length}); say(`✓ ${todo.length} રેકોર્ડ ઉમેર્યા.`, "ok"); }
+  catch (e) { say("અટક્યું: " + (e.code || e.message), "bad"); }
+}
+
+/* ====================== exports ====================== */
+async function download(name, data){
+  if (!S.dl) {
+    const blob = data instanceof Blob ? data : new Blob([data], {type:/\.json$/.test(name) ? "application/json" : "text/plain;charset=utf-8"});
+    const a = h("a", {href:URL.createObjectURL(blob), download:name}); document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 3000);
+    say(`✓ ${name} ડાઉનલોડ થયું (Downloads ફોલ્ડર જુઓ).`, "ok"); audit("export", "", [], {file:name}); return;
+  }
+  if (/\.sps$/.test(name)) name = name.replace(/\.sps$/, "_sps.txt");
+  try { await S.dl.save({filename:name, data:data instanceof Blob ? data : String(data)}); say(`✓ ${name} ડાઉનલોડ થયું.`, "ok"); audit("export", "", [], {file:name}); }
+  catch (e) { if (e && e.code === "declined") return; say("ડાઉનલોડ ન થયું: " + (e && (e.code || e.message)), "bad"); }
+}
+const csvCell = v => { const s = v == null ? "" : String(v); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+const toCsv = rows => "﻿" + rows.map(r => r.map(csvCell).join(",")).join("\r\n");
+const sortedD = only => [...derived().values()].filter(d => !only || d.verified).sort((a, b) => a.id < b.id ? -1 : 1);
+const adminCols = d => [d.id, d.r.SCHOOL_ID, d.district ? distOf(d.district).n : "", d.stype || "", 8, d.r.GENDER ?? "", d.r.COLLECTION_DATE || "", d.status];
+const ADMIN_HEAD = ["STUDENT_ID", "SCHOOL_ID", "DISTRICT", "SCHOOL_TYPE", "STANDARD", "GENDER", "COLLECTION_DATE", "Q_STATUS"];
+function rawRows(only){ return [ADMIN_HEAD.concat(RAW)].concat(sortedD(only).map(d => adminCols(d).concat(RAW.map(v => d.r[v] ?? "")))); }
+function spssVars(){ return codebook().filter(c => c.spss && !["STANDARD"].includes(c.name)); }
+function spssRows(only){
+  const vs = spssVars(); const SN = new Map(codesInUse().map((c, i) => [c, i + 1]));
+  return [vs.map(v => v.name)].concat(sortedD(only).map(d => vs.map(v => {
+    switch (v.name) { case "STUDENT_ID": return d.id; case "SCHOOL_ID": return d.r.SCHOOL_ID; case "SCHOOL_N": return SN.get(d.r.SCHOOL_ID) || "";
+      case "DISTRICT": return d.district ? distOf(d.district).n : ""; case "SCHOOL_TYPE": return d.stype || ""; case "COLLECTION_DATE": return d.r.COLLECTION_DATE || ""; case "Q_STATUS": return d.status;
+      default: return d.clean[v.name] ?? ""; } })));
+}
+const sq = s => "'" + String(s).replace(/'/g, "''") + "'";
+function cutBytes(s, n){ const enc = new TextEncoder(); let out = ""; for (const ch of String(s)) { if (enc.encode(out + ch).length > n) break; out += ch; } return out; }
+function spssSyntax(){
+  const vs = spssVars(); const L = [];
+  L.push("* Encoding: UTF-8.", `* Student schedule, Objectives 2 & 3 (STUDENT PDF) — generated ${nowIso()} by app v${APP_VERSION}.`, `* Basis: ${EXP.ver ? "verified (locked) records only" : "all records"}.`,
+    "* Put students_clean.csv in the same folder as this file, or edit the FILE path.", "* 3-point items: 3 = Regularly, 2 = Sometimes, 1 = Never. Missing: 98 = invalid (multiple marks / invalid rank), 99 = no response.",
+    "* Single-choice questions: clean code from raw marks; raw marks (_R..) kept: 1 = marked, 0 = not marked, blank = question not answered.", "",
+    "SET UNICODE=ON.", "GET DATA /TYPE=TXT /FILE='students_clean.csv' /ENCODING='UTF8' /DELCASE=LINE /DELIMITERS=\",\" /QUALIFIER='\"' /ARRANGEMENT=DELIMITED /FIRSTCASE=2", "  /VARIABLES=");
+  vs.forEach(v => L.push(`  ${v.name} ${v.fmt}`)); L[L.length - 1] += "."; L.push("CACHE.", "EXECUTE.", "DATASET NAME Students WINDOW=FRONT.", "");
+  L.push("VARIABLE LABELS"); vs.forEach((v, i) => L.push(`  ${v.name} ${sq(cutBytes(v.en, 250))}` + (i === vs.length - 1 ? "." : " /"))); L.push("");
+  const vl = [["DISTRICT", DISTRICTS.map(d => `${d.n} ${sq(d.en)}`).join(" ")], ["SCHOOL_TYPE", STYPES.map(t => `${t.n} ${sq(t.en)}`).join(" ")], ["GENDER", `1 'Boy' 2 'Girl' ${NORESP} 'No response'`],
+    ["Q_STATUS", "1 'Incomplete' 2 'Complete' 3 'Verified & locked'"]];
+  const rating = vs.filter(v => v.type === "single (3-point)").map(v => v.name);
+  for (let i = 0; i < rating.length; i += 15) vl.push([rating.slice(i, i + 15).join(" "), `3 'Regularly' 2 'Sometimes' 1 'Never' ${NORESP} 'No response'`]);
+  vs.filter(v => v.type === "single" && v.opts).forEach(v => vl.push([v.name, v.opts_en.map((o, i) => `${i + 1} ${sq(cutBytes(o + " (" + v.opts[i] + ")", 118))}`).join(" ") + ` ${INVALID} 'Invalid (multiple marks)' ${NORESP} 'No response'`]));
+  const ranks = vs.filter(v => v.type === "rank 1–4").map(v => v.name); vl.push([ranks.join(" "), `1 'Most liked' 4 'Least liked' ${INVALID} 'Invalid rank set' ${NORESP} 'No response'`]);
+  const bins = vs.filter(v => v.type.includes("binary")).map(v => v.name); for (let i = 0; i < bins.length; i += 15) vl.push([bins.slice(i, i + 15).join(" "), `0 'Not selected' 1 'Selected' ${NORESP} 'Not answered'`]);
+  L.push("VALUE LABELS"); vl.forEach(([n, l], i) => L.push((i ? "  /" : "  ") + n + " " + l)); L[L.length - 1] += "."; L.push("");
+  const numCoded = vs.filter(v => /single|rank|binary/.test(v.type) && v.name !== "DISTRICT" && v.name !== "SCHOOL_TYPE" && v.name !== "Q_STATUS").map(v => v.name);
+  for (let i = 0; i < numCoded.length; i += 15) L.push(`MISSING VALUES ${numCoded.slice(i, i + 15).join(" ")} (${INVALID}, ${NORESP}).`);
+  const lev = {nominal:[], ordinal:[], scale:[]}; vs.forEach(v => { if (/^A/.test(v.fmt)) return; lev[v.level].push(v.name); });
+  for (const [k, arr] of Object.entries(lev)) for (let i = 0; i < arr.length; i += 15) L.push(`VARIABLE LEVEL ${arr.slice(i, i + 15).join(" ")} (${k.toUpperCase()}).`);
+  L.push("", "MRSETS", `  /MDGROUP NAME=$O2_C1 LABEL='C1 way maths is understood better' CATEGORYLABELS=VARLABELS VARIABLES=${QS.find(q => q.v === "O2_C1").raw.join(" ")} VALUE=1.`, "");
+  const cons = CONSTRUCTS.map(c => c.id).join(" ");
+  L.push("* 1. Item frequencies (valid % excludes 98/99).", "FREQUENCIES VARIABLES=DISTRICT SCHOOL_TYPE GENDER");
+  const fv = rating.concat(vs.filter(v => v.type === "single" && v.opts).map(v => v.name)); for (let i = 0; i < fv.length; i += 12) L.push("  " + fv.slice(i, i + 12).join(" "));
+  L.push("  /STATISTICS=MEAN STDDEV MEDIAN /ORDER=ANALYSIS.", "MULT RESPONSE GROUPS=M01 'C1' (" + QS.find(q => q.v === "O2_C1").raw.join(" ") + " (1)) /FREQUENCIES=M01 /BASE=CASES.", "");
+  L.push("* 2. Construct scores.", `DESCRIPTIVES VARIABLES=${cons} /STATISTICS=MEAN STDDEV MIN MAX.`, "");
+  L.push("* 3. Reliability (Cronbach alpha, corrected item-total r, alpha if item deleted). McDonald omega: Python (pingouin/factor_analyzer).");
+  CONSTRUCTS.forEach(c => L.push(`RELIABILITY /VARIABLES=${CON_ITEMS[c.id].join(" ")} /SCALE('${c.id}') ALL /MODEL=ALPHA /SUMMARY=TOTAL.`)); L.push("");
+  L.push("* 4. Item x group: chi-square with Cramer's V. Apply Benjamini-Hochberg across items afterwards.", "CROSSTABS");
+  for (let i = 0; i < rating.length; i += 12) L.push((i ? "    " : "  /TABLES=") + rating.slice(i, i + 12).join(" ")); L.push("    BY GENDER SCHOOL_TYPE DISTRICT", "  /STATISTICS=CHISQ PHI /CELLS=COUNT COLUMN EXPECTED /COUNT ROUND CELL.", "");
+  L.push("* 5. Gender: Welch t (read 'Equal variances not assumed') and Mann-Whitney U. Effect size: Hedges g / r = Z/sqrt(N).", `T-TEST GROUPS=GENDER(1 2) /VARIABLES=${cons} /ES DISPLAY(TRUE) /CRITERIA=CI(.95).`, `NPAR TESTS /M-W=${cons} BY GENDER(1 2).`, "");
+  L.push("* 6. District and school type: Welch ANOVA + Games-Howell; Kruskal-Wallis. Correct across the 4 constructs with Holm.");
+  ["DISTRICT", "SCHOOL_TYPE"].forEach(g => L.push(`ONEWAY ${cons} BY ${g} /STATISTICS DESCRIPTIVES WELCH HOMOGENEITY /POSTHOC=GH ALPHA(0.05).`, `NPAR TESTS /K-W=${cons} BY ${g}(1 ${g === "DISTRICT" ? 4 : 3}).`)); L.push("");
+  L.push("* 7. Clustering: students are nested in 72 schools. ICC = school variance / (school + residual variance).");
+  CONSTRUCTS.forEach(c => L.push(`MIXED ${c.id} /FIXED=| SSTYPE(3) /METHOD=REML /RANDOM=INTERCEPT | SUBJECT(SCHOOL_N) COVTYPE(VC) /PRINT=SOLUTION TESTCOV.`));
+  L.push("* If ICC > .05, report group differences from the multilevel model (district and school type are school-level variables):");
+  CONSTRUCTS.forEach(c => L.push(`MIXED ${c.id} BY GENDER SCHOOL_TYPE DISTRICT /FIXED=GENDER SCHOOL_TYPE DISTRICT | SSTYPE(3) /METHOD=REML /RANDOM=INTERCEPT | SUBJECT(SCHOOL_N) COVTYPE(VC) /PRINT=SOLUTION.`)); L.push("");
+  L.push("* 8. Objective 2 x Objective 3 relationship: Spearman rho (Holm-correct the 6 pairs).", `NONPAR CORR /VARIABLES=${cons} /PRINT=SPEARMAN TWOTAIL NOSIG /MISSING=PAIRWISE.`, "");
+  L.push("SAVE OUTFILE='students_obj2_3.sav' /COMPRESSED.");
+  return "﻿" + L.join("\r\n") + "\r\n";
+}
+function spssZip(){ return zip([["students_clean.csv", toCsv(spssRows(EXP.ver))], ["students_spss.sps", spssSyntax()], ["students_raw.csv", toCsv(rawRows(EXP.ver))], ["codebook.csv", toCsv([CB_COLS.map(c => c[1])].concat(codebook().map(r => CB_COLS.map(c => r[c[0]] ?? ""))))]], "application/zip"); }
+/* ---- minimal XLSX writer ---- */
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(b){ let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function zip(files, mime){
+  const enc = new TextEncoder(); const parts = []; const central = []; let off = 0;
+  for (const [name, str] of files) {
+    const nb = enc.encode(name), db = enc.encode(str), crc = crc32(db);
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(12, 0x21, true);
+    lh.setUint32(14, crc, true); lh.setUint32(18, db.length, true); lh.setUint32(22, db.length, true); lh.setUint16(26, nb.length, true);
+    parts.push(new Uint8Array(lh.buffer), nb, db);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(14, 0x21, true);
+    ch.setUint32(16, crc, true); ch.setUint32(20, db.length, true); ch.setUint32(24, db.length, true); ch.setUint16(28, nb.length, true); ch.setUint32(42, off, true);
+    central.push(new Uint8Array(ch.buffer), nb); off += 30 + nb.length + db.length;
+  }
+  const csize = central.reduce((a, b) => a + b.length, 0); const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true); end.setUint32(12, csize, true); end.setUint32(16, off, true);
+  return new Blob([...parts, ...central, new Uint8Array(end.buffer)], {type:mime || "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+}
+const xesc = s => String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const colL = n => { let s = ""; n++; while (n) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; };
+function sheetXml(sh){
+  const rows = sh.rows; const ncol = Math.max(1, ...rows.map(r => r.length)); const hr = sh.headRows ?? 1;
+  const widths = Array.from({length:ncol}, (_, c) => Math.min(sh.maxW || 60, Math.max(7, ...rows.slice(0, 300).map(r => String(r[c] ?? "").length * 1.1))));
+  let x = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">';
+  const fc = sh.freezeCol || 0;
+  x += `<sheetViews><sheetView workbookViewId="0"><pane${fc ? ` xSplit="${fc}"` : ""} ySplit="${hr}" topLeftCell="${colL(fc)}${hr + 1}" activePane="${fc ? "bottomRight" : "bottomLeft"}" state="frozen"/></sheetView></sheetViews>`;
+  x += '<sheetFormatPr defaultRowHeight="18"/><cols>' + widths.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w.toFixed(1)}" customWidth="1"/>`).join("") + "</cols><sheetData>";
+  rows.forEach((r, ri) => { x += `<row r="${ri + 1}">`;
+    r.forEach((v, ci) => { if (v === "" || v == null) return; const ref = colL(ci) + (ri + 1); const st = ri < hr ? 1 : sh.wrap ? 2 : 0;
+      if (typeof v === "number" && isFinite(v)) x += `<c r="${ref}" s="${st}"><v>${v}</v></c>`; else x += `<c r="${ref}" s="${st}" t="inlineStr"><is><t xml:space="preserve">${xesc(v)}</t></is></c>`; });
+    x += "</row>"; });
+  x += "</sheetData>";
+  if (sh.filter && rows.length > hr) x += `<autoFilter ref="A${hr}:${colL(ncol - 1)}${rows.length}"/>`;
+  return x + '<pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/></worksheet>';
+}
+function xlsx(sheets){
+  const f = [];
+  f.push(["[Content_Types].xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+    sheets.map((_, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("") + "</Types>"]);
+  f.push(["_rels/.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>']);
+  const dn = sheets.map((s, i) => s.filter && s.rows.length > (s.headRows ?? 1) ? `<definedName name="_xlnm._FilterDatabase" localSheetId="${i}" hidden="1">'${s.name}'!$A$${s.headRows ?? 1}:$${colL(Math.max(...s.rows.map(r => r.length)) - 1)}$${s.rows.length}</definedName>` : "").join("");
+  f.push(["xl/workbook.xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>' +
+    sheets.map((s, i) => `<sheet name="${xesc(s.name)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join("") + "</sheets>" + (dn ? `<definedNames>${dn}</definedNames>` : "") + "</workbook>"]);
+  f.push(["xl/_rels/workbook.xml.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    sheets.map((_, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join("") +
+    `<Relationship Id="rId${sheets.length + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`]);
+  f.push(["xl/styles.xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Shruti"/><family val="2"/></font><font><b/><sz val="11"/><name val="Shruti"/><family val="2"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFE5EDF7"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment wrapText="1" vertical="top"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment wrapText="1" vertical="top"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>']);
+  sheets.forEach((s, i) => f.push([`xl/worksheets/sheet${i + 1}.xml`, sheetXml(s)]));
+  return zip(f);
+}
+const N2 = x => isFinite(x) ? Math.round(x * 100) / 100 : "";
+const N3 = x => isFinite(x) ? Math.round(x * 1000) / 1000 : "";
+function buildWorkbook(){
+  const only = EXP.ver; const ALL = sortedD(false); const D = sortedD(only);
+  const basis = `આધાર: ${only ? "ફક્ત ચકાસાયેલ (લૉક) રેકોર્ડ" : "બધા રેકોર્ડ (ચકાસણી બાકીવાળા સહિત)"} · N = ${D.length} · નિકાસ ${fmtTime(nowIso())} · એપ v${APP_VERSION}`;
+  const sh = []; const add = (name, rows, o) => sh.push(Object.assign({name, rows}, o || {}));
+  // 01
+  const dash = [["સૂચક", "મૂલ્ય"], ["નોંધાયેલ વિદ્યાર્થી", ALL.length], ["Complete", ALL.filter(d => d.entry === "Complete").length], ["ચકાસાયેલ (લૉક)", ALL.filter(d => d.verified).length],
+    ["અધૂરા", ALL.filter(d => d.entry !== "Complete").length], ["ચેતવણીવાળા", ALL.filter(d => d.issues.some(i => i.lvl !== "info")).length], ["બીજી એન્ટ્રી", ALL.filter(d => S.second.has(d.id)).length], ["", ""], ["જિલ્લો / પ્રકાર / જાતિ", "નોંધાયેલ (ચકાસાયેલ)"]];
+  DISTRICTS.forEach(x => { const L = ALL.filter(d => d.district === x.id); dash.push([x.gu + " " + x.id, `${L.length} (${L.filter(d => d.verified).length})`]); });
+  STYPES.forEach(x => { const L = ALL.filter(d => Number(d.stype) === x.n); dash.push([x.gu, `${L.length} (${L.filter(d => d.verified).length})`]); });
+  [[1, "કુમાર"], [2, "કન્યા"]].forEach(([g, l]) => { const L = ALL.filter(d => d.r.GENDER === g); dash.push([l, `${L.length} (${L.filter(d => d.verified).length})`]); });
+  dash.push(["", ""], ["નિકાસ સમય", fmtTime(nowIso())]); add("01_Dashboard", dash);
+  add("02_District_Master", [["district_id", "name_en", "name_gu", "spss_code"]].concat(DISTRICTS.map(d => [d.id, d.en, d.gu, d.n])));
+  add("03_School_Master", [["school_id", "school_name", "district_id", "school_type", "school_type_label", "taluka", "expected_students", "registered"]].concat(codesInUse().map(s => { const x = school(s);
+    return [s, x.name || "", x.district || "", x.type || "", x.type ? typeOf(x.type).en : "", x.taluka || "", x.expected ?? "", ALL.filter(d => d.r.SCHOOL_ID === s).length]; })), {filter:true});
+  add("04_Student_Master", [["STUDENT_ID", "SCHOOL_ID", "DISTRICT_ID", "SCHOOL_TYPE", "STANDARD", "GENDER", "COLLECTION_DATE", "Q_STATUS", "ANSWERED", "TOTAL_UNITS", "ENTERED_BY", "UPDATED_AT", "VERSION", "VERIFIED_BY", "VERIFIED_AT"]]
+    .concat(ALL.map(d => [d.id, d.r.SCHOOL_ID, d.district, d.stype || "", 8, d.r.GENDER ?? "", d.r.COLLECTION_DATE || "", d.status, d.answered, d.total, who(d.r._createdBy), d.r._updatedAt || "", d.r._version, d.verified ? who(d.vby) : "", d.vat || ""])), {filter:true, freezeCol:1});
+  add("05_Objective_2", [["STUDENT_ID"].concat(RAW2)].concat(ALL.map(d => [d.id].concat(RAW2.map(v => d.r[v] ?? "")))), {filter:true, freezeCol:1, maxW:14});
+  add("06_Objective_3", [["STUDENT_ID"].concat(RAW3)].concat(ALL.map(d => [d.id].concat(RAW3.map(v => d.r[v] ?? "")))), {filter:true, freezeCol:1, maxW:14});
+  add("07_Codebook", [CB_COLS.map(c => c[1])].concat(codebook().map(r => CB_COLS.map(c => r[c[0]] ?? ""))), {filter:true, maxW:50, wrap:true});
+  add("08_Data_Validation", [["STUDENT_ID", "Q_STATUS", "level", "code", "issue"]].concat(ALL.flatMap(d => d.issues.map(i => [d.id, d.status, i.lvl, i.code, i.t]))), {filter:true});
+  // 09 descriptive
+  const desc = [[basis], ["Variable", "Section", "No", "Statement / option", "n valid", "નિયમિત રીતે f", "%", "ક્યારેક f", "%", "ક્યારેય નહીં f", "%", "Missing (99)", "Mean", "SD", "Median", "Level"]];
+  ITEMS.forEach(it => { const s = itemStats(D, it.v); desc.push([it.v, it.sec, it.no, it.gu, s.n, s.f[0], pct(s.f[0], s.n), s.f[1], pct(s.f[1], s.n), s.f[2], pct(s.f[2], s.n), s.miss, N2(s.m), N2(s.sd), s.n ? s.md : "", level3(s.m)]); });
+  desc.push([], ["Variable", "Question", "Option", "f", "% of valid", "n valid", "Invalid (98)", "No response (99)"]);
+  QS.forEach(q => { const st = choiceStats(D, q); const ql = (q.q || q.no) + (q.sub ? " " + q.sub : "");
+    if (q.k === "rank") st.forEach((x, i) => desc.push([q.raw[i], ql, x.o, `mean rank ${N2(x.m)}`, `rank 1: ${pct(x.first, x.n)}%`, x.n, "", ""]));
+    else if (q.clean === "multi") st.rows.forEach((x, i) => desc.push([q.raw[i], ql, x.o, x.f, pct(x.f, st.ans), st.ans, "", st.miss]));
+    else st.rows.forEach((x, i) => desc.push([q.v, ql, x.o, x.f, pct(x.f, st.n), st.n, i ? "" : st.inv, i ? "" : st.miss])); });
+  desc.push([], ["Construct", "Name", "n", "Mean", "SD", "Level"]); CONSTRUCTS.forEach(c => { const xs = D.map(d => d.clean[c.id]).filter(x => x !== ""); desc.push([c.id, c.gu, xs.length, N2(mean(xs)), N2(sd(xs)), level3(mean(xs))]); });
+  add("09_Descriptive_Analysis", desc, {headRows:2, maxW:45});
+  const groupSheet = key => { const G = GROUPS[key]; const ks = G.keys();
+    const rows = [[basis + " · સાર્થકતા કસોટી: SPSS syntax / Python"], ["Variable", "Label"].concat(ks.flatMap(k => [G.lab(k) + " n", "Mean", "SD"]))];
+    CONSTRUCTS.forEach(c => rows.push([c.id, c.gu].concat(ks.flatMap(k => { const xs = D.filter(d => G.of(d) === k).map(d => d.clean[c.id]).filter(x => x !== ""); return [xs.length, N2(mean(xs)), N2(sd(xs))]; }))));
+    ITEMS.forEach(it => rows.push([it.v, it.gu].concat(ks.flatMap(k => { const xs = D.filter(d => G.of(d) === k).map(d => d.clean[it.v]).filter(x => x >= 1 && x <= 3); return [xs.length, N2(mean(xs)), N2(sd(xs))]; }))));
+    return rows; };
+  add("10_District_Comparison", groupSheet("district"), {headRows:2, maxW:40});
+  add("11_School_Type_Comparison", groupSheet("type"), {headRows:2, maxW:40});
+  add("12_Gender_Comparison", groupSheet("gender"), {headRows:2, maxW:40});
+  const cor = [[basis + " · Spearman ρ (pairwise n). p, CI: SPSS/Python"], [""].concat(CONSTRUCTS.map(c => c.id))];
+  CONSTRUCTS.forEach(a => cor.push([a.id].concat(CONSTRUCTS.map(b => { if (a === b) return 1; const P = D.filter(d => d.clean[a.id] !== "" && d.clean[b.id] !== ""); return P.length > 2 ? `${N3(spearman(P.map(d => d.clean[a.id]), P.map(d => d.clean[b.id])))} (n=${P.length})` : ""; }))));
+  add("13_Correlation_Analysis", cor, {headRows:2});
+  const rel = [[basis + " · Cronbach α (complete cases). ω: Python"], ["Construct", "Variable", "Statement", "k / item", "n", "α / item-rest r", "α if item deleted"]];
+  CONSTRUCTS.forEach(c => { const R = reliability(D, c); rel.push([c.id, "", c.gu, R.k, R.n, N3(R.a), ""]); R.items.forEach(it => rel.push([c.id, it.v, ITEM.get(it.v).gu, "", "", N3(it.r), N3(it.aDel)])); });
+  add("14_Reliability_Analysis", rel, {headRows:2, maxW:50});
+  add("15_SPSS_Export", spssRows(only), {filter:true, freezeCol:1, maxW:14});
+  // 16 chapter 4 (Gujarati)
+  const ch = [["પ્રકરણ 4 માટે કોષ્ટકો (કોષ્ટક ક્રમાંક કામચલાઉ) — " + basis]]; let tno = 1;
+  TABLES.forEach(q => { ch.push([], [`કોષ્ટક 4.${tno++}: ${q.head || SECTIONS.find(s => s.id === q.sec).title} — વિધાનવાર પ્રતિભાવ`], ["ક્રમ", "વિધાન", "નિયમિત રીતે f (%)", "ક્યારેક f (%)", "ક્યારેય નહીં f (%)", "N", "મધ્યક", "SD", "સ્તર"]);
+    q.items.forEach(it => { const s = itemStats(D, it.v); ch.push([it.no, it.gu, ...s.f.map(f => `${f} (${pct(f, s.n)})`), s.n, N2(s.m), N2(s.sd), level3(s.m)]); }); });
+  ch.push([], [`કોષ્ટક 4.${tno++}: રચના ગુણ`], ["રચના", "N", "મધ્યક", "SD", "સ્તર", "Cronbach α"]);
+  CONSTRUCTS.forEach(c => { const xs = D.map(d => d.clean[c.id]).filter(x => x !== ""); ch.push([c.gu, xs.length, N2(mean(xs)), N2(sd(xs)), level3(mean(xs)), N3(reliability(D, c).a)]); });
+  Object.entries(GROUPS).forEach(([k, G]) => { ch.push([], [`કોષ્ટક 4.${tno++}: ${G.gu} મુજબ રચના ગુણ — મધ્યક (SD), n`], ["રચના"].concat(G.keys().map(x => G.lab(x))));
+    CONSTRUCTS.forEach(c => ch.push([c.gu].concat(G.keys().map(x => { const xs = D.filter(d => G.of(d) === x).map(d => d.clean[c.id]).filter(v => v !== ""); return xs.length ? `${N2(mean(xs))} (${N2(sd(xs))}), ${xs.length}` : ""; })))); });
+  QS.forEach(q => { const st = choiceStats(D, q); ch.push([], [`કોષ્ટક 4.${tno++}: ${(q.q || q.no) + (q.sub ? " — " + q.sub : "")}`]);
+    if (q.k === "rank") { ch.push(["વિકલ્પ", "N", "સરેરાશ ક્રમ", "ક્રમ 1 f (%)"]); st.forEach(x => ch.push([x.o, x.n, N2(x.m), `${x.first} (${pct(x.first, x.n)})`])); }
+    else { const base = q.clean === "multi" ? st.ans : st.n; ch.push(["વિકલ્પ", "f", "%"]); st.rows.forEach(x => ch.push([x.o, x.f, pct(x.f, base)])); ch.push(["કુલ (માન્ય)", base, ""]);
+      ch.push([q.clean === "multi" ? `એકથી વધુ પસંદગી: % = જવાબ આપનાર પૈકી; જવાબ નથી ${st.miss}` : `અમાન્ય (98) ${st.inv}; જવાબ નથી (99) ${st.miss}`]); } });
+  add("16_Chapter_4_Tables", ch, {headRows:1, maxW:60, wrap:true});
+  return xlsx(sh);
+}
+
+if (BACKEND === "firebase" && "serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+window.__TEST__ = {S, derived, cleanRow, codebook, buildWorkbook, spssRows, spssSyntax, rawRows, reliability, CONSTRUCTS, ITEMS, QS, RAW};
+boot();
+</script>
+</body>
+</html>

@@ -150,6 +150,20 @@ table.t td.num,table.t th.num{text-align:right;font-variant-numeric:tabular-nums
 .paper .pk button.on,.paper .popt button.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .paper .popt{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px}
 .paper .popt button{font-size:1rem;font-weight:600;padding:6px 12px;text-align:left}
+.paper .prow.cur{background:#eaf2fb;box-shadow:0 0 0 2px var(--accent) inset;border-radius:10px;padding-left:8px;padding-right:4px}
+.pkpad{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -3px 10px rgba(0,0,0,.08)}
+.pkpad .in{max-width:760px;margin:0 auto}
+.pkpad .pl{font-size:.82rem;color:var(--muted);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pkpad .pl b{color:var(--accent)}
+.pkpad .k1{display:grid;gap:8px;grid-template-columns:repeat(3,1fr)} .pkpad .k1.g2{grid-template-columns:repeat(2,1fr)} .pkpad .k1.g4{grid-template-columns:repeat(4,1fr)}
+.pkpad .k1 button{min-height:66px;border:2px solid var(--line);border-radius:14px;background:var(--surface);font-family:inherit;color:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.pkpad .k1 button b{font-size:1.7rem} .pkpad .k1 button span{font-size:.72rem;font-weight:600;color:var(--muted)}
+.pkpad .k1 button.on{background:var(--accent);border-color:var(--accent);color:#fff} .pkpad .k1 button.on span{color:#dce8f5}
+.pkpad .k2{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px}
+.pkpad .k2 button{min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-family:inherit;color:inherit;font-weight:700;cursor:pointer}
+.pkpad .k2 button.go{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pkpad .hint{font-size:.9rem;padding:14px 4px;text-align:center;color:var(--accent);font-weight:600}
+body.haspad #main{padding-bottom:240px}
 .paper .pnote{grid-column:1/-1;font-size:.85rem;color:var(--muted);display:flex;gap:6px;align-items:center}
 .fx .keys.list{grid-template-columns:1fr 1fr}
 .fx .key{border:2px solid var(--line);background:var(--surface);border-radius:14px;min-height:68px;padding:6px 8px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent;font-family:inherit;color:inherit}
@@ -203,7 +217,7 @@ const CONSTRUCTS = [{"id": "A_TEACH", "gu": "વર્ગખંડ અધ્ય�
 const DISTRICTS = [{"id": "D01", "en": "Vav-Tharad", "gu": "વાવ-થરાદ", "n": 1, "l": "VT"}, {"id": "D02", "en": "Ahmedabad", "gu": "અમદાવાદ", "n": 2, "l": "A"}, {"id": "D03", "en": "Bhavnagar", "gu": "ભાવનગર", "n": 3, "l": "B"}, {"id": "D04", "en": "Navsari", "gu": "નવસારી", "n": 4, "l": "N"}];
 const STYPES = [{"n": 1, "en": "Government", "gu": "સરકારી", "l": "G"}, {"n": 2, "en": "Grant-in-Aid", "gu": "અનુદાનિત", "l": "GIA"}, {"n": 3, "en": "Self-Financed (Private)", "gu": "સ્વનિર્ભર (ખાનગી)", "l": "P"}];
 const COVER = {"title": "વિદ્યાર્થીઓના અધ્યયન અનુભવો અને મૂલ્યાંકન અનુસૂચિ", "sub": "(ધોરણ 8ના ગણિત શિક્ષણમાં NCF- SE- 2023 મુજબ અધ્યાપનશાસ્ત્રમાં)", "instr": ["(1) આ કોઈ પરીક્ષા નથી. તેથી અહીં કોઈ જવાબ સાચો કે ખોટો નથી.", "(2) દરેક વિધાન ધ્યાનપૂર્વક વાંચો અને તમારા અનુભવને સૌથી વધુ અનુરૂપ લાગતો એક જ વિકલ્પ પસંદ કરીને (✓) ની નિશાની કરો.", "(3) કોઈપણ વિધાનનો જવાબ ખાલી રાખશો નહીં.", "(4) પ્રશ્નોના જવાબ તમારા પોતાના અનુભવ અને અભિપ્રાયના આધારે આપશો. અન્ય વિદ્યાર્થીઓ સાથે ચર્ચા કર્યા વગર સ્વતંત્ર રીતે પ્રતિભાવ આપશો.", "(5) આપના દ્વારા આપવામાં આવેલા તમામ પ્રતિભાવો સંપૂર્ણપણે ગોપનીય રાખવામાં આવશે અને તેનો ઉપયોગ માત્ર સંશોધનના હેતુ માટે જ કરવામાં આવશે.", "(6) ઉદાહરણ: જો વિધાન હોય \"શિક્ષક બોર્ડ દ્વારા સમજાવે છે.\" અને તમારા શિક્ષક લગભગ દરેક વખતે બોર્ડનો ઉપયોગ કરતા હોય, તો \"નિયમિત રીતે (✓)\" ની નિશાની કરો. જો શિક્ષક ક્યારેક જ બોર્ડનો ઉપયોગ કરતા હોય, તો \"ક્યારેક (✓)\" અને જો ક્યારેય ઉપયોગ ન કરતા હોય, તો \"ક્યારેય નહીં (✓)\" ની નિશાની કરો.", "(7) માહિતી ભરતી વખતે કોઈ પ્રશ્ન હોય તો સંશોધક અથવા શિક્ષકનો સંપર્ક કરશો.", "(8) આપના સાચા અને નિખાલસ સહકાર બદલ હાર્દિક આભાર"]};
-const APP_VERSION = "1.10";
+const APP_VERSION = "1.12";
 const BACKEND = "firebase";   // "claude" = Claude artifact database · "firebase" = own Firebase project (Play Store / installable app)
 const FB_VER = "10.12.2";
 const TARGET_N = 2000;
@@ -353,7 +367,11 @@ async function bootFirebase(){
     S.me = u.uid;
     meUnsub = F.onSnapshot(F.doc(fdb, "users", u.uid), async sn => {
       const d = sn.exists() ? sn.data() : null;
-      if (!d) { try { await F.setDoc(F.doc(fdb, "users", u.uid), {uid:u.uid, email:u.email || "", name:(S.pendingName || u.email || "").trim(), role:"", requestedAt:nowIso()}); } catch (e) { renderPending(u, null, e); } return; }
+      if (!d) {
+        const base = {uid:u.uid, email:u.email || "", name:(S.pendingName || u.email || "").trim(), role:"", requestedAt:nowIso()};
+        const code = (S.pendingCode || "").trim().toUpperCase();
+        if (code) { try { await F.setDoc(F.doc(fdb, "users", u.uid), Object.assign({}, base, {role:"entry", joinCode:code, joinedAt:nowIso()})); return; } catch (e) { S.codeFailed = true; } }
+        try { await F.setDoc(F.doc(fdb, "users", u.uid), base); } catch (e) { renderPending(u, null, e); } return; }
       const role = d.role === "admin" || d.role === "entry" ? d.role : null;
       S.user = {id:u.uid, name:d.name || u.email, email:u.email}; NAMES.set(u.uid, S.user.name);
       if (!role) { stopSubs(); S.role = null; return renderPending(u, d); }
@@ -371,17 +389,19 @@ function renderLogin(mode){
   const nm = h("input", {type:"text", id:"lgName", autocomplete:"name", placeholder:"તમારું નામ"});
   const em = h("input", {type:"email", id:"lgEmail", autocomplete:"username", inputmode:"email"});
   const pw = h("input", {type:"password", id:"lgPass", autocomplete:mode === "in" ? "current-password" : "new-password"});
+  const tc = h("input", {type:"text", id:"lgCode", autocapitalize:"characters", autocomplete:"off", placeholder:"સંશોધકે આપેલો કોડ"});
   const out = h("p", {class:"msg", hidden:true}); const btn = h("button", {class:"btn primary", type:"submit", style:"width:100%"}, mode === "in" ? "પ્રવેશ કરો" : "ખાતું બનાવો");
   const U = S.fb.U, auth = S.fb.auth;
   const f = h("form", {class:"card center", onsubmit:async e => {
     e.preventDefault(); btn.disabled = true; out.hidden = true;
     try {
       if (mode === "in") await U.signInWithEmailAndPassword(auth, em.value.trim(), pw.value);
-      else { if (!nm.value.trim()) { btn.disabled = false; return say("નામ લખો.", "bad", out); } S.pendingName = nm.value.trim(); await U.createUserWithEmailAndPassword(auth, em.value.trim(), pw.value); }
+      else { if (!nm.value.trim()) { btn.disabled = false; return say("નામ લખો.", "bad", out); } S.pendingName = nm.value.trim(); S.pendingCode = tc.value.trim(); await U.createUserWithEmailAndPassword(auth, em.value.trim(), pw.value); }
     } catch (er) { say(authMsg(er), "bad", out); } finally { btn.disabled = false; }
   }}, h("h2", {}, "Chauhan Research"), h("p", {class:"note"}, "ધોરણ 8 ગણિત સંશોધન — વિદ્યાર્થી અનુસૂચિ (હેતુ 2 અને 3)"),
     mode === "up" ? h("div", {class:"field"}, h("label", {for:"lgName"}, "નામ"), nm) : null,
     h("div", {class:"field"}, h("label", {for:"lgEmail"}, "ઇમેઇલ"), em), h("div", {class:"field"}, h("label", {for:"lgPass"}, mode === "in" ? "પાસવર્ડ" : "નવો પાસવર્ડ (6+ અક્ષર)"), pw),
+    mode === "up" ? h("div", {class:"field"}, h("label", {for:"lgCode"}, "ટીમ કોડ (હોય તો — તરત એન્ટ્રી શરૂ)"), tc) : null,
     h("p", {}, btn), out,
     h("p", {class:"note"}, mode === "in" ? ["નવા સભ્ય છો? ", h("a", {href:"#", onclick:e => { e.preventDefault(); renderLogin("up"); }}, "નવું ખાતું બનાવો"), " · ",
       h("a", {href:"#", onclick:async e => { e.preventDefault(); if (!em.value.trim()) return say("ઉપર ઇમેઇલ લખો, પછી આ દબાવો.", "warn", out);
@@ -390,11 +410,21 @@ function renderLogin(mode){
     h("p", {class:"note"}, h("a", {href:"privacy.html", target:"_blank", rel:"noopener"}, "ગોપનીયતા નીતિ / Privacy policy")));
   add(m, f);
 }
+function pendingCodeBox(u){
+  const inp = h("input", {type:"text", id:"pcCode", autocapitalize:"characters", autocomplete:"off", placeholder:"ટીમ કોડ"}); const out = h("p", {class:"msg", hidden:true});
+  const go = async () => { const code = inp.value.trim().toUpperCase(); if (!code) return;
+    try { const {F, fdb} = S.fb; await F.updateDoc(F.doc(fdb, "users", u.uid), {role:"entry", joinCode:code, joinedAt:nowIso()}); }
+    catch (e) { say("કોડ ખોટો છે અથવા હાલ બંધ છે — સંશોધકને પૂછો.", "bad", out); } };
+  inp.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); go(); } });
+  return h("div", {class:"field", style:"margin:10px 0"}, h("label", {for:"pcCode"}, "ટીમ કોડ હોય તો અહીં લખો — તરત શરૂ થશે"), h("div", {style:"display:flex;gap:6px"}, inp, h("button", {class:"btn primary", type:"button", onclick:go}, "જોડાઓ")), out);
+}
 function renderPending(u, d, err){
   $("#tabs").hidden = true; $("#savebar").hidden = true; S.route = "";
   const m = $("#main"); m.textContent = "";
   add(m, h("div", {class:"card center"}, h("h2", {}, "મંજૂરીની રાહ"), h("p", {}, "ખાતું બન્યું છે: ", h("b", {}, u.email || "")),
-    h("p", {}, "સંશોધક (એડમિન) એપના 'એડમિન → ટીમ સભ્યો' માં તમને મંજૂરી આપે પછી આ સ્ક્રીન આપમેળે ખૂલી જશે."),
+    S.codeFailed ? h("p", {class:"msg warn"}, "ટીમ કોડ ખોટો હતો અથવા બંધ છે. સાચો કોડ નીચે લખો.") : null,
+    pendingCodeBox(u),
+    h("p", {}, "અથવા સંશોધક (એડમિન) એપના 'એડમિન → ટીમ સભ્યો' માં તમને મંજૂરી આપે પછી આ સ્ક્રીન આપમેળે ખૂલી જશે."),
     err ? h("p", {class:"msg bad"}, "ક્લાઉડ સાથે જોડાણ ન થયું: " + (err.code || err.message)) : null,
     h("button", {class:"btn", type:"button", onclick:() => S.fb.U.signOut(S.fb.auth)}, "બહાર નીકળો")));
 }
@@ -575,6 +605,7 @@ async function route(soft){
   const R = {dash:viewDash, reg:viewReg, fast:viewFast, list:viewList, form:() => viewForm(arg, false), second:() => viewForm(arg, true), check:viewCheck, analysis:viewAnalysis,
              schools:viewSchools, codebook:viewCodebook, admin:() => isAdmin() ? viewAdmin() : viewDash()}[name] || viewDash;
   R();
+  if (name !== "fast") renderPad();
   if (soft) scrollTo(0, keep);
 }
 const badge = d => d.verified ? h("span", {class:"badge b-ok"}, "ચકાસાયેલ 🔒") : d.entry === "Complete" ? h("span", {class:"badge b-info"}, "Complete") : h("span", {class:"badge b-warn"}, "અધૂરું");
@@ -714,6 +745,7 @@ function fxNext(){ fxKeep(); fxGo(FX.i + 1); }
 function keyBtn(n, label, on, onclick){ return h("button", {type:"button", class:"key" + (on ? " on" : ""), onclick, "data-k":String(n)}, h("b", {}, String(n)), h("span", {}, label)); }
 function fxRender(){
   if (paperMode()) return renderPaper();
+  renderPad();
   const box = $("#fxStep"); if (!box) return; box.textContent = "";
   const st = STEPS[FX.i];
   const filled = STEPS.filter(stepFilled).length;
@@ -760,7 +792,7 @@ const PM = new Set();   // choice rows where the paper shows more than one tick
 function grpTitle(st){ return st.k === "gender" ? "સામાન્ય માહિતી" : st.grp === "મૂલ્યાંકન" ? "હેતુ 3 · મૂલ્યાંકન વિધાન" : st.grp === "હેતુ 3 પ્ર." ? "હેતુ 3 · પ્રશ્નો" : st.grp === "C" ? "હેતુ 2 · વિભાગ C" : "હેતુ 2 · વિભાગ " + st.grp; }
 function pRow(i){
   const st = STEPS[i], d = FX.d, num = st.lab.split(" · ").pop();
-  const cls = "prow" + (stepFilled(st) ? " f" : "") + (stepWarn(st) ? " w" : "");
+  const cls = "prow" + (stepFilled(st) ? " f" : "") + (stepWarn(st) ? " w" : "") + (i === FX.i ? " cur" : "");
   const btn = (txt, on, idx, title) => h("button", {type:"button", class:on ? "on" : "", "aria-pressed":String(!!on), title:title || null, onclick:() => pTap(i, idx)}, txt);
   if (st.k === "gender") return h("div", {class:cls, id:"pr" + i}, h("div", {class:"ptx"}, h("b", {}, "જાતિ")), h("div", {class:"pk g2"}, btn("કુમાર", d.GENDER === 1, 0), btn("કન્યા", d.GENDER === 2, 1)));
   if (st.k === "rate") return h("div", {class:cls, id:"pr" + i}, h("div", {class:"ptx"}, h("b", {}, num + "."), st.text), h("div", {class:"pk"}, ...SCALE.map((sc, j) => btn(String(sc.code), d[st.v] === sc.code, j, sc.gu))));
@@ -775,17 +807,49 @@ function pRow(i){
     h("input", {type:"checkbox", checked:multi, onchange:e => { e.target.checked ? PM.add(i) : PM.delete(i); }}), "પેપર પર એકથી વધુ ✓"), stepWarn(st) ? " · ⚠ 98 ગણાશે" : ""));
   return row;
 }
-function pTap(i, idx){
+function pRowSel(i){ const r = pRow(i); r.addEventListener("click", e => { if (!e.target.closest("button,input,label") && FX.i !== i) pGo(i, false); }); return r; }
+function pGo(i, scroll = true){
+  const old = FX.i; FX.i = Math.max(0, Math.min(STEPS.length, i));
+  for (const k of new Set([old, FX.i])) { const r = $("#pr" + k); if (r) r.replaceWith(pRowSel(k)); }
+  const r = $("#pr" + FX.i); if (r && scroll) r.scrollIntoView({block:"center", behavior:"smooth"});
+  renderPad();
+}
+function padKey(n){   // n = the digit / position pressed on the pad or keyboard
+  const st = STEPS[FX.i]; if (!st) return;
+  if (st.k === "rate") { const j = SCALE.findIndex(x => x.code === n); if (j >= 0) pTap(FX.i, j, true); }
+  else if (st.k === "gender" && (n === 1 || n === 2)) pTap(FX.i, n - 1, true);
+  else if (st.k === "rank" && n >= 1 && n <= 4) pTap(FX.i, n - 1, true);
+  else if (st.k === "choice" && n >= 1 && n <= st.q.opts.length) pTap(FX.i, n - 1, true);
+}
+function renderPad(){
+  let pad = $("#pkpad");
+  if (!paperMode() || S.route !== "fast" || !$("#paper")) { if (pad) pad.remove(); document.body.classList.remove("haspad"); return; }
+  if (!pad) { pad = h("div", {class:"pkpad", id:"pkpad"}); document.body.append(pad); }
+  document.body.classList.add("haspad"); pad.textContent = "";
+  const st = STEPS[FX.i], d = FX.d, inn = h("div", {class:"in"}); add(pad, inn);
+  const k = (big, small, on, fn) => h("button", {type:"button", class:on ? "on" : "", onclick:fn}, h("b", {}, big), small ? h("span", {}, small) : null);
+  add(inn, h("div", {class:"pl"}, st ? h("b", {}, `${FX.i + 1}/${STEPS.length} `) : null, st ? `${st.lab} — ${st.text}` : "બધા પ્રશ્ન પૂરા — હવે સેવ કરો"));
+  if (!st) add(inn, h("div", {class:"k1 g2"}, k("◀", "પાછળ", false, () => pGo(FX.i - 1)), k("✓", "સેવ કરો", true, fxSave)));
+  else {
+    if (st.k === "rate") add(inn, h("div", {class:"k1"}, ...SCALE.map(sc => k(String(sc.code), sc.gu, d[st.v] === sc.code, () => padKey(sc.code)))));
+    else if (st.k === "gender") add(inn, h("div", {class:"k1 g2"}, k("1", "કુમાર", d.GENDER === 1, () => padKey(1)), k("2", "કન્યા", d.GENDER === 2, () => padKey(2))));
+    else if (st.k === "rank") add(inn, h("div", {class:"k1 g4"}, ...[1, 2, 3, 4].map((n, j) => k(String(n), RANK_GU[j], d[st.q.raw[st.i]] === n, () => padKey(n)))));
+    else add(inn, h("div", {class:"hint"}, "↑ ઉપરની લાઇનમાં વિકલ્પ દબાવો, પછી 'આગળ ▶'"));
+    add(inn, h("div", {class:"k2"}, h("button", {type:"button", onclick:() => pGo(FX.i - 1), disabled:FX.i === 0}, "◀ પાછળ"),
+      h("button", {type:"button", onclick:() => { clearStep(st); fxKeep(); pProgress(); pGo(FX.i + 1); }}, "0 ખાલી"),
+      h("button", {type:"button", class:"go", onclick:() => pGo(FX.i + 1)}, "આગળ ▶")));
+  }
+}
+function pTap(i, idx, fromPad){
   const st = STEPS[i], d = FX.d; if (!FX.t0) FX.t0 = Date.now();
   if (st.k === "gender") d.GENDER = d.GENDER === idx + 1 ? null : idx + 1;
   else if (st.k === "rate") { const c = SCALE[idx].code; d[st.v] = d[st.v] === c ? null : c; }
   else if (st.k === "rank") { const v = st.q.raw[st.i]; d[v] = d[v] === idx + 1 ? null : idx + 1; }
   else { const q = st.q; if (q.clean !== "multi" && !PM.has(i) && d[q.raw[idx]] === 1) { q.raw.forEach(v => d[v] = null); if (q.oth) d[q.oth] = null; } else setChoice(q, idx, q.clean === "multi" || PM.has(i)); }
-  fxKeep();
-  const old = $("#pr" + i); if (old) old.replaceWith(pRow(i));
-  pProgress();
-  const filledNow = stepFilled(st);
-  if (filledNow && st.k !== "choice") { const nx = $("#pr" + (i + 1)); if (nx) nx.scrollIntoView({block:"nearest", behavior:"smooth"}); }
+  fxKeep(); pProgress();
+  const single = st.k !== "choice" || (st.q.clean !== "multi" && !PM.has(i) && !(st.q.oth && idx === st.q.raw.length - 1));
+  if (stepFilled(st) && single) { if (FX.i !== i) { FX.i = i; } const r = $("#pr" + i); if (r) r.replaceWith(pRowSel(i)); pGo(i + 1, true); }
+  else { const prev = FX.i; FX.i = i; for (const k2 of new Set([prev, i])) { const r = $("#pr" + k2); if (r) r.replaceWith(pRowSel(k2)); } renderPad(); }
 }
 function pProgress(){ const filled = STEPS.filter(stepFilled).length; const p = $("#fxProg"), c = $("#fxCount"); if (p) p.style.width = (filled / STEPS.length * 100) + "%"; if (c) c.textContent = `${filled}/${STEPS.length} ભર્યા`; }
 function renderPaper(){
@@ -797,9 +861,9 @@ function renderPaper(){
     if (g !== grp) { grp = g;
       add(box, h("div", {class:"pgh"}, h("span", {}, g), st.k === "rate" ? h("span", {class:"pcols"}, h("span", {}, "3", h("br"), "નિયમિત"), h("span", {}, "2", h("br"), "ક્યારેક"), h("span", {}, "1", h("br"), "ક્યારેય નહીં")) : h("span")));
     }
-    add(box, pRow(i));
+    add(box, pRowSel(i));
   });
-  pProgress();
+  pProgress(); renderPad();
 }
 let fxTimer = null;
 function viewFast(){
@@ -836,8 +900,15 @@ function viewFast(){
   fxTimer = setInterval(() => { const o = $("#fx_time"); if (!o || S.route !== "fast") return clearInterval(fxTimer); const s = FX.t0 ? Math.round((Date.now() - FX.t0) / 1000) : 0; o.textContent = `⏱ ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }, 1000);
 }
 addEventListener("keydown", e => {
-  if (S.route !== "fast" || document.querySelector(".ovl") || paperMode()) return;
+  if (S.route !== "fast" || document.querySelector(".ovl")) return;
   const t = e.target; if (t && (t.tagName === "INPUT" && t.type !== "checkbox" || t.tagName === "SELECT" || t.tagName === "TEXTAREA")) return;
+  if (paperMode()) {
+    if (/^[1-9]$/.test(e.key)) { e.preventDefault(); padKey(Number(e.key)); }
+    else if (e.key === "0") { e.preventDefault(); const st = STEPS[FX.i]; if (st) { clearStep(st); fxKeep(); pProgress(); pGo(FX.i + 1); } }
+    else if (e.key === "Backspace") { e.preventDefault(); pGo(FX.i - 1); }
+    else if (e.key === "Enter") { e.preventDefault(); STEPS[FX.i] ? pGo(FX.i + 1) : fxSave(); }
+    return;
+  }
   if (/^[1-9]$/.test(e.key)) { const b = document.querySelector(`#fxStep .key[data-k="${e.key}"]`); if (b) { e.preventDefault(); b.click(); } }
   else if (e.key === "0") { e.preventDefault(); $("#fx_blank").click(); }
   else if (e.key === "Backspace") { e.preventDefault(); fxGo(FX.i - 1); }
@@ -1398,7 +1469,7 @@ function viewAdmin(){
   add(m, h("div", {class:"card"}, h("h2", {}, `ચકાસણી બાકી (Complete, ${queue.length})`),
     queue.length ? h("div", {class:"scroll", style:"max-height:40vh"}, h("table", {class:"t"}, ...queue.slice(0, 300).map(d => h("tr", {}, h("td", {}, h("a", {href:"#form-" + d.id}, d.id)), h("td", {}, d.r.SCHOOL_ID),
       h("td", {class:"note"}, "ભર્યું: " + who(d.r._createdBy)), h("td", {}, d.issues.some(i => i.lvl !== "info") ? h("span", {class:"badge b-warn"}, "⚠") : ""))))) : h("p", {class:"note"}, "કોઈ બાકી નથી.")));
-  if (BACKEND === "firebase") add(m, teamCard()); else add(m, h("div", {class:"card"}, h("h2", {}, "ટીમને ઉમેરવી"),
+  if (BACKEND === "firebase") add(m, joinCard(), teamCard()); else add(m, h("div", {class:"card"}, h("h2", {}, "ટીમને ઉમેરવી"),
     h("ol", {}, h("li", {}, "ઉપર જમણે Share → વ્યક્તિ ઉમેરો → ભૂમિકા 'Contributor' (ડેટા ભરી શકે, ચકાસી/લૉક ન કરી શકે)."), h("li", {}, "'Editor' આપશો તો તે શાળા માસ્ટર અને ચકાસણી પણ બદલી શકે — ફક્ત વિશ્વાસપાત્ર સહ-સંશોધકને."),
       h("li", {}, "ડેટા એન્ટ્રી કરનારે claude.ai માં સાઇન-ઇન કરીને લિંક ખોલવી."))));
   const file = h("input", {type:"file", accept:".json,application/json", id:"rst"});
@@ -1411,10 +1482,33 @@ function viewAdmin(){
       h("td", {}, a.action === "delete" && a.snapshot && !S.students.has(a.sid) ? h("button", {class:"btn small", type:"button", onclick:() => undelete(a)}, "પાછું લાવો") : "")))))));
 }
 
+function joinCard(){
+  const {F, fdb} = S.fb; const ref = F.doc(fdb, "config", "join");
+  const code = h("input", {type:"text", id:"jcCode", autocapitalize:"characters", autocomplete:"off", placeholder:"દા.ત. CR2026", style:"max-width:220px"});
+  const open = h("input", {type:"checkbox", id:"jcOpen"}); const st = h("p", {class:"note"}, "લોડ થાય છે…");
+  F.getDoc(ref).then(x => { const d = x.exists() ? x.data() : {}; code.value = d.code || ""; open.checked = !!d.open;
+    st.textContent = d.open && d.code ? `ચાલુ: નવા સભ્યો કોડ ${d.code} લખે તો તરત 'ડેટા એન્ટ્રી' મળે.` : "બંધ: નવા સભ્યોને તમારે હાથથી મંજૂરી આપવી પડશે."; }).catch(() => { st.textContent = "વાંચી શકાયું નહીં."; });
+  const save = async () => { const c = code.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (open.checked && c.length < 6) return say("કોડ ઓછામાં ઓછા 6 અક્ષરનો રાખો (અક્ષર + આંકડા).", "bad");
+    try { await F.setDoc(ref, {code:c, open:open.checked, at:nowIso(), by:S.me}); code.value = c; st.textContent = open.checked ? `ચાલુ: કોડ ${c}` : "બંધ"; audit("joincode", "", [{v:"open", o:"", n:String(open.checked)}]); say("✓ ટીમ કોડ સેવ થયો.", "ok"); }
+    catch (e) { say("સેવ ન થયું: " + (e.code || e.message) + " — Firebase Rules નવા છે?", "bad"); } };
+  return h("div", {class:"card"}, h("h2", {}, "ટીમ કોડ — એકસાથે ઘણા ઓપરેટર"),
+    h("p", {class:"note"}, "ઓપરેટર 'નવું ખાતું બનાવો' માં આ કોડ લખે તો મંજૂરીની રાહ જોયા વગર તરત 'ડેટા એન્ટ્રી' શરૂ કરી શકે. તાલીમ પૂરી થાય એટલે 'બંધ' કરો અથવા કોડ બદલો; જૂના સભ્યો ચાલુ રહેશે."),
+    h("div", {style:"display:flex;gap:8px;align-items:center;flex-wrap:wrap"}, code, h("label", {style:"display:flex;gap:6px;align-items:center"}, open, "ચાલુ"), h("button", {class:"btn primary", type:"button", onclick:save}, "સેવ")), st);
+}
+async function approveAll(){
+  const pend = [...S.users.values()].filter(u => !u.role);
+  if (!pend.length) return say("કોઈ બાકી નથી.", "ok");
+  if (!(await ask(`${pend.length} બાકી સભ્યોને 'ડેટા એન્ટ્રી' મંજૂરી આપવી છે?`, {okText:"હા, બધાને"}))) return;
+  let n = 0; for (const u of pend) { try { await put("users/" + u.uid, Object.assign({}, u, {role:"entry", approvedBy:S.me, approvedAt:nowIso()})); n++; } catch (e) { console.warn(e); } }
+  audit("role", "", [{v:"bulk", o:"", n:"entry " + n}]); say(`✓ ${n} સભ્યોને મંજૂરી આપી.`, "ok");
+}
 function teamCard(){
   const us = [...S.users.values()].sort((a, b) => (a.role ? 1 : 0) - (b.role ? 1 : 0) || String(a.name).localeCompare(String(b.name)));
   const counts = countBy([...S.students.values()], r => r._createdBy);
+  const npend = us.filter(u => !u.role).length;
   return h("div", {class:"card"}, h("h2", {}, `ટીમ સભ્યો (${us.length})`),
+    npend ? h("p", {}, h("button", {class:"btn primary", type:"button", onclick:approveAll}, `✓ બાકી બધા ${npend} ને મંજૂરી`)) : null,
     h("p", {class:"note"}, "નવો સભ્ય એપમાં 'નવું ખાતું બનાવો' કરે, પછી અહીં 'ડેટા એન્ટ્રી' પસંદ કરી સેવ કરો. 'એડમિન' ફક્ત વિશ્વાસપાત્ર સહ-સંશોધકને આપો (ચકાસણી, લૉક, નિકાસ)."),
     us.length ? h("div", {class:"scroll"}, h("table", {class:"t"}, h("tr", {}, ...["નામ", "ઇમેઇલ", "ભૂમિકા", "ભરેલા", ""].map(x => h("th", {}, x))),
       ...us.map(u => { const sel = h("select", {"aria-label":"ભૂમિકા " + (u.name || "")}, ...[["", "— મંજૂરી બાકી / બંધ —"], ["entry", "ડેટા એન્ટ્રી"], ["admin", "એડમિન"]].map(([v, l]) => h("option", {value:v}, l))); sel.value = u.role || "";

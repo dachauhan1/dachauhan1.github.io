@@ -29,6 +29,13 @@ header.top{position:sticky;top:0;z-index:30;background:var(--surface);border-bot
 nav.tabs{display:flex;gap:4px;overflow-x:auto;padding:0 0 8px}
 nav.tabs a{flex:none;text-decoration:none;color:var(--ink);border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:6px 14px;font-size:.88rem;font-weight:600;min-height:38px;display:inline-flex;align-items:center}
 nav.tabs a.on{background:var(--accent);border-color:var(--accent);color:#fff}
+nav.tabs{flex-wrap:wrap;overflow:visible}
+nav.tabs a.more,nav.tabs span.more{display:none}
+nav.tabs.open a.more,nav.tabs.open span.more{display:inline-flex}
+nav.tabs a.main{flex:1 1 0;justify-content:center;min-width:0;padding:6px 6px;font-size:.84rem;white-space:nowrap}
+nav.tabs a.main.cur{background:var(--accent);border-color:var(--accent);color:#fff}
+nav.tabs a.mbtn{flex:none;padding:6px 10px}
+nav.tabs .brk{flex-basis:100%;height:0}
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 14px;min-height:44px;cursor:pointer;font-weight:600}
 .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
 .btn.danger{color:var(--bad);border-color:var(--bad)} .btn:disabled{opacity:.55}
@@ -202,16 +209,19 @@ function startSub(){
                        e => console.warn("list failed", e));
 }
 function renderTabs(){
-  const t = $("#tabs"); t.textContent = ""; t.hidden = false;
-  t.append(h("a", {href:"./index.html", style:"background:var(--soft)"}, "← વિદ્યાર્થી ફોર્મ"));
-  const tabs = [["form", "ફોર્મ"], ["list", "યાદી"], ["code", KIND === "AX" ? "કોડ / ગુણ" : "ગુણ યોજના"]].concat(S.role === "admin" ? [["export", "Export"]] : []);
-  for (const [k, l] of tabs) t.append(h("a", {href:"#" + k, "data-k":k}, l));
-  t.append(h("a", {href:KIND === "AX" ? "./teacher.html" : "./anxiety.html", style:"background:var(--soft)"}, KIND === "AX" ? "👩‍🏫 શિક્ષક ફોર્મ →" : "😟 હેતુ 6 ચિંતા માપદંડ →"));
+  const t = $("#tabs"); t.textContent = ""; t.hidden = false; t.classList.remove("open");
+  t.append(h("a", {href:"./index.html#fast", class:"main"}, "⚡ હેતુ 2–3"),
+    h("a", {href:KIND === "AC" ? "#form" : "./test.html", class:"main" + (KIND === "AC" ? " cur" : ""), "data-k":KIND === "AC" ? "form" : null}, "📝 હેતુ 4"),
+    h("a", {href:KIND === "AX" ? "#form" : "./anxiety.html", class:"main" + (KIND === "AX" ? " cur" : ""), "data-k":KIND === "AX" ? "form" : null}, "😟 હેતુ 6"),
+    h("a", {href:"./teacher.html", class:"main"}, "👩‍🏫 શિક્ષક"),
+    h("a", {href:"#", class:"main mbtn", "aria-label":"વધુ વિકલ્પ", onclick:e => { e.preventDefault(); t.classList.toggle("open"); }}, "☰"), h("span", {class:"brk more"}));
+  const tabs = [["list", "યાદી"], ["code", KIND === "AX" ? "કોડ / ગુણ" : "ગુણ યોજના"]].concat(S.role === "admin" ? [["export", "Export"]] : []);
+  for (const [k, l] of tabs) t.append(h("a", {href:"#" + k, "data-k":k, class:"more", onclick:() => t.classList.remove("open")}, l));
 }
 addEventListener("hashchange", () => S.role && route());
 function route(){
   const hs = location.hash.slice(1) || "form"; const k = hs.split("-")[0];
-  S.view = k; document.querySelectorAll("#tabs a[data-k]").forEach(a => a.classList.toggle("on", a.dataset.k === k));
+  S.view = k; document.querySelectorAll("#tabs a[data-k]").forEach(a => a.classList.toggle("on", a.dataset.k === k && !a.classList.contains("main")));
   $("#savebar").hidden = k !== "form";
   if (k !== "form") { const w = $("#axpadWrap"); if (w) w.hidden = true; document.body.classList.remove("ax"); }
   if (k === "list") return viewList();

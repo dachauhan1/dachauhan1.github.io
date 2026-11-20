@@ -27,6 +27,16 @@ header.top{position:sticky;top:0;z-index:30;background:var(--surface);border-bot
 nav.tabs{display:flex;gap:4px;overflow-x:auto;padding:0 0 8px;scrollbar-width:thin}
 nav.tabs a{flex:none;text-decoration:none;color:var(--ink);border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:6px 14px;font-size:.88rem;font-weight:600;min-height:38px;display:inline-flex;align-items:center}
 nav.tabs a.on{background:var(--accent);border-color:var(--accent);color:#fff}
+nav.tabs{flex-wrap:wrap;overflow:visible}
+nav.tabs a.more,nav.tabs span.more{display:none}
+nav.tabs.open a.more,nav.tabs.open span.more{display:inline-flex}
+nav.tabs a.main{flex:1 1 0;justify-content:center;min-width:0;padding:6px 6px;font-size:.84rem;white-space:nowrap}
+nav.tabs a.main.cur{background:var(--accent);border-color:var(--accent);color:#fff}
+nav.tabs a.mbtn{flex:none;padding:6px 10px}
+nav.tabs .brk{flex-basis:100%;height:0}
+.paperform .qsec{display:block!important}
+.paperform .qsec .pager{display:none}
+.paperform .qsec:last-of-type .pager{display:flex}
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 14px;min-height:44px;cursor:pointer;font-weight:600}
 .btn:hover{border-color:var(--accent)} .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
 .btn.danger{color:var(--bad);border-color:var(--bad)} .btn.small{min-height:36px;padding:4px 10px;font-size:.85rem}
@@ -501,7 +511,16 @@ function refreshView(){
 const TABS = [["dash", "ડેશબોર્ડ"], ["list", "શિક્ષક યાદી"], ["form", "ફોર્મ"], ["schools", "શાળા માસ્ટર"], ["qual", "ગુણાત્મક"], ["analysis", "વિશ્લેષણ"],
               ["quality", "ડેટા ગુણવત્તા"], ["codebook", "કોડબુક"], ["admin", "એડમિન"]];
 function renderShell(){
-  const t = $("#tabs"); t.textContent = ""; t.hidden = false;
+  const t = $("#tabs"); t.textContent = ""; t.hidden = false; t.classList.remove("open");
+  if (MERGED) {
+    t.append(h("a", {href:"./index.html#fast", class:"main"}, "⚡ હેતુ 2–3"), h("a", {href:"./test.html", class:"main"}, "📝 હેતુ 4"),
+      h("a", {href:"./anxiety.html", class:"main"}, "😟 હેતુ 6"), h("a", {href:"#form", class:"main cur"}, "👩‍🏫 શિક્ષક"),
+      h("a", {href:"#", class:"main mbtn", "aria-label":"વધુ વિકલ્પ", onclick:e => { e.preventDefault(); t.classList.toggle("open"); }}, "☰"), h("span", {class:"brk more"}));
+    TABS.forEach(([k, l]) => { if (k === "form" || (k === "admin" && !isAdmin())) return; t.append(h("a", {href:"#" + k, "data-k":k, class:"more", onclick:() => t.classList.remove("open")}, l)); });
+    t.append(h("a", {href:"#", class:"more", onclick:async e => { e.preventDefault(); if (S.form && S.form.dirty && !(await ask("સેવ ન થયેલ ફેરફાર છે. છતાં બહાર નીકળવું છે?"))) return; S.fb.U.signOut(S.fb.auth); }},
+      "બહાર (" + (S.user.email || "") + (isAdmin() ? " · એડમિન" : "") + ")"));
+    return;
+  }
   if (MERGED) t.append(h("a", {href:"./index.html", style:"background:var(--soft)"}, "← વિદ્યાર્થી ફોર્મ"));
   TABS.forEach(([k, l]) => { if (k === "admin" && !isAdmin()) return; t.append(h("a", {href:"#" + k, "data-k":k}, l)); });
   if (BACKEND === "claude") t.append(h("span", {class:"pill", style:"align-self:center"}, (NAMES.get(S.user.uid) || "તમે") + (isAdmin() ? " · એડમિન" : " · ડેટા એન્ટ્રી")));
@@ -512,7 +531,7 @@ addEventListener("hashchange", () => route());
 addEventListener("beforeunload", e => { if ((S.form && S.form.dirty) || S.pending) { e.preventDefault(); e.returnValue = ""; } });
 async function route(soft){
   if (!S.user || !S.role) return;
-  const hash = location.hash.slice(1) || "dash";
+  const hash = location.hash.slice(1) || (MERGED ? "form" : "dash");
   const cut = hash.indexOf("-"); const name = cut < 0 ? hash : hash.slice(0, cut); const arg = cut < 0 ? "" : hash.slice(cut + 1);
   if (S.route === "form" && name !== "form" && S.form && S.form.dirty && !soft) {
     const back = "#form-" + S.form.tid; const target = location.hash;
@@ -753,6 +772,7 @@ function viewForm(arg){
     qroot.append(card);
     nav.append(h("button", {type:"button", "data-i":si, onclick:() => showSec(si)}, sec.nav, h("i", {})));
   });
+  if (MERGED) qroot.classList.add("paperform");
   m.append(adm, h("div", {class:"card", style:"padding:8px 14px"}, nav), qroot,
     h("div", {class:"card"}, h("h2", {}, "આ રેકોર્ડની ગુણવત્તા ચકાસણી"), h("div", {id:"qcOut", class:"note"}, "સેવ પછી અહીં દેખાશે.")));
   /* skip notes */
@@ -813,6 +833,8 @@ function applySkips(){
 }
 function showSec(i){
   if (!S.form) return; i = Math.max(0, Math.min(SPEC.length - 1, i)); S.form.sec = i;
+  if (MERGED) { document.querySelectorAll("#secnav button").forEach(b => b.classList.toggle("on", Number(b.dataset.i) === i));
+    const sec = document.querySelector(`.qsec[data-i="${i}"]`); if (sec && i > 0) { sec.scrollIntoView({block:"start"}); scrollBy(0, -150); } return; }
   document.querySelectorAll(".qsec").forEach(s => s.classList.toggle("on", Number(s.dataset.i) === i));
   document.querySelectorAll("#secnav button").forEach(b => b.classList.toggle("on", Number(b.dataset.i) === i));
   $("#prevBtn").disabled = i === 0; $("#nextBtn").disabled = i === SPEC.length - 1;

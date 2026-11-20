@@ -33,6 +33,13 @@ header.top{position:sticky;top:0;z-index:30;background:var(--surface);border-bot
 nav.tabs{display:flex;gap:4px;overflow-x:auto;padding:0 0 8px;scrollbar-width:thin}
 nav.tabs a{flex:none;text-decoration:none;color:var(--ink);border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:6px 14px;font-size:.88rem;font-weight:600;min-height:38px;display:inline-flex;align-items:center}
 nav.tabs a.on{background:var(--accent);border-color:var(--accent);color:#fff}
+nav.tabs{flex-wrap:wrap;overflow:visible}
+nav.tabs a.more,nav.tabs span.more{display:none}
+nav.tabs.open a.more,nav.tabs.open span.more{display:inline-flex}
+nav.tabs a.main{flex:1 1 0;justify-content:center;min-width:0;padding:6px 6px;font-size:.84rem;white-space:nowrap}
+nav.tabs a.main.cur{background:var(--accent);border-color:var(--accent);color:#fff}
+nav.tabs a.mbtn{flex:none;padding:6px 10px}
+nav.tabs .brk{flex-basis:100%;height:0}
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 14px;min-height:44px;cursor:pointer;font-weight:600}
 .btn:hover{border-color:var(--accent)} .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
 .btn.danger{color:var(--bad);border-color:var(--bad)} .btn.small{min-height:36px;padding:4px 10px;font-size:.85rem}
@@ -217,7 +224,7 @@ const CONSTRUCTS = [{"id": "A_TEACH", "gu": "વર્ગખંડ અધ્ય�
 const DISTRICTS = [{"id": "D01", "en": "Vav-Tharad", "gu": "વાવ-થરાદ", "n": 1, "l": "VT"}, {"id": "D02", "en": "Ahmedabad", "gu": "અમદાવાદ", "n": 2, "l": "A"}, {"id": "D03", "en": "Bhavnagar", "gu": "ભાવનગર", "n": 3, "l": "B"}, {"id": "D04", "en": "Navsari", "gu": "નવસારી", "n": 4, "l": "N"}];
 const STYPES = [{"n": 1, "en": "Government", "gu": "સરકારી", "l": "G"}, {"n": 2, "en": "Grant-in-Aid", "gu": "અનુદાનિત", "l": "GIA"}, {"n": 3, "en": "Self-Financed (Private)", "gu": "સ્વનિર્ભર (ખાનગી)", "l": "P"}];
 const COVER = {"title": "વિદ્યાર્થીઓના અધ્યયન અનુભવો અને મૂલ્યાંકન અનુસૂચિ", "sub": "(ધોરણ 8ના ગણિત શિક્ષણમાં NCF- SE- 2023 મુજબ અધ્યાપનશાસ્ત્રમાં)", "instr": ["(1) આ કોઈ પરીક્ષા નથી. તેથી અહીં કોઈ જવાબ સાચો કે ખોટો નથી.", "(2) દરેક વિધાન ધ્યાનપૂર્વક વાંચો અને તમારા અનુભવને સૌથી વધુ અનુરૂપ લાગતો એક જ વિકલ્પ પસંદ કરીને (✓) ની નિશાની કરો.", "(3) કોઈપણ વિધાનનો જવાબ ખાલી રાખશો નહીં.", "(4) પ્રશ્નોના જવાબ તમારા પોતાના અનુભવ અને અભિપ્રાયના આધારે આપશો. અન્ય વિદ્યાર્થીઓ સાથે ચર્ચા કર્યા વગર સ્વતંત્ર રીતે પ્રતિભાવ આપશો.", "(5) આપના દ્વારા આપવામાં આવેલા તમામ પ્રતિભાવો સંપૂર્ણપણે ગોપનીય રાખવામાં આવશે અને તેનો ઉપયોગ માત્ર સંશોધનના હેતુ માટે જ કરવામાં આવશે.", "(6) ઉદાહરણ: જો વિધાન હોય \"શિક્ષક બોર્ડ દ્વારા સમજાવે છે.\" અને તમારા શિક્ષક લગભગ દરેક વખતે બોર્ડનો ઉપયોગ કરતા હોય, તો \"નિયમિત રીતે (✓)\" ની નિશાની કરો. જો શિક્ષક ક્યારેક જ બોર્ડનો ઉપયોગ કરતા હોય, તો \"ક્યારેક (✓)\" અને જો ક્યારેય ઉપયોગ ન કરતા હોય, તો \"ક્યારેય નહીં (✓)\" ની નિશાની કરો.", "(7) માહિતી ભરતી વખતે કોઈ પ્રશ્ન હોય તો સંશોધક અથવા શિક્ષકનો સંપર્ક કરશો.", "(8) આપના સાચા અને નિખાલસ સહકાર બદલ હાર્દિક આભાર"]};
-const APP_VERSION = "1.13";
+const APP_VERSION = "1.14";
 const BACKEND = "firebase";   // "claude" = Claude artifact database · "firebase" = own Firebase project (Play Store / installable app)
 const FB_VER = "10.12.2";
 const TARGET_N = 2000;
@@ -568,14 +575,21 @@ function validate(d, rolls){
 const TABS = [["dash", "ડેશબોર્ડ"], ["fast", "⚡ ઝડપી એન્ટ્રી"], ["list", "વિદ્યાર્થી યાદી"], ["check", "ચકાસણી"], ["analysis", "વિશ્લેષણ"], ["schools", "શાળા કોડ"],
               ["codebook", "કોડબુક"], ["admin", "એડમિન"]];
 function renderShell(){
-  const t = $("#tabs"); t.textContent = ""; t.hidden = false;
+  const t = $("#tabs"); t.textContent = ""; t.hidden = false; t.classList.remove("open");
+  if (BACKEND === "firebase") {
+    // one simple row: the four forms in data-entry order + "more"; everything else is behind ☰
+    add(t, h("a", {href:"#fast", "data-k":"fast", class:"main cur"}, "⚡ હેતુ 2–3"), h("a", {href:"./test.html", class:"main"}, "📝 હેતુ 4"),
+      h("a", {href:"./anxiety.html", class:"main"}, "😟 હેતુ 6"), h("a", {href:"./teacher.html", class:"main"}, "👩‍🏫 શિક્ષક"),
+      h("a", {href:"#", class:"main mbtn", "aria-label":"વધુ વિકલ્પ", onclick:e => { e.preventDefault(); t.classList.toggle("open"); }}, "☰"), h("span", {class:"brk more"}));
+    TABS.forEach(([k, l]) => { if (k === "fast" || (k === "admin" && !isAdmin())) return; add(t, h("a", {href:"#" + k, "data-k":k, class:"more", onclick:() => t.classList.remove("open")}, l)); });
+    add(t, h("span", {class:"pill more", style:"align-self:center"}, (S.user.name || "તમે") + (isAdmin() ? " · એડમિન" : " · ડેટા એન્ટ્રી")));
+    add(t, h("a", {href:"#", class:"more", onclick:async e => { e.preventDefault();
+      if ((S.form && S.form.dirty) || FX.dirty()) { if (!(await ask("સેવ ન થયેલ જવાબ છે (આ ફોન પર સચવાયેલા રહેશે). છતાં બહાર નીકળવું છે?"))) return; }
+      S.fb.U.signOut(S.fb.auth); }}, "બહાર નીકળો"));
+    return;
+  }
   TABS.forEach(([k, l]) => { if (k === "admin" && !isAdmin()) return; add(t, h("a", {href:"#" + k, "data-k":k}, l)); });
   add(t, h("span", {class:"pill", style:"align-self:center"}, (S.user.name || "તમે") + (isAdmin() ? " · એડમિન" : " · ડેટા એન્ટ્રી")));
-  if (BACKEND === "firebase") add(t, h("a", {href:"./test.html", style:"background:var(--soft)"}, "📝 હેતુ 4 કસોટી →"),
-    h("a", {href:"./anxiety.html", style:"background:var(--soft)"}, "😟 હેતુ 6 ચિંતા →"), h("a", {href:"./teacher.html", style:"background:var(--soft)"}, "👩‍🏫 શિક્ષક ફોર્મ →"));
-  if (BACKEND === "firebase") add(t, h("a", {href:"#", onclick:async e => { e.preventDefault();
-    if ((S.form && S.form.dirty) || FX.dirty()) { if (!(await ask("સેવ ન થયેલ જવાબ છે (આ ફોન પર સચવાયેલા રહેશે). છતાં બહાર નીકળવું છે?"))) return; }
-    S.fb.U.signOut(S.fb.auth); }}, "બહાર નીકળો"));
 }
 addEventListener("hashchange", () => route());
 addEventListener("beforeunload", e => { if ((S.form && S.form.dirty) || S.pending || (S.route === "fast" && FX.dirty())) { e.preventDefault(); e.returnValue = ""; } });

@@ -67,6 +67,15 @@ table.t th{background:var(--soft)}
 .tot{font-weight:700;color:var(--accent)} .idrow{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px}
 .big{font-size:1.4rem;font-weight:800;color:var(--accent);letter-spacing:.5px}
 .stats{display:flex;gap:8px;flex-wrap:wrap} .stats span{background:var(--soft);border-radius:8px;padding:3px 8px;font-size:.82rem;font-weight:600}
+.axh{position:sticky;top:var(--hdrh,108px);z-index:5;background:var(--soft);border-radius:8px;padding:6px 8px;margin:4px 0 6px;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;text-align:center;font-size:.72rem;font-weight:700;color:var(--accent);line-height:1.15}
+.axh b{display:block;font-size:1rem}
+.opts.ax5{grid-template-columns:repeat(5,1fr)} .opts.ax5 .opt{min-height:48px} .opts.ax5 .opt b{font-size:1.3rem}
+.axpad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px}
+.axpad button{min-height:60px;border:2px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;touch-action:manipulation}
+.axpad button b{font-size:1.6rem} .axpad button span{font-size:.62rem;color:var(--muted);font-weight:600}
+.axpad button.on{background:var(--accent);border-color:var(--accent);color:#fff} .axpad button.on span{color:#dce8f5}
+.axnav{display:flex;gap:6px} .axnav .btn{min-height:40px;padding:4px 10px}
+body.ax main{padding-bottom:190px}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -76,7 +85,7 @@ table.t th{background:var(--soft)}
   <nav class="tabs" id="tabs" hidden></nav>
 </div></header>
 <main class="wrap" id="main"><p class="msg">લોડ થાય છે…</p></main>
-<div class="savebar" id="savebar" hidden><div class="wrap"><span class="prog" id="prog"></span><span class="row"><button class="btn" id="clearBtn" type="button">નવું</button><button class="btn primary" id="saveBtn" type="button">સેવ કરો</button></span></div></div>
+<div class="savebar" id="savebar" hidden><div class="wrap" id="axpadWrap" style="display:block" hidden></div><div class="wrap"><span class="prog" id="prog"></span><span class="row"><button class="btn" id="clearBtn" type="button">નવું</button><button class="btn primary" id="saveBtn" type="button">સેવ કરો</button></span></div></div>
 <script>
 "use strict";
 const KIND = "AC";            // "AX" = Objective 6 anxiety scale, "AC" = Objective 4 achievement test
@@ -197,13 +206,14 @@ function renderTabs(){
   t.append(h("a", {href:"./index.html", style:"background:var(--soft)"}, "← વિદ્યાર્થી ફોર્મ"));
   const tabs = [["form", "ફોર્મ"], ["list", "યાદી"], ["code", KIND === "AX" ? "કોડ / ગુણ" : "ગુણ યોજના"]].concat(S.role === "admin" ? [["export", "Export"]] : []);
   for (const [k, l] of tabs) t.append(h("a", {href:"#" + k, "data-k":k}, l));
-  t.append(h("a", {href:KIND === "AX" ? "./test.html" : "./anxiety.html", style:"background:var(--soft)"}, KIND === "AX" ? "📝 સિદ્ધિ કસોટી →" : "😟 ચિંતા માપદંડ →"));
+  t.append(h("a", {href:KIND === "AX" ? "./teacher.html" : "./anxiety.html", style:"background:var(--soft)"}, KIND === "AX" ? "👩‍🏫 શિક્ષક ફોર્મ →" : "😟 હેતુ 6 ચિંતા માપદંડ →"));
 }
 addEventListener("hashchange", () => S.role && route());
 function route(){
   const hs = location.hash.slice(1) || "form"; const k = hs.split("-")[0];
   S.view = k; document.querySelectorAll("#tabs a[data-k]").forEach(a => a.classList.toggle("on", a.dataset.k === k));
   $("#savebar").hidden = k !== "form";
+  if (k !== "form") { const w = $("#axpadWrap"); if (w) w.hidden = true; document.body.classList.remove("ax"); }
   if (k === "list") return viewList();
   if (k === "code") return viewCode();
   if (k === "export" && S.role === "admin") return viewExport();
@@ -269,7 +279,8 @@ function idBox(r){
 /* ======================= form ======================= */
 function viewForm(){
   const r = S.cur, m = $("#main"); m.textContent = "";
-  if (S.flash) { m.append(h("p", {class:"msg " + S.flash[0]}, S.flash[1])); S.flash = null; }
+  if (S.flash) { m.append(h("p", {class:"msg " + S.flash[0]}, S.flash[1],
+    KIND === "AC" && S.lastId && S.flash[0] === "ok" ? h("span", {}, " ", h("a", {href:"./anxiety.html#form-" + S.lastId, class:"btn", style:"display:inline-flex;align-items:center;text-decoration:none;min-height:36px;margin-top:6px"}, `😟 ${S.lastId} નો ચિંતા માપદંડ →`)) : null)); S.flash = null; }
   m.append(idBox(r));
   if (KIND === "AX") formAX(m, r); else formAC(m, r);
   if (!r._new && S.role === "admin") m.append(h("div", {class:"card"}, h("button", {class:"btn danger", type:"button", onclick:delRec}, "આ record કાઢી નાખો")));
@@ -284,18 +295,30 @@ function formAX(m, r){
     h("div", {class:"field"}, h("span", {class:"lbl"}, "જાતિ (હેતુ 2–3 ફોર્મ ન હોય તો)"), h("div", {class:"chips"}, ...[[1, "કુમાર"], [2, "કન્યા"]].map(([v, l]) =>
       h("button", {type:"button", class:"chip" + (g === v ? " on" : ""), onclick:() => { r.GENDER = r.GENDER === v ? null : v; viewKeep(); }}, l)))),
     h("div", {class:"field"}, h("label", {class:"lbl", for:"cdate"}, "તારીખ"), h("input", {type:"date", id:"cdate", value:r.COLLECTION_DATE || "", onchange:e => { r.COLLECTION_DATE = e.target.value; }}))),
-    h("p", {class:"muted", style:"margin-top:6px"}, "કાગળ પર ✓ જે ખાનામાં હોય તે બટન દબાવો — આગળનું વિધાન આપમેળે આવે. કી-બોર્ડ: 5 4 3 2 1, 0 = ખાલી, Backspace = પાછળ, Enter = સેવ.")));
-  const box = h("div", {class:"card", id:"items"}, h("h2", {}, "21 વિધાન · 5 = સંપૂર્ણ સહમત … 1 = સંપૂર્ણ અસહમત"));
+    h("p", {class:"muted", style:"margin-top:6px"}, "નીચેના કી-પેડ પર 5 4 3 2 1 દબાવો — આગળનું વિધાન આપમેળે આવે. કોઈ પણ વિધાન પર ટેપ કરી ત્યાં જઈ શકાય. ખાલી રહેલું વિધાન સેવ વખતે 99 (જવાબ નથી) ગણાશે.")));
+  const hdr = document.querySelector("header.top"); if (hdr) document.documentElement.style.setProperty("--hdrh", hdr.offsetHeight + "px");
+  const box = h("div", {class:"card", id:"items"}, h("h2", {}, "21 વિધાન"),
+    h("div", {class:"axh"}, ...SCALE5.map(([c, gu]) => h("span", {}, h("b", {}, String(c)), gu))));
   AX_ITEMS.forEach((t, i) => {
     const v = r["AX" + (i + 1)];
-    box.append(h("div", {class:"item" + (i === S.i ? " cur" : ""), id:"it" + i},
+    const row = h("div", {class:"item" + (i === S.i ? " cur" : ""), id:"it" + i},
       h("div", {class:"q"}, h("b", {}, (i + 1) + "."), t, AX_POS.includes(i + 1) ? h("span", {class:"pos", title:"ગુણ ગણતી વખતે ઊલટું ગણાશે"}, "ધન") : null),
-      h("div", {class:"opts"},
-        ...SCALE5.map(([c, gu]) => chip([h("b", {}, String(c)), h("span", {}, gu)], v === c, () => setVal(i, "AX" + (i + 1), c))),
-        chip([h("b", {}, "—"), h("span", {}, "ખાલી")], v === NORESP, () => setVal(i, "AX" + (i + 1), NORESP), " miss"),
-        chip([h("b", {}, "✕"), h("span", {}, "બે ✓")], v === INVALID, () => setVal(i, "AX" + (i + 1), INVALID), " miss"))));
+      h("div", {class:"opts ax5"}, ...SCALE5.map(([c, gu]) => chip([h("b", {}, String(c))], v === c, () => setVal(i, "AX" + (i + 1), c)))));
+    row.addEventListener("click", e => { if (!e.target.closest("button")) { goto(i); axPad(); } });
+    box.append(row);
   });
   m.append(box);
+  axPad();
+}
+function axPad(){
+  const w = $("#axpadWrap"); if (!w) return;
+  const on = KIND === "AX" && S.view === "form" && S.cur; w.hidden = !on; document.body.classList.toggle("ax", !!on); if (!on) return;
+  w.textContent = ""; const i = S.i, v = S.cur["AX" + (i + 1)];
+  w.append(h("div", {class:"muted", style:"margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"}, h("b", {style:"color:var(--accent)"}, `${i + 1}/21 `), AX_ITEMS[i]),
+    h("div", {class:"axpad"}, ...SCALE5.map(([c, gu]) => h("button", {type:"button", class:v === c ? "on" : "", onclick:() => setVal(i, "AX" + (i + 1), c)}, h("b", {}, String(c)), h("span", {}, gu)))),
+    h("div", {class:"axnav", style:"margin-bottom:6px"}, h("button", {class:"btn", type:"button", disabled:i === 0, onclick:() => { goto(i - 1); axPad(); }}, "◀ પાછળ"),
+      h("button", {class:"btn", type:"button", onclick:() => { S.cur["AX" + (i + 1)] = null; setVal(i, "AX" + (i + 1), null); goto(Math.min(i + 1, 20)); axPad(); }}, "0 ખાલી"),
+      h("button", {class:"btn", type:"button", onclick:() => { goto(Math.min(i + 1, 20)); axPad(); }}, "આગળ ▶")));
 }
 function formAC(m, r){
   const mcq = h("input", {type:"text", id:"mcqQuick", inputmode:"numeric", maxlength:"12", autocomplete:"off", placeholder:"દા.ત. 110101110011",
@@ -348,9 +371,10 @@ function setVal(i, vn, c, isSub){
     }
     acStats();
   } else {
-    const codes = [5, 4, 3, 2, 1, NORESP, INVALID];
+    const codes = [5, 4, 3, 2, 1];
     row.querySelectorAll(".opt").forEach((b, j) => { const on = r[vn] === codes[j]; b.classList.toggle("on", on); b.setAttribute("aria-checked", String(on)); });
     if (r[vn] != null) goto(Math.min(i + 1, T.n - 1));
+    axPad();
   }
   updateProg();
 }
@@ -365,10 +389,10 @@ document.addEventListener("keydown", e => {
   if (S.view !== "form" || !S.cur || e.ctrlKey || e.metaKey || e.altKey) return;
   if (/INPUT|SELECT|TEXTAREA/.test((e.target.tagName || ""))) return;
   if (e.key === "Enter") { e.preventDefault(); return save(); }
-  if (e.key === "Backspace") { e.preventDefault(); return goto(Math.max(0, S.i - 1)); }
+  if (e.key === "Backspace") { e.preventDefault(); goto(Math.max(0, S.i - 1)); return axPad(); }
   if (KIND === "AX") {
     if (/^[1-5]$/.test(e.key)) { e.preventDefault(); setVal(S.i, "AX" + (S.i + 1), Number(e.key)); }
-    else if (e.key === "0") { e.preventDefault(); setVal(S.i, "AX" + (S.i + 1), NORESP); }
+    else if (e.key === "0") { e.preventDefault(); S.cur["AX" + (S.i + 1)] = null; setVal(S.i, "AX" + (S.i + 1), null); goto(Math.min(S.i + 1, 20)); axPad(); }
   } else {
     const x = AC_Q[S.i]; if (!x || x.subs) return;
     if (/^[0-4]$/.test(e.key) && Number(e.key) <= x.max) { e.preventDefault(); setVal(S.i, "Q" + x.q, Number(e.key)); }
@@ -408,6 +432,7 @@ async function save(){
     const info = KIND === "AX" ? `જવાબ ${sm.n}/${T.n}` : doc.ABSENT ? "ગેરહાજર" : `કુલ ${fmt(doc.TOTAL)} / ${AC_TOTAL}`;
     // next student: same school, next number — the commonest case when papers are sorted by ID
     const nxt = `${mm[1]}-${String(Number(mm[4]) + 1).padStart(mm[4].length, "0")}`;
+    S.lastId = id;
     S.flash = ["ok", `✓ સેવ થયું: ${id} · ${info}` + (navigator.onLine ? "" : " (ઓફલાઇન — ઇન્ટરનેટ આવે ત્યારે ક્લાઉડમાં જશે)") + ` · હવે ${nxt}`];
     S.cur = blank(r); S.i = 0; S.link = null; S.owner = null;
     if (location.hash !== "#form-" + nxt) location.hash = "#form-" + nxt; else route();

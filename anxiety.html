@@ -67,6 +67,15 @@ table.t th{background:var(--soft)}
 .tot{font-weight:700;color:var(--accent)} .idrow{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px}
 .big{font-size:1.4rem;font-weight:800;color:var(--accent);letter-spacing:.5px}
 .stats{display:flex;gap:8px;flex-wrap:wrap} .stats span{background:var(--soft);border-radius:8px;padding:3px 8px;font-size:.82rem;font-weight:600}
+.axh{position:sticky;top:var(--hdrh,108px);z-index:5;background:var(--soft);border-radius:8px;padding:6px 8px;margin:4px 0 6px;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;text-align:center;font-size:.72rem;font-weight:700;color:var(--accent);line-height:1.15}
+.axh b{display:block;font-size:1rem}
+.opts.ax5{grid-template-columns:repeat(5,1fr)} .opts.ax5 .opt{min-height:48px} .opts.ax5 .opt b{font-size:1.3rem}
+.axpad{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px}
+.axpad button{min-height:60px;border:2px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;touch-action:manipulation}
+.axpad button b{font-size:1.6rem} .axpad button span{font-size:.62rem;color:var(--muted);font-weight:600}
+.axpad button.on{background:var(--accent);border-color:var(--accent);color:#fff} .axpad button.on span{color:#dce8f5}
+.axnav{display:flex;gap:6px} .axnav .btn{min-height:40px;padding:4px 10px}
+body.ax main{padding-bottom:190px}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -76,7 +85,7 @@ table.t th{background:var(--soft)}
   <nav class="tabs" id="tabs" hidden></nav>
 </div></header>
 <main class="wrap" id="main"><p class="msg">લોડ થાય છે…</p></main>
-<div class="savebar" id="savebar" hidden><div class="wrap"><span class="prog" id="prog"></span><span class="row"><button class="btn" id="clearBtn" type="button">નવું</button><button class="btn primary" id="saveBtn" type="button">સેવ કરો</button></span></div></div>
+<div class="savebar" id="savebar" hidden><div class="wrap" id="axpadWrap" style="display:block" hidden></div><div class="wrap"><span class="prog" id="prog"></span><span class="row"><button class="btn" id="clearBtn" type="button">નવું</button><button class="btn primary" id="saveBtn" type="button">સેવ કરો</button></span></div></div>
 <script>
 "use strict";
 const KIND = "AX";            // "AX" = Objective 6 anxiety scale, "AC" = Objective 4 achievement test
@@ -119,10 +128,11 @@ const NORESP = 99, INVALID = 98;
 const AC_Q = [];
 for (let q = 1; q <= 12; q++) AC_Q.push({q, max:1, opts:[0, 1], label:"MCQ"});
 for (let q = 13; q <= 19; q++) AC_Q.push({q, max:2, opts:steps(2, .5)});
-AC_Q.push({q:20, max:4, label:"બેંક ખાતું", subs:[["F", "રૂપાંતર F", 2], ["S", "ઉકેલ S", 1], ["I", "અર્થઘટન I", 1]]});
-AC_Q.push({q:21, max:4, label:"ખુરશી", subs:[["F", "રૂપાંતર F", 2], ["S", "ઉકેલ S", 1], ["I", "અર્થઘટન I", 1]]});
+// one total mark per question, in steps of ½ (researcher's decision: no separate F/S/I sub-marks)
+AC_Q.push({q:20, max:4, opts:steps(4, .5), label:"બેંક ખાતું"});
+AC_Q.push({q:21, max:4, opts:steps(4, .5), label:"ખુરશી"});
 AC_Q.push({q:22, max:3, opts:steps(3, .5), label:"વિકર્ણનું વિધાન"});
-AC_Q.push({q:23, max:3, label:"સ્તંભ આલેખ", subs:[["F", "આલેખ F", 2], ["I", "અર્થઘટન I", 1]]});
+AC_Q.push({q:23, max:3, opts:steps(3, .5), label:"સ્તંભ આલેખ"});
 const AC_TOTAL = AC_Q.reduce((a, x) => a + x.max, 0);   // 40
 // Mathematisation components of the test (Objective 5 item map; C1 merged with C4)
 const AC_COMP = {C2:[11, 18, 23], C3:[1, 9, 13, 16, 17, 22], C4:[2, 6, 12, 14, 15, 20, 21], C7:[3, 4, 5, 7, 8, 10, 19]};
@@ -196,13 +206,14 @@ function renderTabs(){
   t.append(h("a", {href:"./index.html", style:"background:var(--soft)"}, "← વિદ્યાર્થી ફોર્મ"));
   const tabs = [["form", "ફોર્મ"], ["list", "યાદી"], ["code", KIND === "AX" ? "કોડ / ગુણ" : "ગુણ યોજના"]].concat(S.role === "admin" ? [["export", "Export"]] : []);
   for (const [k, l] of tabs) t.append(h("a", {href:"#" + k, "data-k":k}, l));
-  t.append(h("a", {href:KIND === "AX" ? "./test.html" : "./anxiety.html", style:"background:var(--soft)"}, KIND === "AX" ? "📝 સિદ્ધિ કસોટી →" : "😟 ચિંતા માપદંડ →"));
+  t.append(h("a", {href:KIND === "AX" ? "./teacher.html" : "./anxiety.html", style:"background:var(--soft)"}, KIND === "AX" ? "👩‍🏫 શિક્ષક ફોર્મ →" : "😟 હેતુ 6 ચિંતા માપદંડ →"));
 }
 addEventListener("hashchange", () => S.role && route());
 function route(){
   const hs = location.hash.slice(1) || "form"; const k = hs.split("-")[0];
   S.view = k; document.querySelectorAll("#tabs a[data-k]").forEach(a => a.classList.toggle("on", a.dataset.k === k));
   $("#savebar").hidden = k !== "form";
+  if (k !== "form") { const w = $("#axpadWrap"); if (w) w.hidden = true; document.body.classList.remove("ax"); }
   if (k === "list") return viewList();
   if (k === "code") return viewCode();
   if (k === "export" && S.role === "admin") return viewExport();
@@ -268,7 +279,8 @@ function idBox(r){
 /* ======================= form ======================= */
 function viewForm(){
   const r = S.cur, m = $("#main"); m.textContent = "";
-  if (S.flash) { m.append(h("p", {class:"msg " + S.flash[0]}, S.flash[1])); S.flash = null; }
+  if (S.flash) { m.append(h("p", {class:"msg " + S.flash[0]}, S.flash[1],
+    KIND === "AC" && S.lastId && S.flash[0] === "ok" ? h("span", {}, " ", h("a", {href:"./anxiety.html#form-" + S.lastId, class:"btn", style:"display:inline-flex;align-items:center;text-decoration:none;min-height:36px;margin-top:6px"}, `😟 ${S.lastId} નો ચિંતા માપદંડ →`)) : null)); S.flash = null; }
   m.append(idBox(r));
   if (KIND === "AX") formAX(m, r); else formAC(m, r);
   if (!r._new && S.role === "admin") m.append(h("div", {class:"card"}, h("button", {class:"btn danger", type:"button", onclick:delRec}, "આ record કાઢી નાખો")));
@@ -283,18 +295,30 @@ function formAX(m, r){
     h("div", {class:"field"}, h("span", {class:"lbl"}, "જાતિ (હેતુ 2–3 ફોર્મ ન હોય તો)"), h("div", {class:"chips"}, ...[[1, "કુમાર"], [2, "કન્યા"]].map(([v, l]) =>
       h("button", {type:"button", class:"chip" + (g === v ? " on" : ""), onclick:() => { r.GENDER = r.GENDER === v ? null : v; viewKeep(); }}, l)))),
     h("div", {class:"field"}, h("label", {class:"lbl", for:"cdate"}, "તારીખ"), h("input", {type:"date", id:"cdate", value:r.COLLECTION_DATE || "", onchange:e => { r.COLLECTION_DATE = e.target.value; }}))),
-    h("p", {class:"muted", style:"margin-top:6px"}, "કાગળ પર ✓ જે ખાનામાં હોય તે બટન દબાવો — આગળનું વિધાન આપમેળે આવે. કી-બોર્ડ: 5 4 3 2 1, 0 = ખાલી, Backspace = પાછળ, Enter = સેવ.")));
-  const box = h("div", {class:"card", id:"items"}, h("h2", {}, "21 વિધાન · 5 = સંપૂર્ણ સહમત … 1 = સંપૂર્ણ અસહમત"));
+    h("p", {class:"muted", style:"margin-top:6px"}, "નીચેના કી-પેડ પર 5 4 3 2 1 દબાવો — આગળનું વિધાન આપમેળે આવે. કોઈ પણ વિધાન પર ટેપ કરી ત્યાં જઈ શકાય. ખાલી રહેલું વિધાન સેવ વખતે 99 (જવાબ નથી) ગણાશે.")));
+  const hdr = document.querySelector("header.top"); if (hdr) document.documentElement.style.setProperty("--hdrh", hdr.offsetHeight + "px");
+  const box = h("div", {class:"card", id:"items"}, h("h2", {}, "21 વિધાન"),
+    h("div", {class:"axh"}, ...SCALE5.map(([c, gu]) => h("span", {}, h("b", {}, String(c)), gu))));
   AX_ITEMS.forEach((t, i) => {
     const v = r["AX" + (i + 1)];
-    box.append(h("div", {class:"item" + (i === S.i ? " cur" : ""), id:"it" + i},
+    const row = h("div", {class:"item" + (i === S.i ? " cur" : ""), id:"it" + i},
       h("div", {class:"q"}, h("b", {}, (i + 1) + "."), t, AX_POS.includes(i + 1) ? h("span", {class:"pos", title:"ગુણ ગણતી વખતે ઊલટું ગણાશે"}, "ધન") : null),
-      h("div", {class:"opts"},
-        ...SCALE5.map(([c, gu]) => chip([h("b", {}, String(c)), h("span", {}, gu)], v === c, () => setVal(i, "AX" + (i + 1), c))),
-        chip([h("b", {}, "—"), h("span", {}, "ખાલી")], v === NORESP, () => setVal(i, "AX" + (i + 1), NORESP), " miss"),
-        chip([h("b", {}, "✕"), h("span", {}, "બે ✓")], v === INVALID, () => setVal(i, "AX" + (i + 1), INVALID), " miss"))));
+      h("div", {class:"opts ax5"}, ...SCALE5.map(([c, gu]) => chip([h("b", {}, String(c))], v === c, () => setVal(i, "AX" + (i + 1), c)))));
+    row.addEventListener("click", e => { if (!e.target.closest("button")) { goto(i); axPad(); } });
+    box.append(row);
   });
   m.append(box);
+  axPad();
+}
+function axPad(){
+  const w = $("#axpadWrap"); if (!w) return;
+  const on = KIND === "AX" && S.view === "form" && S.cur; w.hidden = !on; document.body.classList.toggle("ax", !!on); if (!on) return;
+  w.textContent = ""; const i = S.i, v = S.cur["AX" + (i + 1)];
+  w.append(h("div", {class:"muted", style:"margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"}, h("b", {style:"color:var(--accent)"}, `${i + 1}/21 `), AX_ITEMS[i]),
+    h("div", {class:"axpad"}, ...SCALE5.map(([c, gu]) => h("button", {type:"button", class:v === c ? "on" : "", onclick:() => setVal(i, "AX" + (i + 1), c)}, h("b", {}, String(c)), h("span", {}, gu)))),
+    h("div", {class:"axnav", style:"margin-bottom:6px"}, h("button", {class:"btn", type:"button", disabled:i === 0, onclick:() => { goto(i - 1); axPad(); }}, "◀ પાછળ"),
+      h("button", {class:"btn", type:"button", onclick:() => { S.cur["AX" + (i + 1)] = null; setVal(i, "AX" + (i + 1), null); goto(Math.min(i + 1, 20)); axPad(); }}, "0 ખાલી"),
+      h("button", {class:"btn", type:"button", onclick:() => { goto(Math.min(i + 1, 20)); axPad(); }}, "આગળ ▶")));
 }
 function formAC(m, r){
   const mcq = h("input", {type:"text", id:"mcqQuick", inputmode:"numeric", maxlength:"12", autocomplete:"off", placeholder:"દા.ત. 110101110011",
@@ -309,7 +333,7 @@ function formAC(m, r){
     h("div", {class:"row"}, h("label", {class:"chip" + (r.ABSENT ? " on" : ""), style:"display:inline-flex;align-items:center;gap:6px"},
       h("input", {type:"checkbox", checked:r.ABSENT ? true : null, onchange:e => { r.ABSENT = e.target.checked ? 1 : 0; viewKeep(); }}), "કસોટીમાં ગેરહાજર")),
     h("div", {class:"field", style:"margin-top:8px"}, h("label", {class:"lbl", for:"mcqQuick"}, "ઝડપી: પ્રશ્ન 1–12 ના ગુણ એક સાથે (1 = સાચો, 0 = ખોટો/ખાલી)"), mcq),
-    h("p", {class:"muted", style:"margin-top:6px"}, "પ્રશ્ન 13–23: કાગળ પર તપાસનારે આપેલા ગુણનું બટન દબાવો. પ્ર. 20, 21, 23 માં તબક્કાવાર ગુણ (F/S/I) — કુલ આપમેળે.")));
+    h("p", {class:"muted", style:"margin-top:6px"}, "પ્રશ્ન 13–23: કાગળ પર તપાસનારે આપેલા કુલ ગુણનું બટન દબાવો (0, ½, 1, 1½, 2, 2½, 3 …). કુલ /40 આપમેળે.")));
   if (r.ABSENT) return;
   const box = h("div", {class:"card", id:"items"}, h("h2", {}, `23 પ્રશ્ન · કુલ ${AC_TOTAL} ગુણ`), h("div", {class:"stats", id:"acStats"}));
   AC_Q.forEach((x, i) => {
@@ -318,7 +342,7 @@ function formAC(m, r){
     let body;
     if (!x.subs) {
       const v = r["Q" + x.q];
-      body = h("div", {class:"opts m" + Math.min(x.opts.length, 7)}, ...x.opts.map(o => chip([h("b", {}, half(o))], v === o, () => setVal(i, "Q" + x.q, o))));
+      body = h("div", {class:"opts", style:`grid-template-columns:repeat(${x.opts.length <= 7 ? x.opts.length : 5},1fr)`}, ...x.opts.map(o => chip([h("b", {}, half(o))], v === o, () => setVal(i, "Q" + x.q, o))));
     } else {
       body = h("div", {}, ...x.subs.map(([k, lab, mx]) => { const vn = `Q${x.q}_${k}`; const os = steps(mx, .5);
         return h("div", {class:"sub"}, h("span", {}, lab), h("div", {class:"opts m" + os.length}, ...os.map(o => chip([h("b", {}, half(o))], r[vn] === o, () => setVal(i, vn, o, true))))); }));
@@ -347,9 +371,10 @@ function setVal(i, vn, c, isSub){
     }
     acStats();
   } else {
-    const codes = [5, 4, 3, 2, 1, NORESP, INVALID];
+    const codes = [5, 4, 3, 2, 1];
     row.querySelectorAll(".opt").forEach((b, j) => { const on = r[vn] === codes[j]; b.classList.toggle("on", on); b.setAttribute("aria-checked", String(on)); });
     if (r[vn] != null) goto(Math.min(i + 1, T.n - 1));
+    axPad();
   }
   updateProg();
 }
@@ -364,10 +389,10 @@ document.addEventListener("keydown", e => {
   if (S.view !== "form" || !S.cur || e.ctrlKey || e.metaKey || e.altKey) return;
   if (/INPUT|SELECT|TEXTAREA/.test((e.target.tagName || ""))) return;
   if (e.key === "Enter") { e.preventDefault(); return save(); }
-  if (e.key === "Backspace") { e.preventDefault(); return goto(Math.max(0, S.i - 1)); }
+  if (e.key === "Backspace") { e.preventDefault(); goto(Math.max(0, S.i - 1)); return axPad(); }
   if (KIND === "AX") {
     if (/^[1-5]$/.test(e.key)) { e.preventDefault(); setVal(S.i, "AX" + (S.i + 1), Number(e.key)); }
-    else if (e.key === "0") { e.preventDefault(); setVal(S.i, "AX" + (S.i + 1), NORESP); }
+    else if (e.key === "0") { e.preventDefault(); S.cur["AX" + (S.i + 1)] = null; setVal(S.i, "AX" + (S.i + 1), null); goto(Math.min(S.i + 1, 20)); axPad(); }
   } else {
     const x = AC_Q[S.i]; if (!x || x.subs) return;
     if (/^[0-4]$/.test(e.key) && Number(e.key) <= x.max) { e.preventDefault(); setVal(S.i, "Q" + x.q, Number(e.key)); }
@@ -387,7 +412,7 @@ async function save(){
     if (empty.length && !confirm(`${empty.length} વિધાન ખાલી છે. એમને 'જવાબ નથી (99)' તરીકે સેવ કરું?`)) { goto(Number(empty[0].slice(2)) - 1); return; }
     empty.forEach(v => r[v] = NORESP);
   } else if (!r.ABSENT) {
-    const empty = AC_VARS.filter(v => !/^Q(20|21|23)$/.test(v) && r[v] == null);
+    const empty = AC_VARS.filter(v => r[v] == null);
     if (empty.length && !confirm(`${empty.length} ખાના ખાલી છે. કાગળ પર પ્રયત્ન ન હોય તો 0 ગુણ ગણું?`)) return;
     empty.forEach(v => r[v] = 0);
   }
@@ -407,6 +432,7 @@ async function save(){
     const info = KIND === "AX" ? `જવાબ ${sm.n}/${T.n}` : doc.ABSENT ? "ગેરહાજર" : `કુલ ${fmt(doc.TOTAL)} / ${AC_TOTAL}`;
     // next student: same school, next number — the commonest case when papers are sorted by ID
     const nxt = `${mm[1]}-${String(Number(mm[4]) + 1).padStart(mm[4].length, "0")}`;
+    S.lastId = id;
     S.flash = ["ok", `✓ સેવ થયું: ${id} · ${info}` + (navigator.onLine ? "" : " (ઓફલાઇન — ઇન્ટરનેટ આવે ત્યારે ક્લાઉડમાં જશે)") + ` · હવે ${nxt}`];
     S.cur = blank(r); S.i = 0; S.link = null; S.owner = null;
     if (location.hash !== "#form-" + nxt) location.hash = "#form-" + nxt; else route();
@@ -450,9 +476,8 @@ function viewCode(){
       h("table", {class:"t"}, h("thead", {}, h("tr", {}, ...["પ્રશ્ન", "ગુણ", "નોંધાય તેવા ગુણ"].map(x => h("th", {}, x)))), h("tbody", {},
         h("tr", {}, h("td", {}, "1–12 (MCQ)"), h("td", {}, "1 દરેક"), h("td", {}, "0, 1")),
         h("tr", {}, h("td", {}, "13–19"), h("td", {}, "2 દરેક"), h("td", {}, "0, ½, 1, 1½, 2")),
-        h("tr", {}, h("td", {}, "20, 21"), h("td", {}, "4 દરેક"), h("td", {}, "F 0–2 + S 0–1 + I 0–1 (½ ના ગાળે)")),
-        h("tr", {}, h("td", {}, "22"), h("td", {}, "3"), h("td", {}, "0 થી 3 (½ ના ગાળે)")),
-        h("tr", {}, h("td", {}, "23"), h("td", {}, "3"), h("td", {}, "F 0–2 + I 0–1 (½ ના ગાળે)"))))),
+        h("tr", {}, h("td", {}, "20, 21"), h("td", {}, "4 દરેક"), h("td", {}, "0 થી 4 (½ ના ગાળે)")),
+        h("tr", {}, h("td", {}, "22, 23"), h("td", {}, "3 દરેક"), h("td", {}, "0 થી 3 (½ ના ગાળે)"))))),
       h("div", {class:"card"}, h("h2", {}, "ગણિતીકરણ ઘટક (હેતુ 5)"),
         h("table", {class:"t"}, h("tbody", {}, ...Object.entries(AC_COMP).map(([c, qs]) => h("tr", {}, h("td", {}, c), h("td", {}, qs.join(", ")), h("td", {}, qs.reduce((a, q) => a + qmax(q), 0) + " ગુણ"))))),
         h("p", {class:"muted"}, "C1 સંદર્ભ C4 સાથે જોડાયેલ. F = પરિસ્થિતિ → ગણિત, S = ઉકેલ/સમર્થન, I = ગણિત → પરિસ્થિતિ.")));
@@ -525,7 +550,7 @@ function obj5(s23, ac, ax){
   const head = ["STUDENT_ID", "SCHOOL_ID", "DISTRICT_N", "SCHOOL_TYPE", "GENDER", "HAS_O23", "HAS_O4", "HAS_O6", "VALID_O5",
     "A_MI", "B2_MI", "EV_MI", "TL", "EV", "AC", "MI", "MI_LEVEL", "MI_LEVEL_GU", "OPP", "PATTERN",
     ...comps.map(c => "TL_" + c), ...["C1", "C2", "C3", "C4", "C5", "C6"].map(c => "EV_" + c), ...Object.keys(AC_COMP).map(c => "AC_" + c),
-    "Q20_F_FULL", "Q20_S_FULL", "Q20_I_FULL", "Q21_F_FULL", "Q21_S_FULL", "Q21_I_FULL", "Q22_FULL", "Q23_F_FULL", "Q23_I_FULL", "MAS_MEAN"];
+    "Q20_FULL", "Q21_FULL", "Q22_FULL", "Q23_FULL", "MAS_MEAN"];
   const rows = [head]; const D = [];
   for (const id of ids) {
     const o = s23.get(id), t = ac.get(id), a = ax.get(id);
@@ -540,9 +565,9 @@ function obj5(s23, ac, ax){
     const evc = ["C1", "C2", "C3", "C4", "C5", "C6"].map(c => idx(o, MAP.EV.comp[c].map(MAP.EV.vars)));
     const acc = Object.keys(AC_COMP).map(c => s && s.comp[c] != null ? s.comp[c] : null);
     const full = (v, mx) => t && !t.ABSENT && t[v] != null ? (t[v] >= mx ? 1 : 0) : null;
-    const fsi = [full("Q20_F", 2), full("Q20_S", 1), full("Q20_I", 1), full("Q21_F", 2), full("Q21_S", 1), full("Q21_I", 1), full("Q22", 3), full("Q23_F", 2), full("Q23_I", 1)];
+    const fsi = [full("Q20", 4), full("Q21", 4), full("Q22", 3), full("Q23", 3)];
     const mas = a ? axSummary(a).mean : null; const lv = level(MI);
-    const d = {TL, EV, AC, MI, lv, pat, tlc, evc, acc, fsi, valid:MI != null};
+    const d = {TL, EV, AC, MI, lv, pat, tlc, evc, acc, fsi, qm:s ? s.m : null, valid:MI != null};
     D.push(d);
     rows.push([id, meta.SCHOOL_ID, sc[1] ? DIST[sc[1]].n : "", sc[2] ? STYPE[sc[2]].n : "", o ? o.GENDER : "", o ? 1 : 0, t ? 1 : 0, a ? 1 : 0, d.valid ? 1 : 0,
       ...[A_MI, B2_MI, EV, TL, EV, AC, MI].map(x => x == null ? "" : x.toFixed(2)), lv || "", lv ? LEVELS[lv] : "", OPP == null ? "" : OPP.toFixed(2), pat,
@@ -566,9 +591,10 @@ function obj5(s23, ac, ax){
   sm.push(["કુલ", "", n, n ? "100" : ""], [], ["કોષ્ટક 4.5.g તક × સિદ્ધિ", "f", "%"]);
   [["A", "સુસંગત ગણિતીકરણ (તક > 60, AC > 60)"], ["B", "સ્થાનાંતર અંતર (તક > 60, AC ≤ 60)"], ["C", "સ્વ-પ્રેરિત (તક ≤ 60, AC > 60)"], ["D", "ગણિતીકરણનો અભાવ (તક ≤ 60, AC ≤ 60)"]]
     .forEach(([p, l]) => { const f = V.filter(d => d.pat === p).length; sm.push([p + ": " + l, f, n ? (f / n * 100).toFixed(2) : ""]); });
-  sm.push([], ["કોષ્ટક 4.5.h પૂરા ગુણ મેળવનાર (%)", "F રૂપાંતર", "S ઉકેલ", "I અર્થઘટન"]);
+  sm.push([], ["કોષ્ટક 4.5.h ગણિતીકરણ પ્રશ્નો: પૂરા ગુણ મેળવનાર (%)", "%", "સરેરાશ ગુણ"]);
   const pct = i => { const v = V.map(d => d.fsi[i]).filter(x => x != null); return v.length ? (v.reduce((a, b) => a + b, 0) / v.length * 100).toFixed(2) : "—"; };
-  sm.push(["Q20 બેંક ખાતું", pct(0), pct(1), pct(2)], ["Q21 ખુરશી", pct(3), pct(4), pct(5)], ["Q22 વિકર્ણનું વિધાન", "—", pct(6), "—"], ["Q23 સ્તંભ આલેખ", pct(7), "—", pct(8)]);
+  const qm = q => { const v = V.map(d => d.qm && d.qm[q]).filter(x => x != null); return v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(2) : "—"; };
+  sm.push(["Q20 બેંક ખાતું (4)", pct(0), qm(20)], ["Q21 ખુરશી (4)", pct(1), qm(21)], ["Q22 વિકર્ણનું વિધાન (3)", pct(2), qm(22)], ["Q23 સ્તંભ આલેખ (3)", pct(3), qm(23)]);
   return {rows, summary:sm, validN:n};
 }
 
@@ -597,7 +623,7 @@ function spssAC(){
   L.push("RELIABILITY /VARIABLES=Q1 TO Q12 /SCALE('MCQ KR-20') ALL /MODEL=ALPHA /SUMMARY=TOTAL.");
   L.push("RELIABILITY /VARIABLES=" + AC_Q.map(x => "Q" + x.q).join(" ") + " /SCALE('Whole test') ALL /MODEL=ALPHA /SUMMARY=TOTAL.");
   L.push("DESCRIPTIVES VARIABLES=TOTAL AC_PCT AC_C2 AC_C3 AC_C4 AC_C7 " + AC_Q.map(x => "Q" + x.q).join(" ") + " /STATISTICS=MEAN STDDEV MIN MAX.");
-  L.push("FREQUENCIES VARIABLES=Q20_F Q20_S Q20_I Q21_F Q21_S Q21_I Q22 Q23_F Q23_I.");
+  L.push("FREQUENCIES VARIABLES=Q20 Q21 Q22 Q23.");
   L.push("ONEWAY AC_PCT BY DISTRICT_N /STATISTICS DESCRIPTIVES HOMOGENEITY /POSTHOC=TUKEY ALPHA(0.05).", "ONEWAY AC_PCT BY SCHOOL_TYPE /STATISTICS DESCRIPTIVES HOMOGENEITY /POSTHOC=TUKEY ALPHA(0.05).");
   return L.join("\n") + "\n";
 }
@@ -612,7 +638,7 @@ function spssO5(){
   L.push("DESCRIPTIVES VARIABLES=TL_C1 TL_C2 TL_C3 TL_C4 TL_C5 EV_C1 EV_C2 EV_C3 EV_C4 EV_C5 EV_C6 AC_C2 AC_C3 AC_C4 AC_C7.");
   L.push("FREQUENCIES VARIABLES=MI_LEVEL PATTERN.");
   L.push("CORRELATIONS /VARIABLES=TL EV AC /PRINT=TWOTAIL NOSIG.");
-  L.push("FREQUENCIES VARIABLES=Q20_F_FULL Q20_S_FULL Q20_I_FULL Q21_F_FULL Q21_S_FULL Q21_I_FULL Q22_FULL Q23_F_FULL Q23_I_FULL.");
+  L.push("FREQUENCIES VARIABLES=Q20_FULL Q21_FULL Q22_FULL Q23_FULL.");
   L.push("* Optional (only if in your hypotheses):");
   L.push("CROSSTABS /TABLES=MI_LEVEL BY GENDER SCHOOL_TYPE DISTRICT_N /STATISTICS=CHISQ PHI /CELLS=COUNT COLUMN.");
   L.push("T-TEST GROUPS=GENDER(1 2) /VARIABLES=MI.", "ONEWAY MI BY SCHOOL_TYPE /STATISTICS DESCRIPTIVES /POSTHOC=TUKEY ALPHA(0.05).");

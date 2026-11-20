@@ -134,6 +134,22 @@ table.t td.num,table.t th.num{text-align:right;font-variant-numeric:tabular-nums
 .fx .slab{font-size:.8rem;font-weight:700;color:var(--muted)}
 .fx .stext{font-size:1.08rem;font-weight:600;margin:4px 0 10px;line-height:1.45;min-height:3em}
 .fx .keys{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}
+.modes button{min-height:44px;border:2px solid var(--line);border-radius:12px;background:var(--surface);font-weight:700;font-family:inherit;color:inherit;cursor:pointer}
+.modes button.on{border-color:var(--accent);background:var(--soft);color:var(--accent)}
+.paper .pgh{position:sticky;top:var(--hdrh,96px);z-index:5;background:var(--soft);border-radius:8px;padding:6px 8px;margin:14px 0 4px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;font-weight:700;color:var(--accent);font-size:.9rem}
+.paper .pcols{display:grid;grid-template-columns:repeat(3,48px);gap:4px;text-align:center;font-size:.66rem;line-height:1.1}
+.paper .prow{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border-bottom:1px solid var(--line);padding:7px 2px;scroll-margin-top:170px}
+.paper .prow.f{border-left:3px solid var(--ok);padding-left:6px}
+.paper .prow.w{background:#fff3e0}
+.paper .ptx{font-size:.92rem;line-height:1.4} .paper .ptx b{color:var(--accent);margin-right:4px}
+.paper .pk{display:grid;grid-template-columns:repeat(3,48px);gap:4px}
+.paper .pk.g2{grid-template-columns:repeat(2,72px)} .paper .pk.g4{grid-template-columns:repeat(4,40px)}
+.paper .pk button,.paper .popt button{min-height:42px;border:1.5px solid var(--line);border-radius:9px;background:var(--surface);font-weight:800;font-size:1.05rem;font-family:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+.paper .pk button.on,.paper .popt button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.paper .popt{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px}
+.paper .popt button{font-size:.85rem;font-weight:600;padding:4px 10px;text-align:left}
+.paper .pnote{grid-column:1/-1;font-size:.75rem;color:var(--muted);display:flex;gap:6px;align-items:center}
 .fx .keys.list{grid-template-columns:1fr 1fr}
 .fx .key{border:2px solid var(--line);background:var(--surface);border-radius:14px;min-height:68px;padding:6px 8px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center;touch-action:manipulation;-webkit-tap-highlight-color:transparent;font-family:inherit;color:inherit}
 .fx .keys.list .key{min-height:54px;flex-direction:row;justify-content:flex-start;text-align:left;gap:8px;font-weight:600}
@@ -186,7 +202,7 @@ const CONSTRUCTS = [{"id": "A_TEACH", "gu": "વર્ગખંડ અધ્ય�
 const DISTRICTS = [{"id": "D01", "en": "Vav-Tharad", "gu": "વાવ-થરાદ", "n": 1, "l": "VT"}, {"id": "D02", "en": "Ahmedabad", "gu": "અમદાવાદ", "n": 2, "l": "A"}, {"id": "D03", "en": "Bhavnagar", "gu": "ભાવનગર", "n": 3, "l": "B"}, {"id": "D04", "en": "Navsari", "gu": "નવસારી", "n": 4, "l": "N"}];
 const STYPES = [{"n": 1, "en": "Government", "gu": "સરકારી", "l": "G"}, {"n": 2, "en": "Grant-in-Aid", "gu": "અનુદાનિત", "l": "GIA"}, {"n": 3, "en": "Self-Financed (Private)", "gu": "સ્વનિર્ભર (ખાનગી)", "l": "P"}];
 const COVER = {"title": "વિદ્યાર્થીઓના અધ્યયન અનુભવો અને મૂલ્યાંકન અનુસૂચિ", "sub": "(ધોરણ 8ના ગણિત શિક્ષણમાં NCF- SE- 2023 મુજબ અધ્યાપનશાસ્ત્રમાં)", "instr": ["(1) આ કોઈ પરીક્ષા નથી. તેથી અહીં કોઈ જવાબ સાચો કે ખોટો નથી.", "(2) દરેક વિધાન ધ્યાનપૂર્વક વાંચો અને તમારા અનુભવને સૌથી વધુ અનુરૂપ લાગતો એક જ વિકલ્પ પસંદ કરીને (✓) ની નિશાની કરો.", "(3) કોઈપણ વિધાનનો જવાબ ખાલી રાખશો નહીં.", "(4) પ્રશ્નોના જવાબ તમારા પોતાના અનુભવ અને અભિપ્રાયના આધારે આપશો. અન્ય વિદ્યાર્થીઓ સાથે ચર્ચા કર્યા વગર સ્વતંત્ર રીતે પ્રતિભાવ આપશો.", "(5) આપના દ્વારા આપવામાં આવેલા તમામ પ્રતિભાવો સંપૂર્ણપણે ગોપનીય રાખવામાં આવશે અને તેનો ઉપયોગ માત્ર સંશોધનના હેતુ માટે જ કરવામાં આવશે.", "(6) ઉદાહરણ: જો વિધાન હોય \"શિક્ષક બોર્ડ દ્વારા સમજાવે છે.\" અને તમારા શિક્ષક લગભગ દરેક વખતે બોર્ડનો ઉપયોગ કરતા હોય, તો \"નિયમિત રીતે (✓)\" ની નિશાની કરો. જો શિક્ષક ક્યારેક જ બોર્ડનો ઉપયોગ કરતા હોય, તો \"ક્યારેક (✓)\" અને જો ક્યારેય ઉપયોગ ન કરતા હોય, તો \"ક્યારેય નહીં (✓)\" ની નિશાની કરો.", "(7) માહિતી ભરતી વખતે કોઈ પ્રશ્ન હોય તો સંશોધક અથવા શિક્ષકનો સંપર્ક કરશો.", "(8) આપના સાચા અને નિખાલસ સહકાર બદલ હાર્દિક આભાર"]};
-const APP_VERSION = "1.8";
+const APP_VERSION = "1.9";
 const BACKEND = "firebase";   // "claude" = Claude artifact database · "firebase" = own Firebase project (Play Store / installable app)
 const FB_VER = "10.12.2";
 const TARGET_N = 2000;
@@ -696,6 +712,7 @@ function fxTap(idx){
 function fxNext(){ fxKeep(); fxGo(FX.i + 1); }
 function keyBtn(n, label, on, onclick){ return h("button", {type:"button", class:"key" + (on ? " on" : ""), onclick, "data-k":String(n)}, h("b", {}, String(n)), h("span", {}, label)); }
 function fxRender(){
+  if (paperMode()) return renderPaper();
   const box = $("#fxStep"); if (!box) return; box.textContent = "";
   const st = STEPS[FX.i];
   const filled = STEPS.filter(stepFilled).length;
@@ -734,6 +751,53 @@ function fxRender(){
   });
   $("#fx_back").disabled = FX.i === 0; $("#fx_fwd").textContent = st ? "આગળ ▶" : "—"; $("#fx_fwd").disabled = !st; $("#fx_blank").disabled = !st;
 }
+/* ---- 📄 paper-style table: every item on one page, 3 · 2 · 1 columns like the printed schedule ---- */
+const paperMode = () => !!(lsGet(PKEY) || {}).paper;
+function setPaper(on){ lsSet(PKEY, Object.assign(lsGet(PKEY) || {}, {paper:!!on})); FX.i = 0; route(false); }
+const PM = new Set();   // choice rows where the paper shows more than one tick
+function grpTitle(st){ return st.k === "gender" ? "સામાન્ય માહિતી" : st.grp === "મૂલ્યાંકન" ? "હેતુ 3 · મૂલ્યાંકન વિધાન" : st.grp === "હેતુ 3 પ્ર." ? "હેતુ 3 · પ્રશ્નો" : st.grp === "C" ? "હેતુ 2 · વિભાગ C" : "હેતુ 2 · વિભાગ " + st.grp; }
+function pRow(i){
+  const st = STEPS[i], d = FX.d, num = st.lab.split(" · ").pop();
+  const cls = "prow" + (stepFilled(st) ? " f" : "") + (stepWarn(st) ? " w" : "");
+  const btn = (txt, on, idx, title) => h("button", {type:"button", class:on ? "on" : "", "aria-pressed":String(!!on), title:title || null, onclick:() => pTap(i, idx)}, txt);
+  if (st.k === "gender") return h("div", {class:cls, id:"pr" + i}, h("div", {class:"ptx"}, h("b", {}, "જાતિ")), h("div", {class:"pk g2"}, btn("કુમાર", d.GENDER === 1, 0), btn("કન્યા", d.GENDER === 2, 1)));
+  if (st.k === "rate") return h("div", {class:cls, id:"pr" + i}, h("div", {class:"ptx"}, h("b", {}, num + "."), st.text), h("div", {class:"pk"}, ...SCALE.map((sc, j) => btn(String(sc.code), d[st.v] === sc.code, j, sc.gu))));
+  if (st.k === "rank") return h("div", {class:cls, id:"pr" + i}, h("div", {class:"ptx"}, st.i === 0 ? h("div", {class:"note"}, `C ${st.q.no}: ${st.q.q} (1 = સૌથી વધુ … 4 = સૌથી ઓછું)`) : null, st.text), h("div", {class:"pk g4"}, ...[1, 2, 3, 4].map((n, j) => btn(String(n), d[st.q.raw[st.i]] === n, j))));
+  const q = st.q, multi = q.clean === "multi" || PM.has(i);
+  const row = h("div", {class:cls, id:"pr" + i}, h("div", {class:"ptx", style:"grid-column:1/-1"}, h("b", {}, st.grp === "C" ? "C" : "પ્ર."), st.text),
+    h("div", {class:"popt"}, ...q.opts.map((o, j) => btn(`${j + 1}. ${o}`, d[q.raw[j]] === 1, j))));
+  if (q.oth && d[q.raw[q.raw.length - 1]] === 1) { const inp = h("input", {type:"text", placeholder:"અન્ય — પેપર પર લખેલું", value:d[q.oth] || "", style:"grid-column:1/-1"});
+    inp.addEventListener("input", () => { FX.d[q.oth] = inp.value; fxKeep(); }); add(row, inp); }
+  add(row, h("div", {class:"pnote"}, q.clean === "multi" ? "એકથી વધુ પસંદ થઈ શકે" : h("label", {style:"display:flex;gap:6px;align-items:center"},
+    h("input", {type:"checkbox", checked:multi, onchange:e => { e.target.checked ? PM.add(i) : PM.delete(i); }}), "પેપર પર એકથી વધુ ✓"), stepWarn(st) ? " · ⚠ 98 ગણાશે" : ""));
+  return row;
+}
+function pTap(i, idx){
+  const st = STEPS[i], d = FX.d; if (!FX.t0) FX.t0 = Date.now();
+  if (st.k === "gender") d.GENDER = d.GENDER === idx + 1 ? null : idx + 1;
+  else if (st.k === "rate") { const c = SCALE[idx].code; d[st.v] = d[st.v] === c ? null : c; }
+  else if (st.k === "rank") { const v = st.q.raw[st.i]; d[v] = d[v] === idx + 1 ? null : idx + 1; }
+  else { const q = st.q; if (q.clean !== "multi" && !PM.has(i) && d[q.raw[idx]] === 1) { q.raw.forEach(v => d[v] = null); if (q.oth) d[q.oth] = null; } else setChoice(q, idx, q.clean === "multi" || PM.has(i)); }
+  fxKeep();
+  const old = $("#pr" + i); if (old) old.replaceWith(pRow(i));
+  pProgress();
+  const filledNow = stepFilled(st);
+  if (filledNow && st.k !== "choice") { const nx = $("#pr" + (i + 1)); if (nx) nx.scrollIntoView({block:"nearest", behavior:"smooth"}); }
+}
+function pProgress(){ const filled = STEPS.filter(stepFilled).length; const p = $("#fxProg"), c = $("#fxCount"); if (p) p.style.width = (filled / STEPS.length * 100) + "%"; if (c) c.textContent = `${filled}/${STEPS.length} ભર્યા`; }
+function renderPaper(){
+  const box = $("#paper"); if (!box) return; box.textContent = "";
+  const hdr = document.querySelector("header.top"); if (hdr) document.documentElement.style.setProperty("--hdrh", hdr.offsetHeight + "px");
+  let grp = null;
+  STEPS.forEach((st, i) => {
+    const g = grpTitle(st);
+    if (g !== grp) { grp = g;
+      add(box, h("div", {class:"pgh"}, h("span", {}, g), st.k === "rate" ? h("span", {class:"pcols"}, h("span", {}, "3", h("br"), "નિયમિત"), h("span", {}, "2", h("br"), "ક્યારેક"), h("span", {}, "1", h("br"), "ક્યારેય નહીં")) : h("span")));
+    }
+    add(box, pRow(i));
+  });
+  pProgress();
+}
 let fxTimer = null;
 function viewFast(){
   const m = $("#main");
@@ -749,13 +813,19 @@ function viewFast(){
       h("div", {class:"top"}, h("div", {class:"field wide"}, h("span", {class:"lbl"}, "શાળા કોડ (જિલ્લો · પ્રકાર · નંબર) — યાદ રહેશે"), sSel),
         h("div", {class:"field"}, h("label", {for:"fx_roll"}, "રોલ નં."), roll), h("div", {class:"field"}, h("label", {for:"fx_date"}, "તારીખ"), date)),
       h("div", {class:"meta", style:"margin-top:8px"}, h("div", {}, "આ પેપરનું ID: ", h("span", {class:"idnext", id:"fx_next"}, "—")), h("div", {id:"fx_time"}, "⏱ 0:00"))),
+    h("div", {class:"modes", role:"group", "aria-label":"ભરવાની રીત"},
+      h("button", {type:"button", class:paperMode() ? "" : "on", onclick:() => setPaper(false)}, "એક પ્રશ્ન એક સ્ક્રીન"),
+      h("button", {type:"button", class:paperMode() ? "on" : "", onclick:() => setPaper(true)}, "📄 કાગળ જેવું કોષ્ટક")),
     h("p", {class:"msg", id:"msg", hidden:true}), h("div", {id:"fxDone"}),
+    paperMode() ? h("div", {class:"card paper", style:"padding:10px 12px"}, h("div", {class:"meta"}, h("span", {id:"fxCount"}), h("a", {href:"#reg", class:"note"}, "વિગતવાર ફોર્મ")),
+      h("div", {class:"bar2", style:"margin:6px 0 4px"}, h("i", {id:"fxProg"})), h("div", {id:"paper"}),
+      h("button", {type:"button", class:"btn primary", style:"width:100%;min-height:56px;margin-top:12px;font-size:1.05rem", id:"fx_save", onclick:fxSave}, "✓ સેવ કરો અને આગળનો વિદ્યાર્થી")) :
     h("div", {class:"card step", style:"padding:12px"}, h("div", {class:"meta"}, h("span", {id:"fxCount"}), h("a", {href:"#reg", class:"note"}, "વિગતવાર ફોર્મ")),
       h("div", {class:"bar2", style:"margin:6px 0 10px"}, h("i", {id:"fxProg"})), h("div", {id:"fxStep"}),
       h("div", {class:"nav3"}, h("button", {type:"button", class:"btn", id:"fx_back", onclick:() => fxGo(FX.i - 1)}, "◀ પાછળ"),
         h("button", {type:"button", class:"btn", id:"fx_blank", onclick:() => { const st = STEPS[FX.i]; if (st) { clearStep(st); fxNext(); } }}, "0 ખાલી"),
         h("button", {type:"button", class:"btn", id:"fx_fwd", onclick:() => fxNext()}, "આગળ ▶"))),
-    h("div", {class:"card", style:"padding:10px 12px"}, h("div", {class:"lbl", style:"margin-bottom:6px"}, "પેપર સાથે મેળવો — ખાનું દબાવી સીધા ત્યાં જાઓ (A, B, હેતુ 3: 3 = નિયમિત, 2 = ક્યારેક, 1 = ક્યારેય નહીં · C: વિકલ્પ ક્રમ)"), h("div", {class:"strip", id:"fxStrip"}),
+    paperMode() ? null : h("div", {class:"card", style:"padding:10px 12px"}, h("div", {class:"lbl", style:"margin-bottom:6px"}, "પેપર સાથે મેળવો — ખાનું દબાવી સીધા ત્યાં જાઓ (A, B, હેતુ 3: 3 = નિયમિત, 2 = ક્યારેક, 1 = ક્યારેય નહીં · C: વિકલ્પ ક્રમ)"), h("div", {class:"strip", id:"fxStrip"}),
       h("button", {type:"button", class:"btn primary", style:"width:100%;margin-top:10px", id:"fx_save", onclick:fxSave}, "✓ સેવ કરો"))));
   if (dr && dr.d && FX.dirty()) say("આ ઉપકરણ પર અધૂરો વિદ્યાર્થી મળ્યો — ત્યાંથી આગળ ભરો.", "warn");
   FX.meta(); fxRender();
@@ -763,7 +833,7 @@ function viewFast(){
   fxTimer = setInterval(() => { const o = $("#fx_time"); if (!o || S.route !== "fast") return clearInterval(fxTimer); const s = FX.t0 ? Math.round((Date.now() - FX.t0) / 1000) : 0; o.textContent = `⏱ ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }, 1000);
 }
 addEventListener("keydown", e => {
-  if (S.route !== "fast" || document.querySelector(".ovl")) return;
+  if (S.route !== "fast" || document.querySelector(".ovl") || paperMode()) return;
   const t = e.target; if (t && (t.tagName === "INPUT" && t.type !== "checkbox" || t.tagName === "SELECT" || t.tagName === "TEXTAREA")) return;
   if (/^[1-9]$/.test(e.key)) { const b = document.querySelector(`#fxStep .key[data-k="${e.key}"]`); if (b) { e.preventDefault(); b.click(); } }
   else if (e.key === "0") { e.preventDefault(); $("#fx_blank").click(); }

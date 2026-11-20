@@ -150,11 +150,14 @@ const DISTRICTS_GU = ["વાવ-થરાદ", "અમદાવાદ", "ભા
 const SKIP_TRAIN = new Set(["TRAIN_ONLINE", "TRAIN_ONLINE_HOURS", "TRAIN_OFFLINE", "TRAIN_OFFLINE_DAYS", "TRAIN_Q2_TOPIC", "TRAIN_Q3_CHANGE", "TRAIN_Q4_AREA", "TRAIN_Q5_PEDCHANGE", "TRAIN_Q6_IMPROVED", "TRAIN_Q7_ROLE", "TRAIN_Q8_USEFUL"]);
 const NOT_IN_REPORTS = new Set(["SCHOOL_TYPE_PAPER"]);
 const LEGACY_ORDER = ["ID", "NAME", "SCHOOL", "SCHOOL_CODE", "DIST", "SCH_TYPE", "APPT", "EXP_YRS", "TM1", "TM2", "TM3", "TM4", "TM5", "TM6", "TM7", "TM8", "TM9", "TM10", "A1_SKILL", "A1_PURP_1", "A1_PURP_2", "A1_PURP_3", "A1_PURP_4", "A1_STEP_1", "A1_STEP_2", "A1_STEP_3", "A1_STEP_4", "A1_STEP_5", "A1_STEP_6", "A1_STEP_7", "A1_STEP_8", "A1_STEP_9", "A1_STEP_10", "A1_STEP_OTH", "A1_EFF_1", "A1_EFF_2", "A1_EFF_3", "A1_EFF_4", "A1_EFF_5", "A1_EFF_6", "A1_EFF_7", "A1_EFF_8", "A1_EFF_9", "A1_EFF_OTH", "A1_OBJ_1", "A1_OBJ_2", "TQ1", "TQ2", "TQ3", "TQ4", "A2_RES_1", "A2_RES_2", "A2_RES_3", "A2_RES_4", "A2_RES_5", "A2_HOT", "A2_ACT", "A2_QTYP_1", "A2_QTYP_2", "A2_QTYP_3", "A2_QTYP_4", "EL1", "EL2", "EL3", "EL4", "EL5", "EL6", "EL7", "EL8", "EL9", "A3_PART", "A3_ACTV_1", "A3_ACTV_2", "A3_ACTV_3", "A3_ACTV_4", "A3_ACTV_OTH", "A3_IMPR", "A3_FREQ", "SK1", "SK2", "SK3", "SK4", "SK5", "A4_ASMT_1", "A4_ASMT_2", "A4_ASMT_3", "A4_ASMT_4", "A4_WHEN", "A4_CHOICE", "A4_REAS_1", "A4_REAS_2", "A4_DIFF", "MR1", "MR2", "MR3", "MR4", "MR5", "MR6", "MR7", "MR8", "MR9", "MR10", "A5_SKILL", "A6_AIDS_1", "A6_AIDS_2", "A6_AIDS_3", "A6_AIDS_4", "A6_AIDS_5", "A6_TLMC_1", "A6_TLMC_2", "A6_TLMC_3", "A6_TLMC_4", "A6_TLMC_5", "A6_ICTP_1", "A6_ICTP_2", "A6_ICTP_3", "A6_ICTP_4", "A6_ICTF", "A6_FB_1", "A6_FB_2", "A6_FB_3", "A6_FB_4", "A6_FB_5", "A6_FB_6", "A6_FB_7", "A6_FB_8", "A6_FB_9", "A6_FB_10", "A6_FB_OTH", "CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "A7_METH_1", "A7_METH_2", "A7_METH_3", "A7_METH_4", "A7_METH_5", "A7_METH_6", "A7_METH_7", "A7_METH_8", "A7_METH_OTH", "A7_WHY_1", "A7_WHY_2", "A7_WHY_3", "A7_WHY_4", "A7_WHY_5", "A7_WHY_6", "A7_WHY_7", "A7_WHY_8", "A7_WHY_9", "A7_WHY_OTH", "TR_YN", "TR_ON_1", "TR_ON_2", "TR_ON_3", "TR_ONHR", "TR_OFF_1", "TR_OFF_2", "TR_OFF_3", "TR_OFF_4", "TR_OFF_5", "TR_OFF_6", "TR_OFF_OTH", "TR_OFFDAY", "TR_TOPIC_1", "TR_TOPIC_2", "TR_TOPIC_3", "TR_TOPIC_4", "TR_CHG", "TR_AREA_1", "TR_AREA_2", "TR_AREA_3", "TR_PED", "TR_AGREE", "TR_ROLE_1", "TR_ROLE_2", "TR_ROLE_3", "TR_ROLE_4", "TR_ROLE_5", "TR_ROLE_6", "TR_ROLE_7", "TR_ROLE_8", "TR_ROLE_9", "TR_ROLE_10", "TR_ROLE_OTH", "TR_USE", "B1_WHEN_1", "B1_WHEN_2", "B1_WHEN_3", "B1_WHEN_4", "B2_BASIS_1", "B2_BASIS_2", "B2_BASIS_3", "B2_BASIS_4", "B3_TYPE_1", "B3_TYPE_2", "B3_TYPE_3", "B3_TYPE_4", "B3_TYPE_5", "B3_TYPE_6", "B4_QTYP_1", "B4_QTYP_2", "B4_QTYP_3", "B5_ERR_1", "B5_ERR_2", "B5_ERR_3", "B5_ERR_OTH", "B6_FB_1", "B6_FB_2", "B6_FB_3", "B6_FB_OTH", "B7_USE", "B7_HOW_1", "B7_HOW_2", "B7_HOW_3", "B7_HOW_4", "B7_HOW_5", "B7_HOW_6", "B7_HOW_7", "B7_HOW_8", "B7_HOW_9", "B7_HOW_OTH", "B8", "B9", "B10", "B11", "APPT_OTH", "A1_STEP_EX", "TR_ONHR_OTH"];
-const APP_VERSION = "4.0";
+const APP_VERSION = "4.1";
 const BACKEND = "firebase";   // "claude" = Claude artifact database, "firebase" = own Firebase project
 const FB_VER = "10.12.2";
 const TARGET_T = 100, N_SCHOOLS = 72, PER_DISTRICT = 18;
-const TIDS = Array.from({length:TARGET_T}, (_, i) => "T" + String(i + 1).padStart(3, "0"));
+const TIDS = [];   // v4.1: teacher ID = one code: district · school type · T · number (AGT01, APT02, AGIAT01, VTGT01 …)
+const TCODE_RE = /^(VT|A|B|N)(GIA|G|P)T(\d{2})$/;
+const validTid = t => TCODE_RE.test(t || "") || /^T\d{3}$/.test(t || "");   // T001-style kept only for older records
+const distOfTid = t => { const m = TCODE_RE.exec(t || ""); return m ? CODE_DIST[m[1]] : ""; };
 const SIDS = [];   // v4: fixed S01–S72 replaced by school codes (district · type · number), same as the student app
 const CODE_RE = /^(VT|A|B|N)(GIA|G|P)S(\d{2})$/;
 const CODE_DIST = {VT:"Vav-Tharad", A:"Ahmedabad", B:"Bhavnagar", N:"Navsari"};
@@ -261,9 +264,14 @@ const setSid = c => { const w = $("#a_SID") && $("#a_SID").closest(".spick"); if
 const TABLE_VARS = VARS.filter(v => v.type === "single (rating)").map(v => v.name);
 function qualityOf(rec){
   const err = [], warn = [];
-  if (!/^T\d{3}$/.test(rec.TID || "")) err.push("શિક્ષક ID અમાન્ય");
-  if (!validSid(rec.SID)) err.push("શાળા કોડ નથી/અમાન્ય (દા.ત. AGS01)");
-  else if (rec.DISTRICT !== distOfSid(rec.SID)) err.push(`જિલ્લો મેળ ખાતો નથી: રેકોર્ડ "${rec.DISTRICT || "ખાલી"}", શાળા કોડ "${distOfSid(rec.SID)}"`);
+  if (!validTid(rec.TID)) err.push("શિક્ષક કોડ અમાન્ય (દા.ત. AGT01)");
+  const tDist = distOfTid(rec.TID);
+  if (rec.SID && !validSid(rec.SID)) err.push("શાળા કોડ અમાન્ય (દા.ત. AGS01)");
+  if (!tDist && !validSid(rec.SID)) err.push("શાળા કોડ નથી (જૂના T001 પ્રકારના ID માટે જરૂરી)");
+  const expD = tDist || distOfSid(rec.SID);
+  if (expD && rec.DISTRICT !== expD) err.push(`જિલ્લો મેળ ખાતો નથી: રેકોર્ડ "${rec.DISTRICT || "ખાલી"}", કોડ "${expD}"`);
+  if (tDist && validSid(rec.SID) && distOfSid(rec.SID) !== tDist) err.push(`શિક્ષક કોડ ${rec.TID} અને શાળા કોડ ${rec.SID} ના જિલ્લા જુદા છે`);
+  if (TCODE_RE.test(rec.TID || "") && validSid(rec.SID) && TCODE_RE.exec(rec.TID)[2] !== CODE_RE.exec(rec.SID)[2]) warn.push(`શિક્ષક કોડ ${rec.TID} અને શાળા કોડ ${rec.SID} નો પ્રકાર જુદો છે`);
   if (!DISTRICTS.includes(rec.DISTRICT)) err.push("જિલ્લો ચાર પસંદ કરેલ જિલ્લામાંથી નથી");
   const ev = rec.TEACH_EXP_VALUE, eu = rec.TEACH_EXP_UNIT;
   if (!isEmpty(ev) && isEmpty(eu)) err.push("અનુભવ: મહિના/વર્ષ પસંદ નથી");
@@ -531,7 +539,21 @@ function recStatus(id){
   return {saved:true, entry:r.ENTRY_STATUS || "Incomplete", verify:r.VERIFY_STATUS || "Pending Verification"};
 }
 const allIds = () => [...new Set(TIDS.concat([...S.teachers.keys()]))].sort();
-const nextFreeId = () => { for (let i = 1; i <= 999; i++) { const id = "T" + String(i).padStart(3, "0"); if (!S.teachers.has(id)) return id; } return ""; };
+const nextFreeId = (like) => { const m = TCODE_RE.exec(like || ""); if (!m) return "";
+  for (let i = 1; i <= 40; i++) { const id = `${m[1]}${m[2]}T${String(i).padStart(2, "0")}`; if (!S.teachers.has(id)) return id; } return ""; };
+function tidPicker(onpick){
+  const hid = h("input", {type:"hidden", id:"a_TID"});
+  const st = "flex:1;min-width:96px";
+  const sd = h("select", {"data-p":"d", "aria-label":"જિલ્લો", style:st}, h("option", {value:""}, "જિલ્લો"), ...Object.entries(CODE_DIST).map(([k, v]) => h("option", {value:k}, k + " · " + distGu(v))));
+  const sp = h("select", {"data-p":"t", "aria-label":"શાળાનો પ્રકાર", style:st}, h("option", {value:""}, "પ્રકાર"), ...Object.entries(CODE_TYPE).map(([k, v]) => h("option", {value:k}, k + " · " + v)));
+  const sn = h("select", {"data-p":"n", "aria-label":"શિક્ષક નંબર", style:st}, h("option", {value:""}, "નંબર"), ...Array.from({length:40}, (_, i) => h("option", {value:String(i + 1)}, String(i + 1).padStart(2, "0"))));
+  const show = h("b", {style:"font-size:1.15rem"}, "—");
+  const upd = () => { const c = sd.value && sp.value && sn.value ? `${sd.value}${sp.value}T${String(sn.value).padStart(2, "0")}` : ""; show.textContent = c || "—"; if (c) onpick(c); };
+  [sd, sp, sn].forEach(e => e.addEventListener("change", upd));
+  const wrap = h("div", {class:"spick tpick"}, h("div", {class:"chips"}, sd, sp, sn), h("div", {class:"note"}, "શિક્ષક કોડ: ", show, " · દા.ત. AGT01 = અમદાવાદ સરકારી શિક્ષક 01, APT02, AGIAT01"), hid);
+  wrap.setCode = c => { const m = TCODE_RE.exec(c || ""); sd.value = m ? m[1] : ""; sp.value = m ? m[2] : ""; sn.value = m ? String(Number(m[3])) : ""; hid.value = c || ""; show.textContent = c || "—"; };
+  return wrap;
+}
 function badgeEntry(st){ return st.entry === "Complete" ? h("span", {class:"badge b-ok"}, "Complete") : st.entry === "Incomplete" ? h("span", {class:"badge b-warn"}, "Incomplete") : h("span", {class:"badge b-mut"}, "Pending"); }
 function badgeVerify(st){ return !st.saved ? "" : st.verify === "Verified" ? h("span", {class:"badge b-ok"}, "Verified") : h("span", {class:"badge b-warn"}, "Pending Verification"); }
 
@@ -539,7 +561,7 @@ function badgeVerify(st){ return !st.saved ? "" : st.verify === "Verified" ? h("
 function viewDash(){
   const m = $("#main");
   const recs = [...S.teachers.values()];
-  const inTarget = TIDS.filter(id => S.teachers.has(id)).length;
+  const inTarget = Math.min(TARGET_T, recs.length);
   const complete = recs.filter(r => r.ENTRY_STATUS === "Complete").length;
   const incomplete = recs.filter(r => r.ENTRY_STATUS !== "Complete").length;
   const verified = recs.filter(r => r.VERIFY_STATUS === "Verified").length;
@@ -550,7 +572,7 @@ function viewDash(){
     h("div", {class:"lbl"}, `સંપૂર્ણ (Complete) શિક્ષક ફોર્મ: ${complete} / ${TARGET_T}`),
     h("div", {class:"progress", role:"progressbar", "aria-valuemin":"0", "aria-valuemax":String(TARGET_T), "aria-valuenow":String(complete)}, h("i", {style:`width:${Math.min(100, complete / TARGET_T * 100)}%`})),
     h("div", {class:"stats"},
-      stat(TARGET_T, "કુલ શિક્ષક (નમૂનો)"), stat(recs.length, "સેવ થયેલ રેકોર્ડ"), stat(complete, "Complete"), stat(incomplete, "Incomplete"),
+      stat(TARGET_T, "લક્ષ્ય શિક્ષક (અંદાજ)"), stat(recs.length, "સેવ થયેલ રેકોર્ડ"), stat(complete, "Complete"), stat(incomplete, "Incomplete"),
       stat(TARGET_T - inTarget, "Pending (હજી ભરાયા નથી)"), stat(verified, "Verified"), stat(recs.length - verified, "Unverified (Pending Verification)"))));
   m.append(h("div", {class:"card"}, h("h2", {}, "શાળા અને જિલ્લા"),
     h("div", {class:"stats"}, stat(N_SCHOOLS, "કુલ શાળા"), stat(DISTRICTS.length, "કુલ જિલ્લા"),
@@ -565,17 +587,17 @@ function viewDash(){
 const LF = {q:"", d:"", c:"", v:""};
 function viewList(){
   const m = $("#main");
-  const qIn = h("input", {type:"search", id:"lq", placeholder:"T005 / AGS01 / શાળાનું નામ", value:LF.q, oninput:e => { LF.q = e.target.value; draw(); }});
+  const qIn = h("input", {type:"search", id:"lq", placeholder:"AGT01 / AGS01 / શાળાનું નામ", value:LF.q, oninput:e => { LF.q = e.target.value; draw(); }});
   const sel = (id, label, opts, key) => h("div", {class:"field"}, h("label", {for:id}, label),
     h("select", {id, onchange:e => { LF[key] = e.target.value; draw(); }}, ...opts.map(([v, l]) => h("option", {value:v, selected:LF[key] === v}, l))));
   const body = h("tbody");
   const cnt = h("span", {class:"note"});
-  m.append(h("div", {class:"card"}, h("h2", {}, "શિક્ષક રેકોર્ડ (T001–T100)"),
+  m.append(h("div", {class:"card"}, h("h2", {}, "શિક્ષક રેકોર્ડ"),
     h("div", {class:"filters"}, h("div", {class:"field"}, h("label", {for:"lq"}, "શોધો: ID / શાળા ID / શાળાનું નામ"), qIn),
       sel("ld", "જિલ્લો", [["", "બધા"]].concat(DISTRICTS.map(d => [d, distGu(d)])), "d"),
       sel("lc", "એન્ટ્રી સ્થિતિ", [["", "બધા"], ["Complete", "Complete"], ["Incomplete", "Incomplete"], ["Pending", "Pending (ભરાયું નથી)"]], "c"),
       sel("lv", "ચકાસણી", [["", "બધા"], ["Verified", "Verified"], ["Pending Verification", "Pending Verification"]], "v")),
-    h("p", {}, h("button", {class:"btn primary", type:"button", onclick:() => { location.hash = "#form-" + (nextFreeId() || "new"); }}, "+ નવો શિક્ષક (આગળનું ID: " + (nextFreeId() || "—") + ")"), " ", cnt),
+    h("p", {}, h("button", {class:"btn primary", type:"button", onclick:() => { location.hash = "#form-new"; }}, "+ નવો શિક્ષક"), " ", cnt),
     h("div", {class:"scroll"}, h("table", {class:"t"}, h("thead", {}, h("tr", {}, ...["ID", "શાળા", "જિલ્લો", "એન્ટ્રી", "ચકાસણી", "જવાબ", "છેલ્લો ફેરફાર", ""].map(x => h("th", {}, x)))), body))));
   function draw(){
     body.textContent = ""; let n = 0;
@@ -623,7 +645,7 @@ function renderQ(q, sec){
   if (q.k === "text") {
     const id = "f_" + q.v;
     box.append(h("label", {for:id}, qTitle(q)), q.long ? h("textarea", {id, rows:"3", "data-v":q.v}) : h("input", {type:"text", id, "data-v":q.v}));
-    if (q.v === "SCHOOL_DISTRICT_TEXT") box.append(h("div", {class:"qhint"}, "પેપર પર જે લખ્યું હોય તે જ લખો. (વિશ્લેષણ માટેનો જિલ્લો ઉપર 'શાળા ID' પરથી આપમેળે આવે છે.)"));
+    if (q.v === "SCHOOL_DISTRICT_TEXT") box.append(h("div", {class:"qhint"}, "પેપર પર જે લખ્યું હોય તે જ લખો. (વિશ્લેષણ માટેનો જિલ્લો ઉપરના શિક્ષક કોડ (દા.ત. AGT01) પરથી આપમેળે આવે છે.)"));
   } else if (q.k === "exp") {
     box.append(h("label", {for:"f_TEACH_EXP_VALUE"}, qTitle(Object.assign({}, q, {v:"TEACH_EXP_VALUE / TEACH_EXP_UNIT"}))),
       h("div", {class:"chips"}, h("input", {type:"number", id:"f_TEACH_EXP_VALUE", "data-v":"TEACH_EXP_VALUE", min:"0", max:"540", step:"0.5", inputmode:"decimal", style:"max-width:140px", placeholder:"સંખ્યા"}),
@@ -688,13 +710,13 @@ const DKEY = (mode, tid) => `tsurvey_draft_${mode}_${tid}`;
 function viewForm(arg){
   const m = $("#main");
   let tid = (arg || "").toUpperCase();
-  if (!/^T\d{3}$/.test(tid)) tid = nextFreeId();
+  if (!validTid(tid)) tid = "";
   const second = !!(S.form && S.form.second && S.form.tid === tid);
   S.form = {tid, dirty:false, sec:0, second, loadedVersion:null, forced:{}};
   /* admin block */
   const sidSel = sidPicker("a_SID", () => { updateDistrict(); markDirty(); });
   const distOut = h("div", {class:"pill", id:"a_DISTRICT"}, "—");
-  const tidIn = h("input", {type:"text", id:"a_TID", value:tid, maxlength:"4", style:"text-transform:uppercase;font-weight:700;max-width:120px"});
+  const tidIn = tidPicker(code => pickTid(code));
   const dateIn = h("input", {type:"date", id:"a_ENTRY_DATE"});
   const noteIn = h("input", {type:"text", id:"a_ENTRY_NOTE", placeholder:"દા.ત. B7 માં બે જવાબ, પાનું ફાટેલું…"});
   const stOut = h("div", {id:"a_STATUS", class:"note"});
@@ -702,9 +724,9 @@ function viewForm(arg){
   const modeChk = h("input", {type:"checkbox", id:"secondMode", checked:second});
   const adm = h("div", {class:"card adm"}, h("h2", {}, "શિક્ષક નોંધણી (વહીવટી માહિતી — પ્રશ્નાવલિનો ભાગ નથી)"),
     h("div", {class:"grid2"},
-      h("div", {class:"field"}, h("label", {for:"a_TID"}, "શિક્ષક ID (T001–T100)"), h("div", {class:"chips"}, tidIn, h("button", {class:"btn", type:"button", onclick:() => openTid(tidIn.value)}, "ખોલો"))),
-      h("div", {class:"field"}, h("span", {class:"lbl"}, "શાળા કોડ (જિલ્લો · પ્રકાર · નંબર)"), sidSel),
-      h("div", {class:"field"}, h("span", {class:"lbl"}, "જિલ્લો (શાળા કોડ પરથી આપમેળે)"), distOut),
+      h("div", {class:"field"}, h("span", {class:"lbl"}, "શિક્ષક કોડ * (જિલ્લો · પ્રકાર · નંબર)"), tidIn),
+      h("div", {class:"field"}, h("span", {class:"lbl"}, "જિલ્લો (કોડ પરથી આપમેળે)"), distOut),
+      h("div", {class:"field"}, h("span", {class:"lbl"}, "શાળા કોડ (વૈકલ્પિક — દા.ત. AGS01)"), sidSel),
       h("div", {class:"field"}, h("label", {for:"a_ENTRY_DATE"}, "એન્ટ્રી તારીખ"), dateIn),
       h("div", {class:"field"}, h("label", {for:"a_ENTRY_NOTE"}, "એન્ટ્રી નોંધ (વૈકલ્પિક)"), noteIn),
       h("div", {class:"field"}, h("span", {class:"lbl"}, "સ્થિતિ"), stOut, verBtn)),
@@ -714,7 +736,6 @@ function viewForm(arg){
     const t = S.form.tid; S.form = {second:modeChk.checked, tid:t}; viewFormReload(t);
   });
   dateIn.addEventListener("change", markDirty); noteIn.addEventListener("input", markDirty);
-  tidIn.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); openTid(tidIn.value); } });
   /* questionnaire */
   const nav = h("div", {class:"secnav", id:"secnav"});
   const qroot = h("form", {id:"qroot", autocomplete:"off", onsubmit:e => e.preventDefault()});
@@ -745,7 +766,18 @@ function viewForm(arg){
   addSkip("ASSESS_Q07_USE", d => d.ASSESS_Q07_USE === 2, v => v === "ASSESS_Q07_HOW", "'ના' પસંદ કર્યું છે: 'કેવી રીતે?' લાગુ પડતું નથી.");
   qroot.addEventListener("click", e => {
     const t = e.target; if (t.tagName !== "INPUT" || t.type !== "radio") return;
-    if (lastChecked[t.name] === t.value) { t.checked = false; lastChecked[t.name] = null; markDirty(); } else lastChecked[t.name] = t.value;
+    if (lastChecked[t.name] === t.value) { t.checked = false; lastChecked[t.name] = null; markDirty(); return; }
+    lastChecked[t.name] = t.value;
+    if (e.detail === 0) return;   // keyboard: focus handling below moves on
+    // speed entry on phone: after a tap, bring the next unanswered radio question into view
+    const secEl = t.closest(".qsec"); if (!secEl) return;
+    const radios = [...secEl.querySelectorAll("input[type=radio]")].filter(r => !r.closest(".q.skipped"));
+    const names = [...new Set(radios.map(r => r.name))]; const i = names.indexOf(t.name);
+    const nx = names.slice(i + 1).find(n => !radios.some(r => r.name === n && r.checked));
+    if (!nx) return;
+    const el = secEl.querySelector(`input[type=radio][name="${CSS.escape(nx)}"]`);
+    const box = el.closest("[data-row]") || el.closest(".q") || el;
+    setTimeout(() => box.scrollIntoView({block:"center", behavior:"smooth"}), 120);
   });
   qroot.addEventListener("input", markDirty); qroot.addEventListener("change", markDirty);
   qroot.addEventListener("keydown", e => {
@@ -789,12 +821,12 @@ function showSec(i){
 }
 function currentAdmin(){
   return {TID:$("#a_TID").value.trim().toUpperCase(), SID:$("#a_SID").value, ENTRY_DATE:$("#a_ENTRY_DATE").value, ENTRY_NOTE:$("#a_ENTRY_NOTE").value.trim(),
-          DISTRICT:distOfSid($("#a_SID").value)};
+          DISTRICT:distOfTid($("#a_TID").value.trim().toUpperCase()) || distOfSid($("#a_SID").value)};
 }
 function updateDistrict(){
-  const sid = $("#a_SID").value;
+  const d = currentAdmin().DISTRICT;
   const o = $("#a_DISTRICT"); o.className = "pill";
-  o.textContent = sid ? distGu(distOfSid(sid)) : "—";
+  o.textContent = d ? distGu(d) : "—";
 }
 function updateProgress(){
   const qroot = $("#qroot"); if (!qroot) return;
@@ -804,7 +836,7 @@ function updateProgress(){
     b.querySelector("i").textContent = t ? `${a}/${t}` : ""; b.classList.toggle("full", t > 0 && a === t);
   });
   const c = completeness(d);
-  $("#saveSt").textContent = `${S.form.tid}${S.form.second ? " (બીજી એન્ટ્રી)" : ""} · જવાબ ${c.answered}/${c.total}${S.form.dirty ? " · સેવ બાકી" : ""}`;
+  $("#saveSt").textContent = `${S.form.tid || "નવો — શિક્ષક કોડ પસંદ કરો"}${S.form.second ? " (બીજી એન્ટ્રી)" : ""} · જવાબ ${c.answered}/${c.total}${S.form.dirty ? " · સેવ બાકી" : ""}`;
   const hint = $("#expHint");
   if (hint) hint.textContent = (typeof d.TEACH_EXP === "number") ? `= ${d.TEACH_EXP} વર્ષ (વિશ્લેષણ માટે ગણતરી)` : "પેપર પર લખેલી સંખ્યા અને મહિના/વર્ષ પસંદ કરો.";
 }
@@ -818,11 +850,11 @@ function loadRecordIntoForm(){
   const F = S.form; const store = F.second ? S.second : S.teachers; const rec = store.get(F.tid);
   const qroot = $("#qroot");
   fillForm(qroot, rec || {});
-  $("#a_TID").value = F.tid; setSid(rec?.SID || ""); $("#a_ENTRY_DATE").value = rec?.ENTRY_DATE || today(); $("#a_ENTRY_NOTE").value = rec?.ENTRY_NOTE || "";
+  $("#a_TID").closest(".tpick").setCode(F.tid); setSid(rec?.SID || ""); $("#a_ENTRY_DATE").value = rec?.ENTRY_DATE || today(); $("#a_ENTRY_NOTE").value = rec?.ENTRY_NOTE || "";
   F.loadedVersion = rec ? (rec._version || 0) : null; F.dirty = false; F.forced = {};
   updateDistrict(); applySkips(); updateProgress(); formRefreshMeta();
   if (rec) { say(`${F.tid} ખોલ્યું${F.second ? " (બીજી એન્ટ્રી)" : ""}. ફેરફાર કરી 'સેવ કરો' દબાવો.`, "ok"); showQC(rec); }
-  else say(`${F.tid} — નવું ફોર્મ${F.second ? " (બીજી એન્ટ્રી)" : ""}. પેપર જોઈ ભરો; અધૂરું ફોર્મ પણ સેવ કરી શકાય છે.`, "");
+  else say(F.tid ? `${F.tid} — નવું ફોર્મ${F.second ? " (બીજી એન્ટ્રી)" : ""}. પેપર જોઈ ભરો; અધૂરું ફોર્મ પણ સેવ કરી શકાય છે.` : "નવો શિક્ષક: પહેલાં ઉપર શિક્ષક કોડ પસંદ કરો (દા.ત. AGT01), પછી ફોર્મ ભરો.", "");
   let dr = null; try { dr = JSON.parse(localStorage.getItem(DKEY(F.second ? "2" : "1", F.tid)) || "null"); } catch {}
   if (dr && (!rec || dr.at > (rec._updatedAt || ""))) {
     say([`${F.tid} નો સેવ ન થયેલો ડ્રાફ્ટ આ ઉપકરણ પર મળ્યો (${fmtTime(dr.at)}). `,
@@ -847,9 +879,19 @@ function showQC(rec){
   q.warn.forEach(t => o.append(h("div", {}, h("span", {class:"badge b-warn"}, "ચેતવણી"), " ", t)));
   if (q.comp.missing.length) o.append(h("div", {class:"note"}, "ખાલી પ્રશ્નો: " + q.comp.missing.map(u => u.no + " " + u.key).join(", ")));
 }
+async function pickTid(code){
+  const F = S.form; if (!F || code === F.tid) return;
+  if (!F.tid && !(F.second ? S.second : S.teachers).has(code)) {   // new form: adopt the code, keep what was already filled in
+    F.tid = code; $("#a_TID").value = code; history.replaceState(null, "", "#form-" + code);
+    updateDistrict(); markDirty(); formRefreshMeta(); say(`${code} — નવો શિક્ષક. ફોર્મ ભરી 'સેવ કરો' દબાવો.`, ""); return;
+  }
+  const exists = S.teachers.has(code);
+  if (!F.tid && exists && !(await ask(`${code} પહેલેથી સેવ થયેલ છે. એ રેકોર્ડ ખોલવો છે?`))) { $("#a_TID").closest(".tpick").setCode(""); return; }
+  openTid(code);
+}
 async function openTid(v){
   const t = String(v || "").trim().toUpperCase();
-  if (!/^T\d{3}$/.test(t)) return say("શિક્ષક ID 'T' અને ત્રણ અંક હોવું જોઈએ, દા.ત. T007.", "bad");
+  if (!validTid(t)) return say("શિક્ષક કોડ આ રીતે હોવો જોઈએ: AGT01, APT02, AGIAT01, VTGT01.", "bad");
   if (S.form && S.form.dirty && !(await ask("સેવ ન થયેલ ફેરફાર છે (ડ્રાફ્ટ આ ઉપકરણ પર સચવાયો છે). છતાં બીજું ID ખોલવું છે?"))) return;
   const second = S.form && S.form.second; S.form = {second, tid:t};
   if (location.hash === "#form-" + t) route(); else location.hash = "#form-" + t;
@@ -860,9 +902,9 @@ async function save(){
   if (saving || !S.form) return;
   const F = S.form; const store = F.second ? S.second : S.teachers; const col = F.second ? "teachers_second" : "teachers";
   const adm = currentAdmin(); const data = readForm($("#qroot"));
-  if (!/^T\d{3}$/.test(adm.TID)) return say("શિક્ષક ID 'T' અને ત્રણ અંક (T001) હોવું જોઈએ.", "bad");
+  if (!validTid(adm.TID)) return say("પહેલાં શિક્ષક કોડ પસંદ કરો: જિલ્લો · પ્રકાર · નંબર (દા.ત. AGT01).", "bad");
   if (adm.TID !== F.tid) return say(`ID બદલ્યું છે (${adm.TID}). પહેલાં 'ખોલો' દબાવો — એક રેકોર્ડનું ID બીજાના નામે સેવ થતું નથી.`, "bad");
-  if (!adm.SID) return say("શાળા કોડ ફરજિયાત છે: જિલ્લો, પ્રકાર અને નંબર પસંદ કરો (દા.ત. AGS01).", "bad");
+  if (!adm.SID && !distOfTid(adm.TID)) return say("જૂના T001 પ્રકારના ID માટે શાળા કોડ જરૂરી છે (દા.ત. AGS01).", "bad");
   if (!isEmpty(data.TEACH_EXP_VALUE) && isEmpty(data.TEACH_EXP_UNIT)) return say("અનુભવ: મહિના કે વર્ષ પસંદ કરો.", "bad");
   if (!isEmpty(data.TEACH_EXP_VALUE) && (data.TEACH_EXP_VALUE < 0 || (data.TEACH_EXP_UNIT === 2 && data.TEACH_EXP_VALUE > 45) || (data.TEACH_EXP_UNIT === 1 && data.TEACH_EXP_VALUE > 540)))
     return say("અનુભવ: 0–45 વર્ષ અથવા 0–540 મહિના વચ્ચે લખો.", "bad");
@@ -870,7 +912,7 @@ async function save(){
   if (!prev && F.loadedVersion != null) { if (!(await ask(`${F.tid} ક્લાઉડમાંથી બીજા વપરાશકર્તાએ કાઢી નાખ્યું છે. ફરી બનાવવું છે?`))) return; }
   if (prev && F.loadedVersion == null) return say(`${F.tid} પહેલેથી બીજા વપરાશકર્તાએ સેવ કર્યું છે. ડુપ્લિકેટ ન થાય તે માટે ફોર્મ ફરી ખોલો.`, "bad");
   if (prev && (prev._version || 0) !== F.loadedVersion && !(await ask(`${F.tid} તમે ખોલ્યા પછી બીજા વપરાશકર્તાએ બદલ્યું છે (આવૃત્તિ ${prev._version}). તમારો ફેરફાર તેના પર લખવો છે?`))) return;
-  if (!adm.DISTRICT) say(`ચેતવણી: શાળા માસ્ટરમાં ${adm.SID} નો જિલ્લો નથી — રેકોર્ડ સેવ થશે પણ જિલ્લો ખાલી રહેશે (એડમિન શાળા માસ્ટર ભરે).`, "warn");
+  if (adm.SID && distOfTid(adm.TID) && distOfSid(adm.SID) !== distOfTid(adm.TID)) return say(`શિક્ષક કોડ ${adm.TID} અને શાળા કોડ ${adm.SID} ના જિલ્લા જુદા છે — શાળા કોડ સુધારો અથવા ખાલી કરો.`, "bad");
   const rec = Object.assign({}, data, adm);
   const comp = completeness(rec);
   const contentChanged = !prev || ALL_FIELDS.some(k => String(prev[k] ?? "") !== String(rec[k] ?? ""));
@@ -888,7 +930,7 @@ async function save(){
     audit(prev ? "update" : "create", F.tid + (F.second ? " (2nd)" : ""), changes);
     F.loadedVersion = rec._version; F.dirty = false;
     try { localStorage.removeItem(DKEY(F.second ? "2" : "1", F.tid)); } catch {}
-    const nx = nextFreeId();
+    const nx = F.second ? "" : nextFreeId(F.tid);
     say([`✓ ${F.tid} ક્લાઉડમાં સેવ થયું (${rec.ENTRY_STATUS}, ${comp.answered}/${comp.total}). `, !F.second && nx ? h("a", {href:"#form-" + nx}, `આગળનું: ${nx} →`) : ""], "ok");
     showQC(rec); updateProgress(); formRefreshMeta();
   } catch (e) {
@@ -1225,7 +1267,7 @@ async function restore(file){
   if (o.app !== "math-teacher-survey") return say("આ આ એપનો બેકઅપ નથી.", "bad");
   const cols = [["teachers", o.teachers], ["teachers_second", o.teachers_second], ["schools", o.schools], ["qual", o.qual]].filter(([, x]) => x && typeof x === "object");
   const n = cols.reduce((a, [, x]) => a + Object.keys(x).length, 0);
-  const bad = Object.keys(o.teachers || {}).filter(k => !/^T\d{3}$/.test(k)).concat(Object.keys(o.schools || {}).filter(k => !validSid(k)));
+  const bad = Object.keys(o.teachers || {}).filter(k => !validTid(k)).concat(Object.keys(o.schools || {}).filter(k => !validSid(k)));
   if (bad.length) return say("અમાન્ય ID: " + bad.slice(0, 10).join(", "), "bad");
   const typed = await ask(`${fmtTime(o.exportedAt)} ના બેકઅપમાંથી ${n} રેકોર્ડ ક્લાઉડમાં ફરી લખાશે (સમાન ID વાળા હાલના રેકોર્ડ બદલાશે). પુષ્ટિ માટે RESTORE લખો.`, {input:true, okText:"પુનઃસ્થાપન", danger:true});
   if (typed !== "RESTORE") return say("પુનઃસ્થાપન રદ.", "");
@@ -1264,7 +1306,7 @@ function masterRows(){
 const masterCsv = () => toCsv(masterRows());
 const SPSS_EXCLUDE = new Set(["TEACHER_NAME", "SCHOOL_NAME"]);
 function spssVars(){
-  const ad = [{name:"TID", fmt:"A4"}, {name:"SID", fmt:"A3"}, {name:"DISTRICT", fmt:"F1.0"}, {name:"ENTRY_DATE", fmt:"A10"}, {name:"ENTRY_STATUS", fmt:"F1.0"}, {name:"VERIFY_STATUS", fmt:"F1.0"}];
+  const ad = [{name:"TID", fmt:"A8"}, {name:"SID", fmt:"A8"}, {name:"DISTRICT", fmt:"F1.0"}, {name:"ENTRY_DATE", fmt:"A10"}, {name:"ENTRY_STATUS", fmt:"F1.0"}, {name:"VERIFY_STATUS", fmt:"F1.0"}];
   const rv = VARS.filter(v => !SPSS_EXCLUDE.has(v.name)).map(v => ({name:v.name, v, fmt:v.type === "open text" || v.type === "text" ? "A1000" : v.type.startsWith("numeric") ? "F8.2" : "F2.0"}));
   return ad.concat(rv);
 }
@@ -1409,7 +1451,7 @@ function buildWorkbook(){
   const all = [...S.teachers.values()];
   const recs = EXP.verifiedOnly ? all.filter(r => r.VERIFY_STATUS === "Verified") : all;
   const instr = [["Mathematics teacher questionnaire — data export"], [`Exported ${nowIso()} by ${S.user ? S.user.email : ""} · app v${APP_VERSION}`], [""],
-    ["Sheets: Teacher_Master_Data (one row per teacher, T001–T100 pre-created), School_Master_Data (school codes in use, e.g. AGS01), Codebook, Qualitative_Responses, Data_Quality_Check, Descriptive_Analysis, District_Summary, Teacher_Summary."],
+    ["Sheets: Teacher_Master_Data (one row per saved teacher; Teacher ID = district·type·T·number, e.g. AGT01), School_Master_Data (school codes in use, e.g. AGS01), Codebook, Qualitative_Responses, Data_Quality_Check, Descriptive_Analysis, District_Summary, Teacher_Summary."],
     ["Coding: single-choice = position of the option on the paper form (1 = first box); multiple-choice = 1 selected / 0 not selected only when the question was answered; blank = missing (never 0)."],
     ["Open-ended Gujarati answers are copied exactly. SCHOOL_TYPE_PAPER is recorded as on paper but excluded from all summaries (researcher decision)."],
     [`Basis of Descriptive_Analysis and the district cross-tabulation: ${EXP.verifiedOnly ? "VERIFIED records only" : "ALL saved records (verified + pending)"} — N = ${recs.length} of ${all.length} saved. Use Verified-only for the final Chapter 4.`],

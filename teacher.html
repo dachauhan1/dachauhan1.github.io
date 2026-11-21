@@ -772,7 +772,7 @@ function viewForm(arg){
   const adm = MERGED ? h("div", {class:"card adm"},
     h("div", {class:"grid2"},
       h("div", {class:"field"}, h("span", {class:"lbl"}, "શિક્ષક કોડ"), tidIn),
-      h("div", {hidden:true}, dateIn, distOut, sidSel, noteIn, stOut, verBtn, modeChk))) :
+      h("div", {hidden:true}, dateIn, distOut, sidSel, noteIn, stOut, modeChk)), verBtn) :
     h("div", {class:"card adm"}, h("h2", {}, "શિક્ષક નોંધણી (વહીવટી માહિતી — પ્રશ્નાવલિનો ભાગ નથી)"),
     h("div", {class:"grid2"},
       h("div", {class:"field"}, h("span", {class:"lbl"}, "શિક્ષક કોડ * (જિલ્લો · પ્રકાર · નંબર)"), tidIn),

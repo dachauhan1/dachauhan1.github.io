@@ -1566,11 +1566,78 @@ const TD_TOOLS = [["T1", "વિષયવસ્તુ-વિશ્લેષણ �
   ["T3", "વિદ્યાર્થી પ્રત્યક્ષીકરણ અને અધ્યયન અનુભવ અનુસૂચિ", "હેતુ 2, 3", "વિદ્યાર્થીઓ"], ["T4", "ગણિત સિદ્ધિ કસોટી", "હેતુ 4", "વિદ્યાર્થીઓ"], ["T6", "ગણિત ચિંતા માપદંડ", "હેતુ 6", "વિદ્યાર્થીઓ"]];
 const TD_STAGES = [
   ["d1", "1. પ્રથમ મુસદ્દો (1st Draft)", [["date", "તારીખ/માસ"], ["items", "વિધાનો/પ્રશ્નોની સંખ્યા", "number"], ["basis", "રચનાનો આધાર (NCF-SE 2023, પાઠ્યપુસ્તક, સંદર્ભ સાહિત્ય, અગાઉનાં ઉપકરણો…)", "area"], ["structure", "માળખું (વિભાગો, પ્રતિચાર પ્રકાર, ગુણાંકન)", "area"]]],
-  ["ex", "2. તજ્જ્ઞ અભિપ્રાય (Expert Suggestions)", [["date", "તારીખ/માસ"], ["n", "તજ્જ્ઞોની સંખ્યા", "number"], ["method", "પદ્ધતિ (દા.ત. ગુણાત્મક અભિપ્રાય, CVR/CVI, RAC બેઠક)"], ["experts", "તજ્જ્ઞો — દરેક લાઇનમાં: નામ, હોદ્દો, સંસ્થા", "area"], ["sugg", "મુખ્ય સૂચનો — દરેક લાઇનમાં એક", "area"], ["cvi", "CVI / સહમતિ પરિણામ (હોય તો)"]]],
-  ["d2", "3. દ્વિતીય મુસદ્દો (2nd Draft)", [["date", "તારીખ/માસ"], ["items", "વિધાનો/પ્રશ્નોની સંખ્યા", "number"], ["changes", "તજ્જ્ઞ સૂચનો મુજબ કરેલા ફેરફાર — દરેક લાઇનમાં એક", "area"]]],
-  ["pp", "4. પૂર્વ-અજમાયશ (Pre-pilot / Try-out)", [["date", "તારીખ/માસ"], ["n", "નમૂનો (સંખ્યા)", "number"], ["sample", "નમૂનાનું વર્ણન (શાળા, ધોરણ, જાતિ…)"], ["purpose", "હેતુ (ભાષાની સ્પષ્ટતા, સમય, સૂચનાઓ…)"], ["finding", "મળેલાં અવલોકનો", "area"], ["changes", "કરેલા ફેરફાર", "area"], ["time", "જરૂરી સમય (મિનિટ)"]]],
+  ["ex", "2. તજ્જ્ઞ અભિપ્રાય (Expert Suggestions)", [["date", "તારીખ/માસ"], ["n", "તજ્જ્ઞોની સંખ્યા", "number"], ["method", "પદ્ધતિ (દા.ત. ગુણાત્મક અભિપ્રાય, CVR/CVI, RAC બેઠક)"], ["experts", "તજ્જ્ઞો — દરેક લાઇનમાં: નામ, હોદ્દો, સંસ્થા", "area"], ["cvi", "CVI / સહમતિ પરિણામ (હોય તો)"]]],
+  ["d2", "3. દ્વિતીય મુસદ્દો (2nd Draft)", [["date", "તારીખ/માસ"], ["items", "વિધાનો/પ્રશ્નોની સંખ્યા", "number"], ["changes", "અન્ય ફેરફાર (સૂચનો સિવાય, વૈકલ્પિક) — દરેક લાઇનમાં એક", "area"]]],
+  ["pp", "4. પૂર્વ-અજમાયશ (Pre-pilot / Try-out)", [["date", "તારીખ/માસ"], ["n", "નમૂનો (સંખ્યા)", "number"], ["sample", "નમૂનાનું વર્ણન (શાળા, ધોરણ, જાતિ…)"], ["purpose", "હેતુ (ભાષાની સ્પષ્ટતા, સમય, સૂચનાઓ…)"], ["time", "જરૂરી સમય (મિનિટ)"]]],
   ["pl", "5. અજમાયશ (Pilot Study)", [["date", "તારીખ/માસ"], ["n", "નમૂનો (સંખ્યા)", "number"], ["sample", "નમૂનાનું વર્ણન"], ["analysis", "વિશ્લેષણ (દા.ત. પદ-વિશ્લેષણ: કઠિનતા/વિવેચકતા, સહસંબંધ)", "area"], ["kept", "રાખેલાં", "number"], ["mod", "સુધારેલાં", "number"], ["drop", "કાઢેલાં", "number"], ["relm", "વિશ્વસનીયતા પદ્ધતિ (Cronbach α, KR-20, Split-half, Test-retest, Krippendorff α)"], ["relv", "વિશ્વસનીયતા મૂલ્ય"]]],
   ["fn", "6. અંતિમ ઉપકરણ (Final Tool)", [["items", "અંતિમ વિધાનો/પ્રશ્નો", "number"], ["structure", "અંતિમ માળખું અને ગુણાંકન", "area"], ["time", "સમય (મિનિટ)"], ["validity", "યથાર્થતા (Content/Face/Construct)", "area"], ["rel", "અંતિમ વિશ્વસનીયતા (પદ્ધતિ અને મૂલ્ય)"]]]];
+// ---- suggestion / observation / item-decision rows (expert, pre-pilot, pilot) ----
+const TD_ROWS = {
+  ex:{title:"તજ્જ્ઞ સૂચનો અને સંશોધકનો નિર્ણય", who:"તજ્જ્ઞ", text:"સૂચન", dec:["સ્વીકાર્યું", "આંશિક સ્વીકાર્યું", "સ્વીકાર્યું નહીં"], act:"કરેલો સુધારો / કારણ"},
+  pp:{title:"પૂર્વ-અજમાયશનાં અવલોકનો અને ફેરફાર", who:"ઉત્તરદાતા/સ્રોત", text:"અવલોકન", dec:["સુધાર્યું", "યથાવત્"], act:"કરેલો સુધારો / કારણ"},
+  pl:{title:"પદ-વિશ્લેષણ પછી વિધાન/પ્રશ્નવાર નિર્ણય", who:"આંકડો (p, D, r…)", text:"અવલોકન", dec:["રાખ્યું", "સુધાર્યું", "કાઢ્યું"], act:"કરેલો સુધારો / કારણ"}};
+function splitItems(txt){
+  const t = String(txt || "").replace(/\r/g, "").trim(); if (!t) return [];
+  const L = t.split("\n").map(x => x.trim()).filter(Boolean); const isStart = x => /^(\(?[0-9૦-૯]{1,3}[.)]|\(?[a-zA-Zક-હ][.)]\s|[-•*▪●–]\s?)/.test(x);
+  if (L.filter(isStart).length >= 2) { const out = []; for (const x of L) { if (isStart(x)) out.push(x); else if (out.length) out[out.length - 1] += " " + x; } return out.map(x => x.replace(/^(\(?[0-9૦-૯]{1,3}[.)]|\(?[a-zA-Zક-હ][.)]\s|[-•*▪●–]\s?)\s*/, "").trim()).filter(Boolean); }
+  return L;
+}
+async function unzipEntry(buf, name){
+  const u = new Uint8Array(buf), dv = new DataView(buf); let e = u.length - 22; while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--; if (e < 0) throw new Error("zip");
+  let p = dv.getUint32(e + 16, true); const n = dv.getUint16(e + 10, true); const dec = new TextDecoder();
+  for (let i = 0; i < n; i++) { const meth = dv.getUint16(p + 10, true), csz = dv.getUint32(p + 20, true), fl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), off = dv.getUint32(p + 42, true);
+    const fn = dec.decode(u.subarray(p + 46, p + 46 + fl));
+    if (fn === name) { const lf = dv.getUint16(off + 26, true), lx = dv.getUint16(off + 28, true); const data = u.subarray(off + 30 + lf + lx, off + 30 + lf + lx + csz);
+      if (meth === 0) return dec.decode(data);
+      const out = await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer(); return dec.decode(out); }
+    p += 46 + fl + xl + cl; }
+  throw new Error("missing " + name);
+}
+async function fileToText(f){
+  const buf = await f.arrayBuffer();
+  if (/\.txt$/i.test(f.name)) return new TextDecoder().decode(buf);
+  if (/\.docx$/i.test(f.name)) { const x = await unzipEntry(buf, "word/document.xml");
+    return x.replace(/<w:tab\/>/g, " ").replace(/<\/w:p>/g, "\n").replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&"); }
+  if (/\.pdf$/i.test(f.name)) {
+    const lib = await import("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs");
+    lib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
+    const doc = await lib.getDocument({data:new Uint8Array(buf)}).promise; let out = "";
+    for (let i = 1; i <= doc.numPages; i++) { const pg = await (await doc.getPage(i)).getTextContent(); let last = null;
+      for (const it of pg.items) { if (last !== null && Math.abs(it.transform[5] - last) > 2) out += "\n"; out += it.str; last = it.transform[5]; } out += "\n"; }
+    return out; }
+  throw new Error("type");
+}
+function rowsEditor(st, sid){
+  const R = TD_ROWS[sid]; st.rows = st.rows || []; const wrap = h("div"), list = h("div");
+  const paste = h("textarea", {rows:4, class:"tdPaste", style:"width:100%", placeholder:`${R.text} અહીં પેસ્ટ કરો — દરેક લાઇન કે ક્રમાંક (1. 2. 3. / a) b) / -) = એક ${R.text}. અંગ્રેજી પણ ચાલશે.`});
+  const who = h("input", {type:"text", class:"tdWho", placeholder:`${R.who} (બધી નવી લાઇનો માટે, વૈકલ્પિક)`, style:"width:100%"});
+  const fileIn = h("input", {type:"file", accept:".txt,.docx,.pdf", onchange:async e => { const f = e.target.files[0]; if (!f) return;
+    try { paste.value = (await fileToText(f)).trim(); say(`✓ ${f.name} માંથી લખાણ વાંચ્યું. જરૂરી ભાગ રાખી 'યાદીમાં ઉમેરો' દબાવો.`, "ok"); }
+    catch (er) { say(/\.pdf$/i.test(f.name) ? "PDF નું લખાણ વાંચી ન શકાયું (સ્કેન કરેલી PDF કે નેટ નથી). PDF ખોલી લખાણ કોપી કરી ઉપર પેસ્ટ કરો." : "ફાઇલ વાંચી ન શકાઈ: " + (er.message || er), "warn"); } e.target.value = ""; }});
+  const draw = () => { list.textContent = "";
+    st.rows.forEach((r, i) => list.append(h("div", {class:"card", style:"margin:6px 0;padding:8px"},
+      h("div", {style:"display:flex;gap:6px;align-items:center"}, h("b", {}, String(i + 1)), h("input", {type:"text", value:r.item || "", placeholder:"વિધાન/પ્રશ્ન નં.", style:"width:110px", oninput:e => { r.item = e.target.value; }}),
+        h("input", {type:"text", value:r.who || "", placeholder:R.who, style:"flex:1", oninput:e => { r.who = e.target.value; }}),
+        h("button", {class:"btn small danger", type:"button", onclick:() => { st.rows.splice(i, 1); draw(); }}, "✕")),
+      h("textarea", {rows:2, style:"width:100%;margin-top:4px", placeholder:R.text, oninput:e => { r.text = e.target.value; }}, r.text || ""),
+      h("div", {class:"chips", style:"margin:4px 0"}, ...R.dec.map(dv => h("button", {type:"button", class:"btn small" + (r.dec === dv ? " primary" : ""), onclick:() => { r.dec = dv; draw(); }}, dv))),
+      h("textarea", {rows:2, style:"width:100%", placeholder:R.act + " (ગુજરાતીમાં લખો — પ્રકરણ 3 માં આ જ આવશે)", oninput:e => { r.act = e.target.value; }}, r.act || ""))));
+    if (!st.rows.length) list.append(h("p", {class:"note"}, "હજી કોઈ લાઇન નથી."));
+  };
+  wrap.append(h("div", {class:"field", style:"margin-top:8px"}, h("label", {}, `📋 ${R.title} — પ્રકરણ 3 માં કોષ્ટક તરીકે આવશે`)),
+    h("div", {class:"note"}, "ફાઇલમાંથી વાંચો (.txt / .docx / .pdf):"), fileIn, paste, who,
+    h("div", {class:"chips"}, h("button", {class:"btn", type:"button", onclick:() => { const it = splitItems(paste.value); if (!it.length) return say("ઉપર લખાણ પેસ્ટ કરો.", "warn");
+      it.forEach(t => st.rows.push({text:t, who:who.value.trim(), item:"", dec:"", act:""})); paste.value = ""; draw(); say(`✓ ${it.length} લાઇન ઉમેરાઈ. હવે દરેક માટે નિર્ણય અને સુધારો લખો, પછી સેવ કરો.`, "ok"); }}, "⬇ યાદીમાં ઉમેરો"),
+      h("button", {class:"btn", type:"button", onclick:() => { st.rows.push({text:"", who:who.value.trim(), item:"", dec:"", act:""}); draw(); }}, "+ એક લાઇન")), list);
+  draw(); return wrap;
+}
+function rowsThesis(K, st, sid, label){
+  const {P, T, cap} = K; const R = TD_ROWS[sid]; const rows = (st.rows || []).filter(r => (r.text || "").trim()); if (!rows.length) return [];
+  const cnt = R.dec.map(dv => [dv, rows.filter(r => r.dec === dv).length]).filter(x => x[1]);
+  return [cap(label + ": " + R.title), T(["ક્રમ", "વિધાન/પ્રશ્ન", R.who, R.text, "નિર્ણય", R.act], rows.map((r, i) => [i + 1, r.item || "–", r.who || "–", r.text, r.dec || "–", r.act || "–"]), "સ્ત્રોત: સંશોધકની નોંધ."),
+    P(`કુલ ${rows.length} ${R.text === "સૂચન" ? "સૂચનો" : "અવલોકનો/નિર્ણયો"}માંથી ${cnt.map(([a, b]) => `${b} ${a}`).concat(rows.some(r => !r.dec) ? [`${rows.filter(r => !r.dec).length} નો નિર્ણય બાકી`] : []).join(", ")}.`)];
+}
+
 const TD = {docs:new Map(), loaded:false, tool:"T1"};
 async function tdLoad(force){
   if (TD.loaded && !force) return;
@@ -1588,7 +1655,7 @@ function viewTools(){
       h("p", {class:"note"}, "દરેક ઉપકરણના 6 તબક્કાની વિગત ભરો; પ્રકરણ 3 (Word) માં એ જ માહિતી પરથી 'ઉપકરણ રચના' ના ફકરા અને કોષ્ટક આપમેળે બનશે. ખાલી ખાનું [કૌંસ] માં બાકી બતાવાશે. હેતુ 5 નું અલગ ઉપકરણ નથી (હેતુ 2, 3, 4 નું સંકલન), તેનું વર્ણન આપમેળે આવે છે."),
       h("div", {class:"chips"}, ...TD_TOOLS.map(t => h("button", {class:"btn" + (t[0] === TD.tool ? " primary" : ""), type:"button", onclick:() => { TD.tool = t[0]; draw(); }}, `${t[2]}: ${t[1]}`)))));
     for (const [sid, title, fields] of TD_STAGES) {
-      const st = d.S[sid] = d.S[sid] || {}; const filled = fields.filter(f => String(st[f[0]] ?? "").trim()).length;
+      const st = d.S[sid] = d.S[sid] || {}; const filled = fields.filter(f => String(st[f[0]] ?? "").trim()).length + (st.rows && st.rows.length ? 1 : 0);
       const fileInfo = d.F[sid]; const fileBox = h("div", {class:"note"});
       const showFile = () => { fileBox.textContent = ""; const fi = d.F[sid];
         if (fi) fileBox.append("📎 " + fi.name + ` (${Math.round(fi.size / 1024)} KB) `, h("button", {class:"btn small", type:"button", onclick:async () => { try { const x = await fs().getDoc(dref("config", `tdf_${TD.tool}_${sid}`)); if (!x.exists()) return say("ફાઇલ મળી નહીં.", "warn");
@@ -1606,6 +1673,7 @@ function viewTools(){
         ...fields.map(([fid, lab, type]) => h("div", {class:"field", style:"margin:6px 0"}, h("label", {}, lab),
           type === "area" ? h("textarea", {rows:3, "data-s":sid, "data-f":fid, style:"width:100%", oninput:e => { st[fid] = e.target.value; }}, st[fid] || "")
             : h("input", {type:type || "text", "data-s":sid, "data-f":fid, value:st[fid] ?? "", style:"width:100%", oninput:e => { st[fid] = e.target.value; }}))),
+        TD_ROWS[sid] ? rowsEditor(st, sid) : null,
         h("div", {class:"field", style:"margin:6px 0"}, h("label", {}, "Google Drive / ફાઇલની લિંક (મોટી PDF/Word માટે)"), h("input", {type:"url", "data-s":sid, "data-f":"link", value:st.link || "", style:"width:100%", oninput:e => { st.link = e.target.value; }})),
         h("div", {class:"field"}, h("label", {}, "ફાઇલ જોડો (PDF / Word / Excel / ફોટો / .txt, 650 KB સુધી)"), fileIn), fileBox));
       if (fileInfo) showFile();
@@ -1619,7 +1687,7 @@ function viewTools(){
 }
 // Chapter 3: development narrative for one tool, from its six stages
 function tdBlock(K, tid, sec, k0){
-  const {P, B, T, TODO, cap} = K; const d = TD.docs.get(tid) || {S:{}}; const S0 = d.S || {}; const g = (s, f) => String((S0[s] || {})[f] ?? "").trim();
+  const {P, B, T, TODO, cap} = K; const d = TD.docs.get(tid) || {S:{}}; const S0 = JSON.parse(JSON.stringify(d.S || {})); const g = (s, f) => String((S0[s] || {})[f] ?? "").trim();
   const lines = t => t.split(/\n+/).map(x => x.replace(/^\s*(?:[-•*]|\d+[.)])\s*/, "").trim()).filter(Boolean);
   const out = [P("ઉપકરણ રચનાના તબક્કા:", {b:true, after:40})]; let k = k0 || 0;
   // 1st draft
@@ -1629,18 +1697,25 @@ function tdBlock(K, tid, sec, k0){
   const ex = lines(g("ex", "experts"));
   out.push(P(`(2) તજ્જ્ઞ અભિપ્રાય: પ્રથમ મુસદ્દો ${g("ex", "n") || ex.length || "__"} તજ્જ્ઞોને ${g("ex", "date") ? `(${g("ex", "date")}) ` : ""}વિષયવસ્તુ યથાર્થતા (Content Validity) માટે આપ્યો${g("ex", "method") ? `; પદ્ધતિ: ${g("ex", "method")}` : ""}.${g("ex", "cvi") ? ` પરિણામ: ${g("ex", "cvi")}.` : ""}`));
   if (ex.length) out.push(cap(`કોષ્ટક ${sec}.${++k}: તજ્જ્ઞોની યાદી`), T(["ક્રમ", "નામ", "હોદ્દો", "સંસ્થા"], ex.map((x, i) => { const p = x.split(/\s*[,،]\s*/); return [i + 1, p[0] || "", p[1] || "", p.slice(2).join(", ")]; }), "સ્ત્રોત: સંશોધકની નોંધ."));
-  const sg = lines(g("ex", "sugg")); if (sg.length) out.push(P("તજ્જ્ઞોનાં મુખ્ય સૂચનો:", {after:40}), ...sg.map(B)); else out.push(TODO("તજ્જ્ઞોનાં સૂચનો ભરો"));
+  const exRows = rowsThesis(K, S0.ex || {}, "ex", `કોષ્ટક ${sec}.${k + 1}`); if (exRows.length) { k++; out.push(...exRows); }
+  else { const sg = lines(g("ex", "sugg")); if (sg.length) out.push(P("તજ્જ્ઞોનાં મુખ્ય સૂચનો:", {after:40}), ...sg.map(B)); else out.push(TODO("તજ્જ્ઞોનાં સૂચનો 🛠 ઉપકરણ રચના → તજ્જ્ઞ અભિપ્રાય માં ઉમેરો")); }
   // 2nd draft
   const ch = lines(g("d2", "changes"));
-  out.push(P(`(3) દ્વિતીય મુસદ્દો: તજ્જ્ઞ સૂચનો મુજબ સુધારા કરી ${g("d2", "date") ? g("d2", "date") + " માં " : ""}દ્વિતીય મુસદ્દો તૈયાર કર્યો${g("d2", "items") ? `, જેમાં ${g("d2", "items")} વિધાનો/પ્રશ્નો રહ્યાં` : ""}.`));
-  if (ch.length) out.push(...ch.map(B));
+  const exR = ((S0.ex || {}).rows || []).filter(r => (r.text || "").trim()); const acc = exR.filter(r => r.dec === "સ્વીકાર્યું" || r.dec === "આંશિક સ્વીકાર્યું").length;
+  out.push(P(`(3) દ્વિતીય મુસદ્દો: ${exR.length ? `${exR.length} માંથી ${acc} સૂચનો (પૂર્ણ કે આંશિક) સ્વીકારી` : "તજ્જ્ઞ સૂચનો મુજબ"} સુધારા કરી ${g("d2", "date") ? g("d2", "date") + " માં " : ""}દ્વિતીય મુસદ્દો તૈયાર કર્યો${g("d2", "items") ? `, જેમાં ${g("d2", "items")} વિધાનો/પ્રશ્નો રહ્યાં` : ""}.`));
+  if (ch.length) out.push(P("અન્ય ફેરફાર:", {after:40}), ...ch.map(B));
   // pre-pilot
-  if (g("pp", "n") || g("pp", "finding")) out.push(P(`(4) પૂર્વ-અજમાયશ: દ્વિતીય મુસદ્દો ${g("pp", "n") || "__"} ઉત્તરદાતાઓ${g("pp", "sample") ? ` (${g("pp", "sample")})` : ""} પર ${g("pp", "date") ? `${g("pp", "date")} માં ` : ""}અજમાવ્યો${g("pp", "purpose") ? `; હેતુ: ${g("pp", "purpose")}` : ""}.${g("pp", "time") ? ` જરૂરી સમય આશરે ${g("pp", "time")} મિનિટ જણાયો.` : ""}${g("pp", "finding") ? " " + lines(g("pp", "finding")).join("; ") + "." : ""}${g("pp", "changes") ? " ફેરફાર: " + lines(g("pp", "changes")).join("; ") + "." : ""}`));
+  const ppRows = ((S0.pp || {}).rows || []).filter(r => (r.text || "").trim());
+  if (g("pp", "n") || g("pp", "finding") || ppRows.length) out.push(P(`(4) પૂર્વ-અજમાયશ: દ્વિતીય મુસદ્દો ${g("pp", "n") || "__"} ઉત્તરદાતાઓ${g("pp", "sample") ? ` (${g("pp", "sample")})` : ""} પર ${g("pp", "date") ? `${g("pp", "date")} માં ` : ""}અજમાવ્યો${g("pp", "purpose") ? `; હેતુ: ${g("pp", "purpose")}` : ""}.${g("pp", "time") ? ` જરૂરી સમય આશરે ${g("pp", "time")} મિનિટ જણાયો.` : ""}${g("pp", "finding") ? " " + lines(g("pp", "finding")).join("; ") + "." : ""}${g("pp", "changes") ? " ફેરફાર: " + lines(g("pp", "changes")).join("; ") + "." : ""}`));
   else out.push(TODO("(4) પૂર્વ-અજમાયશની વિગત ભરો"));
+  { const t = rowsThesis(K, S0.pp || {}, "pp", `કોષ્ટક ${sec}.${k + 1}`); if (t.length) { k++; out.push(...t); } }
   // pilot
-  if (g("pl", "n") || g("pl", "relv")) {
+  const plRows = ((S0.pl || {}).rows || []).filter(r => (r.text || "").trim());
+  if (plRows.length) { const c = dv => plRows.filter(r => r.dec === dv).length; S0.pl = Object.assign({}, S0.pl, {kept:g("pl", "kept") || c("રાખ્યું"), mod:g("pl", "mod") || c("સુધાર્યું"), drop:g("pl", "drop") || c("કાઢ્યું")}); }
+  if (g("pl", "n") || g("pl", "relv") || plRows.length) {
     out.push(P(`(5) અજમાયશ: ઉપકરણ ${g("pl", "n") || "__"} ઉત્તરદાતાઓ${g("pl", "sample") ? ` (${g("pl", "sample")})` : ""} પર ${g("pl", "date") ? `${g("pl", "date")} માં ` : ""}અજમાવ્યું.${g("pl", "analysis") ? " " + lines(g("pl", "analysis")).join("; ") + "." : ""}${g("pl", "relv") ? ` વિશ્વસનીયતા (${g("pl", "relm") || "પદ્ધતિ"}) = ${g("pl", "relv")}.` : ""}`));
     if (g("pl", "kept") || g("pl", "mod") || g("pl", "drop")) out.push(cap(`કોષ્ટક ${sec}.${++k}: અજમાયશ પછી વિધાનો/પ્રશ્નોની સ્થિતિ`), T(["સ્થિતિ", "સંખ્યા"], [["રાખેલાં", g("pl", "kept") || 0], ["સુધારેલાં", g("pl", "mod") || 0], ["કાઢેલાં", g("pl", "drop") || 0]], "સ્ત્રોત: અજમાયશનું પદ-વિશ્લેષણ."));
+    { const t = rowsThesis(K, S0.pl || {}, "pl", `કોષ્ટક ${sec}.${k + 1}`); if (t.length) { k++; out.push(...t); } }
   } else out.push(TODO("(5) અજમાયશ (નમૂનો, પદ-વિશ્લેષણ, વિશ્વસનીયતા) ભરો"));
   // stage table
   const rows = [["પ્રથમ મુસદ્દો", g("d1", "date"), g("d1", "items")], ["તજ્જ્ઞ અભિપ્રાય", g("ex", "date"), g("ex", "n") ? g("ex", "n") + " તજ્જ્ઞ" : ""], ["દ્વિતીય મુસદ્દો", g("d2", "date"), g("d2", "items")],
@@ -1664,7 +1739,7 @@ function docKit(){
   const TODO = t => P("[" + t + "]", {i:true});
   const cap = t => P(t, {b:true, keep:true, left:true, after:60});
   const T = (head, rows, note) => {
-    const wt = head.map(x => /^(ક્રમ|કોડ|f|n)$/.test(x) ? 0.6 : /^(મધ્યક|ક્રમાંક|%)$/.test(x) ? 1.0 : /^(વિધાન|વિકલ્પ|પ્રશ્ન|જવાબ|વર્ગ|વિભાગ|બાબત|વિગત|સૂચક|પુરાવો|વર્ણનકર્તા)$/.test(x) ? 4 : x === "જિલ્લો" ? 2.4 : 1.3);
+    const wt = head.map(x => /^(ક્રમ|કોડ|f|n)$/.test(x) ? 0.6 : /^(મધ્યક|ક્રમાંક|%)$/.test(x) ? 1.0 : /^(વિધાન|વિકલ્પ|પ્રશ્ન|જવાબ|વર્ગ|વિભાગ|બાબત|વિગત|સૂચક|પુરાવો|વર્ણનકર્તા|સૂચન|અવલોકન|કરેલો સુધારો \/ કારણ)$/.test(x) ? 4 : x === "જિલ્લો" ? 2.4 : 1.3);
     const tw = wt.reduce((a, b) => a + b, 0), W = wt.map(x => Math.floor(9000 * x / tw));
     const cell = (t, hd, i) => `<w:tc><w:tcPr><w:tcW w:w="${W[i]}" w:type="dxa"/>${hd ? '<w:shd w:val="clear" w:color="auto" w:fill="E7EFEA"/>' : ""}</w:tcPr><w:p><w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/><w:jc w:val="left"/></w:pPr>${run(t, {b:hd, sz:20})}</w:p></w:tc>`;
     const bd = ["top", "left", "bottom", "right", "insideH", "insideV"].map(k => `<w:${k} w:val="single" w:sz="4" w:space="0" w:color="808080"/>`).join("");
@@ -2243,7 +2318,7 @@ function buildVerifyWorkbook(){
     ["Original checkbox options compared", VERIFY_ROWS.reduce((a, r) => a + (r.n_opts || 0), 0)], ["Original table statements compared", VERIFY_ROWS.filter(r => r.kind === "table-row").length]];
   return xlsx([{name:"Summary", rows:sum, filter:false, freeze:false, widths:[40, 20]}, {name:"Verification_Report", rows, wrap:true, widths:[8, 30, 10, 60, 50, 60, 50, 10, 50]}]);
 }
-window.__TEST__ = {S, buildWorkbook, buildVerifyWorkbook, spssSyntax, spssCsv, masterCsv, codebookRows, thesisCh3, thesisCh4, thesisCh5, caStats, kAlphaOrdinal, CA, caLoad, raterKit, TD, tdLoad, qualityOf, completeness, readForm};
+window.__TEST__ = {S, buildWorkbook, buildVerifyWorkbook, spssSyntax, spssCsv, masterCsv, codebookRows, thesisCh3, thesisCh4, thesisCh5, caStats, kAlphaOrdinal, CA, caLoad, raterKit, TD, tdLoad, splitItems, fileToText, qualityOf, completeness, readForm};
 boot();
 </script>
 </body>

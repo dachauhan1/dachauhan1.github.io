@@ -530,7 +530,7 @@ function refreshView(){
 }
 
 /* ====================== shell & routing ====================== */
-const TABS = [["thesis", "📄 થીસિસ પ્રકરણ 3 · 4 · 5"], ["tools", "🛠 ઉપકરણ રચના"], ["ca", "📚 હેતુ 1 વિષયવસ્તુ વિશ્લેષણ"], ["rate", "📋 તજ્જ્ઞ પત્રક (હેતુ 1)"], ["dash", "ડેશબોર્ડ"], ["list", "શિક્ષક યાદી"], ["form", "ફોર્મ"], ["schools", "શાળા માસ્ટર"], ["qual", "ગુણાત્મક"], ["analysis", "વિશ્લેષણ"],
+const TABS = [["thesis", "📄 થીસિસ પ્રકરણ 1–5"], ["write", "✍️ થીસિસ લેખન"], ["tools", "🛠 ઉપકરણ રચના"], ["ca", "📚 હેતુ 1 વિષયવસ્તુ વિશ્લેષણ"], ["rate", "📋 તજ્જ્ઞ પત્રક (હેતુ 1)"], ["dash", "ડેશબોર્ડ"], ["list", "શિક્ષક યાદી"], ["form", "ફોર્મ"], ["schools", "શાળા માસ્ટર"], ["qual", "ગુણાત્મક"], ["analysis", "વિશ્લેષણ"],
               ["quality", "ડેટા ગુણવત્તા"], ["codebook", "કોડબુક"], ["admin", "એડમિન"]];
 function renderShell(){
   const t = $("#tabs"); t.textContent = ""; t.hidden = false; t.classList.remove("open");
@@ -539,13 +539,13 @@ function renderShell(){
       h("a", {href:"./anxiety.html", class:"main"}, "😟 હેતુ 6"), h("a", {href:"#form", class:"main cur"}, "👩‍🏫 શિક્ષક"),
       isAdmin() ? h("a", {href:"#thesis", class:"main", "data-k":"thesis"}, "📄 થીસિસ") : null,
       h("a", {href:"#", class:"main mbtn", "aria-label":"વધુ વિકલ્પ", onclick:e => { e.preventDefault(); t.classList.toggle("open"); }}, "☰"), h("span", {class:"brk more"}));
-    TABS.forEach(([k, l]) => { if (k === "form" || ((k === "admin" || k === "thesis" || k === "ca" || k === "tools") && !isAdmin())) return; t.append(h("a", {href:"#" + k, "data-k":k, class:"more", onclick:() => t.classList.remove("open")}, l)); });
+    TABS.forEach(([k, l]) => { if (k === "form" || ((k === "admin" || k === "thesis" || k === "ca" || k === "tools" || k === "write") && !isAdmin())) return; t.append(h("a", {href:"#" + k, "data-k":k, class:"more", onclick:() => t.classList.remove("open")}, l)); });
     t.append(h("a", {href:"#", class:"more", onclick:async e => { e.preventDefault(); if (S.form && S.form.dirty && !(await ask("સેવ ન થયેલ ફેરફાર છે. છતાં બહાર નીકળવું છે?"))) return; S.fb.U.signOut(S.fb.auth); }},
       "બહાર (" + (S.user.email || "") + (isAdmin() ? " · એડમિન" : "") + ")"));
     return;
   }
   if (MERGED) t.append(h("a", {href:"./index.html", style:"background:var(--soft)"}, "← વિદ્યાર્થી ફોર્મ"));
-  TABS.forEach(([k, l]) => { if ((k === "admin" || k === "thesis" || k === "ca" || k === "tools") && !isAdmin()) return; t.append(h("a", {href:"#" + k, "data-k":k}, l)); });
+  TABS.forEach(([k, l]) => { if ((k === "admin" || k === "thesis" || k === "ca" || k === "tools" || k === "write") && !isAdmin()) return; t.append(h("a", {href:"#" + k, "data-k":k}, l)); });
   if (BACKEND === "claude") t.append(h("span", {class:"pill", style:"align-self:center"}, (NAMES.get(S.user.uid) || "તમે") + (isAdmin() ? " · એડમિન" : " · ડેટા એન્ટ્રી")));
   else t.append(h("a", {href:"#", onclick:async e => { e.preventDefault(); if (S.form && S.form.dirty && !(await ask("સેવ ન થયેલ ફેરફાર છે. છતાં બહાર નીકળવું છે?"))) return; S.fb.U.signOut(S.fb.auth); }},
     "બહાર (" + (S.user.email || "") + (isAdmin() ? " · એડમિન" : "") + ")"));
@@ -565,12 +565,12 @@ async function route(soft){
   if (soft && name === S.route && name === "form") return;
   S.route = name;
   document.querySelectorAll("#tabs a").forEach(a => a.classList.toggle("on", a.dataset.k === name));
-  document.querySelectorAll('#tabs a.main[href="#form"]').forEach(a => a.classList.toggle("cur", !["thesis", "ca", "rate", "cons", "tools"].includes(name)));
+  document.querySelectorAll('#tabs a.main[href="#form"]').forEach(a => a.classList.toggle("cur", !["thesis", "ca", "rate", "cons", "tools", "write"].includes(name)));
   $("#savebar").hidden = name !== "form";
   const m = $("#main"); const keepScroll = soft ? scrollY : 0;
   m.textContent = ""; m.append(h("p", {class:"msg", id:"msg", hidden:true}));
   const R = {dash:viewDash, list:viewList, form:() => viewForm(arg), schools:viewSchools, qual:viewQual, analysis:viewAnalysis, quality:viewQuality, codebook:viewCodebook,
-             admin:() => isAdmin() ? viewAdmin() : viewDash(), thesis:viewThesis, tools:viewTools, ca:viewCA, rate:() => viewRate(arg), cons:() => viewCons(arg)}[name] || viewDash;
+             admin:() => isAdmin() ? viewAdmin() : viewDash(), thesis:viewThesis, write:() => viewWrite(arg), tools:viewTools, ca:viewCA, rate:() => viewRate(arg), cons:() => viewCons(arg)}[name] || viewDash;
   R();
   if (soft) scrollTo(0, keepScroll);
 }
@@ -1597,7 +1597,7 @@ async function fileToText(f){
   const buf = await f.arrayBuffer();
   if (/\.txt$/i.test(f.name)) return new TextDecoder().decode(buf);
   if (/\.docx$/i.test(f.name)) { const x = await unzipEntry(buf, "word/document.xml");
-    return x.replace(/<w:tab\/>/g, " ").replace(/<\/w:p>/g, "\n").replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&"); }
+    return x.replace(/<w:tab\/>/g, " ").replace(/<\/w:p>/g, "\n\n").replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&"); }
   if (/\.pdf$/i.test(f.name)) {
     const lib = await import("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs");
     lib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
@@ -1727,20 +1727,160 @@ function tdBlock(K, tid, sec, k0){
   return out;
 }
 
+/* ====================== THESIS WRITER: section-wise text for chapters 1–5 + literature review + references ====================== */
+// config/tw_<1..5>: {sec:[{no,title,text,custom}], rev:[...] (ch 2), refs:"..."}. Chapters 3–5 are generated; text typed here is inserted under the matching heading.
+const TW_OUT = {
+  1:["પ્રકરણ 1: પ્રસ્તાવના", [["1.1", "પ્રસ્તાવના"], ["1.2", "ગણિત શિક્ષણનું મહત્ત્વ"], ["1.3", "રાષ્ટ્રીય શિક્ષણ નીતિ 2020 અને NCF-SE 2023 સંદર્ભે ગણિત શિક્ષણ"], ["1.4", "ઉચ્ચ પ્રાથમિક સ્તરે ગણિત શિક્ષણની વર્તમાન સ્થિતિ"],
+    ["1.5", "સૈદ્ધાંતિક પૃષ્ઠભૂમિ"], ["1.5.1", "પાઠ્યપુસ્તક અને તેનું વિષયવસ્તુ વિશ્લેષણ"], ["1.5.2", "ગણિતમાં અધ્યયન-અધ્યાપન પ્રથાઓ"], ["1.5.3", "ગણિતમાં મૂલ્યાંકન પ્રથાઓ"], ["1.5.4", "ગણિત સિદ્ધિ"], ["1.5.5", "ગણિતીકરણ (Mathematisation)"], ["1.5.6", "ગણિત ચિંતા (Mathematics Anxiety)"],
+    ["1.6", "સંશોધનની જરૂરિયાત અને મહત્ત્વ"], ["1.7", "સમસ્યા કથન"], ["1.8", "પારિભાષિક શબ્દોની વ્યાખ્યા (સંકલ્પનાત્મક અને કાર્યાત્મક)"], ["1.9", "સંશોધનના હેતુઓ"], ["1.10", "સંશોધન પ્રશ્નો"],
+    ["1.11", "સંશોધનનું કાર્યક્ષેત્ર"], ["1.12", "સંશોધનનું સીમાંકન"], ["1.13", "સંશોધનની મર્યાદાઓ"], ["1.14", "પ્રકરણ યોજના"], ["1.15", "ઉપસંહાર"]]],
+  2:["પ્રકરણ 2: સંબંધિત સાહિત્યની સમીક્ષા", [["2.1", "પ્રસ્તાવના"], ["2.2", "સંબંધિત સાહિત્ય સમીક્ષાનું મહત્ત્વ"], ["2.3", "સાહિત્યના સ્રોતો"], ["2.4", "સંબંધિત સંશોધનોની સમીક્ષા"],
+    ["2.4.1", "પાઠ્યપુસ્તક વિષયવસ્તુ વિશ્લેષણ સંબંધિત સંશોધનો"], ["2.4.2", "ગણિતમાં અધ્યયન-અધ્યાપન પ્રથાઓ સંબંધિત સંશોધનો"], ["2.4.3", "ગણિતમાં મૂલ્યાંકન પ્રથાઓ સંબંધિત સંશોધનો"], ["2.4.4", "ગણિત સિદ્ધિ સંબંધિત સંશોધનો"], ["2.4.5", "ગણિતીકરણ સંબંધિત સંશોધનો"], ["2.4.6", "ગણિત ચિંતા સંબંધિત સંશોધનો"],
+    ["2.5", "સમીક્ષાનું વિહંગાવલોકન"], ["2.6", "સમીક્ષાના નિષ્કર્ષ અને સંશોધન-અંતર"], ["2.7", "પ્રસ્તુત સંશોધનનું સ્થાન"], ["2.8", "ઉપસંહાર"]]],
+  3:["પ્રકરણ 3: સંશોધન પદ્ધતિ", [["3.1", "પ્રસ્તાવના"], ["3.2", "સંશોધન પ્રકાર અને ડિઝાઇન"], ["3.3", "સંશોધનના હેતુઓ"], ["3.4", "સંશોધન પ્રશ્નો"], ["3.5", "વ્યાપવિશ્વ"], ["3.6", "નમૂનો અને નમૂના પસંદગી"], ["3.7", "સંશોધન ઉપકરણો"],
+    ["3.7.1", "વિષયવસ્તુ-વિશ્લેષણ પત્રક (હેતુ 1)"], ["3.7.2", "ગણિત શિક્ષક અર્ધ-માળખાગત મુલાકાત પત્રક"], ["3.7.3", "વિદ્યાર્થી અનુસૂચિ (હેતુ 2, 3)"], ["3.7.4", "ગણિત સિદ્ધિ કસોટી (હેતુ 4)"], ["3.7.5", "ગણિતીકરણ સૂચકાંક (હેતુ 5)"], ["3.7.6", "ગણિત ચિંતા માપદંડ (હેતુ 6)"],
+    ["3.8", "માહિતી એકત્રીકરણ"], ["3.9", "માહિતી દાખલ અને ચકાસણી"], ["3.10", "કોડિંગ યોજના"], ["3.11", "માહિતી વિશ્લેષણ પ્રવિધિ"], ["3.12", "નૈતિક બાબતો"], ["3.13", "ઉપસંહાર"]]],
+  4:["પ્રકરણ 4: માહિતીનું વિશ્લેષણ અને અર્થઘટન", [["4.1", "પ્રસ્તાવના"], ["4.2", "હેતુ 1: પાઠ્યપુસ્તકનું વિષયવસ્તુ વિશ્લેષણ"], ["4.3", "નમૂનાનું વર્ણન"], ["4.4", "હેતુ 2: અધ્યયન-અધ્યાપન પ્રથાઓ"],
+    ["4.4.9", "વિદ્યાર્થી અનુસૂચિ: વિદ્યાર્થીઓની દૃષ્ટિએ"], ["4.4.10", "હેતુ 2: ત્રિકોણીકરણ"], ["4.5", "હેતુ 3: મૂલ્યાંકન પ્રથાઓ"], ["4.5.2", "વિદ્યાર્થીઓના મૂલ્યાંકન અનુભવો"], ["4.5.3", "હેતુ 3: ત્રિકોણીકરણ"],
+    ["4.6", "હેતુ 4: ગણિત સિદ્ધિ"], ["4.7", "હેતુ 5: ગણિતીકરણ"], ["4.8", "હેતુ 6: ગણિત ચિંતા"], ["4.9", "ઉપસંહાર"]]],
+  5:["પ્રકરણ 5: સારાંશ, તારણો અને ભલામણો", [["5.1", "પ્રસ્તાવના"], ["5.2", "સંશોધનનો સંક્ષિપ્ત સાર"], ["5.3", "મુખ્ય તારણો"], ["5.3.1", "હેતુ 1"], ["5.3.2", "હેતુ 2"], ["5.3.3", "હેતુ 3"], ["5.3.4", "હેતુ 4"], ["5.3.5", "હેતુ 5"], ["5.3.6", "હેતુ 6"],
+    ["5.4", "તારણોની ચર્ચા"], ["5.5", "શૈક્ષણિક ફલિતાર્થો અને ભલામણો"], ["5.6", "સંશોધનની મર્યાદાઓ"], ["5.7", "ભાવિ સંશોધન માટે સૂચનો"], ["5.8", "ઉપસંહાર"]]]};
+const TW_AREAS = [["2.4.1", "પાઠ્યપુસ્તક વિશ્લેષણ"], ["2.4.2", "અધ્યયન-અધ્યાપન"], ["2.4.3", "મૂલ્યાંકન"], ["2.4.4", "ગણિત સિદ્ધિ"], ["2.4.5", "ગણિતીકરણ"], ["2.4.6", "ગણિત ચિંતા"]];
+const TW_REVF = [["author", "સંશોધક / લેખક (દા.ત. પટેલ, એ. બી.)"], ["year", "વર્ષ"], ["title", "શીર્ષક"], ["type", "પ્રકાર (Ph.D. / M.Phil. / M.Ed. / લેખ / પુસ્તક)"], ["source", "યુનિવર્સિટી / જર્નલ / પ્રકાશક"],
+  ["obj", "હેતુઓ", "area"], ["sample", "નમૂનો"], ["tools", "ઉપકરણો"], ["method", "પદ્ધતિ / ડિઝાઇન / આંકડાશાસ્ત્ર"], ["find", "મુખ્ય તારણો", "area"], ["rel", "પ્રસ્તુત સંશોધન સાથે સંબંધ", "area"]];
+const TW = {docs:new Map(), loaded:false, ch:1, ins:null};
+const twNum = no => no.split(".").map(Number);
+async function twLoad(force){
+  if (TW.loaded && !force) return;
+  const r = await Promise.all([1, 2, 3, 4, 5].map(c => fs().getDoc(dref("config", "tw_" + c)).then(x => [c, x.exists() ? x.data() : null]).catch(() => [c, null])));
+  TW.docs = new Map(r.filter(x => x[1])); TW.loaded = true;
+}
+function twDoc(ch){
+  const d = JSON.parse(JSON.stringify(TW.docs.get(ch) || {})); d.sec = d.sec || [];
+  for (const [no, title] of TW_OUT[ch][1]) if (!d.sec.some(s => s.no === no)) d.sec.push({no, title, text:""});
+  d.sec.sort((a, b) => { const x = twNum(a.no), y = twNum(b.no); for (let i = 0; i < Math.max(x.length, y.length); i++) { const p = x[i] ?? -1, q = y[i] ?? -1; if (p !== q) return p - q; } return 0; });
+  if (ch === 2) d.rev = d.rev || []; return d;
+}
+const twWords = t => (String(t || "").trim().match(/\S+/g) || []).length;
+function viewWrite(arg){
+  const m = $("#main"); if (!isAdmin()) { viewDash(); return; }
+  if (arg) TW.ch = Math.min(5, Math.max(1, +arg || 1));
+  const box = h("div"); m.append(box);
+  twLoad().then(draw).catch(e => box.append(h("p", {class:"msg bad"}, "લોડ ન થયું: " + (e.code || e.message))));
+  function draw(){
+    box.textContent = ""; const ch = TW.ch; const d = twDoc(ch); const gen = ch >= 3;
+    const save = async quiet => { d._at = nowIso(); d._by = S.user.email || S.user.uid; await tracked(fs().setDoc(dref("config", "tw_" + ch), d), "થીસિસ લખાણ"); TW.docs.set(ch, JSON.parse(JSON.stringify(d))); if (!quiet) say(`✓ ${TW_OUT[ch][0]}: સેવ થયું.`, "ok"); };
+    box.append(h("div", {class:"card"}, h("h2", {}, "✍️ થીસિસ લેખન: પ્રકરણવાર મુદ્દા"),
+      h("p", {class:"note"}, gen ? "આ પ્રકરણ ડેટા પરથી આપમેળે બને છે. અહીં લખેલું લખાણ Word માં એ જ મુદ્દાના શીર્ષક નીચે ઉમેરાશે (અને ત્યાંનો [કૌંસ] સંદેશ નીકળી જશે)." : "દરેક મુદ્દામાં લખાણ લખો, પેસ્ટ કરો અથવા ફાઇલ (.txt / .docx / .pdf) માંથી વાંચો. ખાલી લાઇનથી નવો ફકરો; '- ' થી શરૂ થતી લાઇન = બુલેટ. જરૂર મુજબ પેટા-મુદ્દા ઉમેરી શકાય."),
+      h("div", {class:"chips"}, ...[1, 2, 3, 4, 5].map(c => h("button", {class:"btn" + (c === ch ? " primary" : ""), type:"button", onclick:() => { TW.ch = c; draw(); }}, `પ્રકરણ ${c}`)),
+        h("button", {class:"btn", type:"button", onclick:() => { save(true).then(() => download(`Thesis_References_${today()}.docx`, twRefsDoc(), "application/vnd.openxmlformats-officedocument.wordprocessingml.document")).catch(er => say(er.code || er.message, "bad")); }}, "📚 સંદર્ભસૂચિ (Word)"))));
+    box.append(h("h3", {style:"margin:8px 4px"}, TW_OUT[ch][0]));
+    for (const s of d.sec) {
+      const depth = s.no.split(".").length; const wc = h("span", {class:"note"}, ` (${twWords(s.text)} શબ્દ)`);
+      const ta = h("textarea", {rows:depth > 2 ? 5 : 7, style:"width:100%", placeholder:gen ? "આ મુદ્દા નીચે ઉમેરવાનું તમારું લખાણ (વૈકલ્પિક)" : "લખાણ…", oninput:e => { s.text = e.target.value; wc.textContent = ` (${twWords(s.text)} શબ્દ)`; }}, s.text || "");
+      const imp = h("input", {type:"file", accept:".txt,.docx,.pdf", onchange:async e => { const f = e.target.files[0]; if (!f) return;
+        try { const t = (await fileToText(f)).replace(/\n{3,}/g, "\n\n").trim(); s.text = (s.text ? s.text + "\n\n" : "") + t; ta.value = s.text; wc.textContent = ` (${twWords(s.text)} શબ્દ)`; say(`✓ ${f.name}: ${twWords(t)} શબ્દ ઉમેરાયા. ચકાસી સેવ કરો.`, "ok"); }
+        catch (er) { say(/\.pdf$/i.test(f.name) ? "PDF વાંચી ન શકાઈ (સ્કેન કે નેટ નથી). લખાણ કોપી કરી પેસ્ટ કરો." : "ફાઇલ વાંચી ન શકાઈ.", "warn"); } e.target.value = ""; }});
+      const card = h("details", {class:"card", style:depth > 2 ? "margin-left:14px" : ""}, h("summary", {}, h("b", {}, s.no + " "), s.title, wc),
+        !gen ? h("div", {class:"field"}, h("label", {}, "શીર્ષક"), h("input", {type:"text", value:s.title, oninput:e => { s.title = e.target.value; }})) : null,
+        ta, h("div", {class:"note", style:"margin-top:4px"}, "ફાઇલમાંથી ઉમેરો: "), imp,
+        ch === 1 && s.no === "1.9" ? h("p", {class:"note"}, "ખાલી રાખશો તો 6 હેતુઓ આપમેળે આવશે.") : null,
+        ch === 1 && s.no === "1.14" ? h("p", {class:"note"}, "ખાલી રાખશો તો પ્રકરણ યોજના આપમેળે આવશે.") : null,
+        ch === 2 && s.no === "2.5" ? h("p", {class:"note"}, "સમીક્ષા કરેલાં સંશોધનોનું વિહંગાવલોકન કોષ્ટક આપમેળે બનશે.") : null,
+        !gen ? h("div", {class:"chips"}, h("button", {class:"btn small", type:"button", onclick:() => {
+          const kids = d.sec.filter(x => x.no.startsWith(s.no + ".") && x.no.split(".").length === depth + 1).map(x => +x.no.split(".").pop());
+          const no = `${s.no}.${(kids.length ? Math.max(...kids) : 0) + 1}`; d.sec.push({no, title:"નવો પેટા-મુદ્દો", text:"", custom:true}); TW.docs.set(ch, d); save(true).then(draw); }}, "+ પેટા-મુદ્દો"),
+          s.custom ? h("button", {class:"btn small danger", type:"button", onclick:async () => { if (!(await ask(`${s.no} કાઢવો છે?`))) return; d.sec = d.sec.filter(x => x !== s); TW.docs.set(ch, d); save(true).then(draw); }}, "કાઢો") : null) : null);
+      if (ch === 2 && TW_AREAS.some(a => a[0] === s.no)) card.append(revEditor(d, s.no));
+      box.append(card);
+    }
+    if (ch === 1 || ch === 2) box.append(h("details", {class:"card"}, h("summary", {}, h("b", {}, "વધારાના સંદર્ભો (APA 7) — દરેક લાઇનમાં એક")),
+      h("textarea", {rows:5, style:"width:100%", oninput:e => { d.refs = e.target.value; }}, d.refs || "")));
+    box.append(h("div", {class:"card", style:"position:sticky;bottom:0;z-index:5"}, h("div", {class:"chips"},
+      h("button", {class:"btn primary", type:"button", id:"twSave", onclick:() => save().catch(er => say("સેવ ન થયું: " + (er.code || er.message), "bad"))}, "💾 સેવ કરો"),
+      h("button", {class:"btn", type:"button", id:"twDoc", onclick:async () => { try { await save(true); if (ch <= 2) download(`Thesis_Chapter${ch}_${today()}.docx`, twChapterDoc(ch), "application/vnd.openxmlformats-officedocument.wordprocessingml.document"); else thesisDownload(ch); } catch (er) { say(er.code || er.message, "bad"); } }}, `📄 પ્રકરણ ${ch} (Word)`))));
+  }
+}
+function revEditor(d, area){
+  const wrap = h("div", {style:"margin-top:8px"}); const list = h("div");
+  const draw = () => { list.textContent = ""; const rs = d.rev.filter(r => r.area === area);
+    rs.forEach(r => list.append(h("details", {class:"card", style:"margin:6px 0;padding:8px"}, h("summary", {}, `${r.author || "?"} (${r.year || "?"}) — ${r.place || ""}`),
+      h("div", {class:"chips"}, ...["ભારતમાં", "વિદેશમાં"].map(p => h("button", {type:"button", class:"btn small" + (r.place === p ? " primary" : ""), onclick:() => { r.place = p; draw(); }}, p))),
+      ...TW_REVF.map(([k, lab, t]) => h("div", {class:"field"}, h("label", {}, lab), t === "area" ? h("textarea", {rows:2, style:"width:100%", oninput:e => { r[k] = e.target.value; }}, r[k] || "") : h("input", {type:"text", value:r[k] || "", oninput:e => { r[k] = e.target.value; }}))),
+      h("button", {class:"btn small danger", type:"button", onclick:async () => { if (!(await ask("આ સમીક્ષા કાઢવી છે?"))) return; d.rev.splice(d.rev.indexOf(r), 1); draw(); }}, "કાઢો"))));
+    if (!rs.length) list.append(h("p", {class:"note"}, "હજી કોઈ સંશોધન ઉમેર્યું નથી.")); };
+  wrap.append(h("b", {}, `📚 સમીક્ષા કરેલાં સંશોધનો (${TW_AREAS.find(a => a[0] === area)[1]})`), h("p", {class:"note"}, "દરેક સંશોધનની વિગત ભરો; Word માં સમયાનુક્રમ મુજબ (ભારતમાં, પછી વિદેશમાં) ફકરા, વિહંગાવલોકન કોષ્ટક અને સંદર્ભસૂચિ આપમેળે બનશે."), list,
+    h("button", {class:"btn small", type:"button", onclick:() => { d.rev.push({area, place:"ભારતમાં"}); draw(); }}, "+ સંશોધન ઉમેરો"));
+  draw(); return wrap;
+}
+function twParas(K, text){
+  const {P, B} = K; const out = [];
+  for (const block of String(text || "").replace(/\r/g, "").split(/\n\s*\n/)) { const L = block.split("\n").map(x => x.trim()).filter(Boolean); if (!L.length) continue;
+    if (L.every(x => /^[-•*]\s/.test(x))) L.forEach(x => out.push(B(x.replace(/^[-•*]\s*/, "")))); else { let buf = []; for (const x of L) { if (/^[-•*]\s/.test(x)) { if (buf.length) { out.push(P(buf.join(" "))); buf = []; } out.push(B(x.replace(/^[-•*]\s*/, ""))); } else buf.push(x); } if (buf.length) out.push(P(buf.join(" "))); } }
+  return out;
+}
+const revSort = (a, b) => (a.place === b.place ? 0 : a.place === "ભારતમાં" ? -1 : 1) || (+a.year || 0) - (+b.year || 0) || String(a.author || "").localeCompare(String(b.author || ""));
+function revPara(K, r){
+  const {P} = K; const part = (lab, v) => v ? ` ${lab}: ${String(v).replace(/\s+/g, " ").trim().replace(/[.।]$/, "")}.` : "";
+  return [P(`${r.author || "__"} (${r.year || "__"}) દ્વારા '${r.title || "__"}' વિષય પર ${r.source ? r.source + " ખાતે " : ""}${r.type ? r.type + " કક્ષાનું " : ""}સંશોધન કરવામાં આવ્યું.${part("હેતુઓ", r.obj)}${part("નમૂનો", r.sample)}${part("ઉપકરણો", r.tools)}${part("પદ્ધતિ", r.method)}${part("મુખ્ય તારણો", r.find)}`),
+    ...(r.rel ? [P(`પ્રસ્તુત સંશોધન સાથે સંબંધ: ${r.rel}`, {i:true})] : [])];
+}
+function twChapterDoc(ch){
+  const K = docKit(); const {P, H, B, N: Num, T, cap, TODO} = K; const d = twDoc(ch); const b = [H(TW_OUT[ch][0], 1)];
+  for (const s of d.sec) {
+    const depth = s.no.split(".").length; b.push(H(`${s.no} ${s.title}`, Math.min(3, depth)));
+    let auto = [];
+    if (ch === 1 && s.no === "1.9" && !String(s.text || "").trim()) auto = TH.objectives.map((o, i) => Num(`${i + 1}.`, o));
+    if (ch === 1 && s.no === "1.7" && !String(s.text || "").trim()) auto = [P(`પ્રસ્તુત સંશોધનનું શીર્ષક: "${TH.title}"`)];
+    if (ch === 1 && s.no === "1.14" && !String(s.text || "").trim()) auto = [B("પ્રકરણ 1: પ્રસ્તાવના — સમસ્યાની પૃષ્ઠભૂમિ, જરૂરિયાત, હેતુઓ, સંશોધન પ્રશ્નો, વ્યાખ્યાઓ, સીમાંકન."), B("પ્રકરણ 2: સંબંધિત સાહિત્યની સમીક્ષા."), B("પ્રકરણ 3: સંશોધન પદ્ધતિ."), B("પ્રકરણ 4: માહિતીનું વિશ્લેષણ અને અર્થઘટન."), B("પ્રકરણ 5: સારાંશ, તારણો અને ભલામણો.")];
+    b.push(...twParas(K, s.text), ...auto);
+    if (ch === 2) {
+      const rs = (d.rev || []).filter(r => r.area === s.no).sort(revSort);
+      for (const place of ["ભારતમાં", "વિદેશમાં"]) { const g = rs.filter(r => (r.place || "ભારતમાં") === place); if (!g.length) continue;
+        b.push(P(`${place} થયેલાં સંશોધનો`, {b:true, keep:true, left:true})); g.forEach(r => b.push(...revPara(K, r))); }
+      if (s.no === "2.5") { const all = (d.rev || []).slice().sort(revSort);
+        if (all.length) { b.push(cap("કોષ્ટક 2.1: ક્ષેત્રવાર સમીક્ષા કરેલાં સંશોધનો"), T(["ક્ષેત્ર", "ભારતમાં", "વિદેશમાં", "કુલ"], TW_AREAS.map(([a, n]) => { const g = all.filter(r => r.area === a); return [n, g.filter(r => r.place !== "વિદેશમાં").length, g.filter(r => r.place === "વિદેશમાં").length, g.length]; }).concat([["કુલ", all.filter(r => r.place !== "વિદેશમાં").length, all.filter(r => r.place === "વિદેશમાં").length, all.length]]), "સ્ત્રોત: સંશોધકની સાહિત્ય સમીક્ષા."),
+          cap("કોષ્ટક 2.2: સમીક્ષા કરેલાં સંશોધનોનું વિહંગાવલોકન"), T(["ક્રમ", "સંશોધક (વર્ષ)", "શીર્ષક", "નમૂનો", "ઉપકરણો", "મુખ્ય તારણ"], all.map((r, i) => [i + 1, `${r.author || ""} (${r.year || ""})`, r.title || "", r.sample || "", r.tools || "", String(r.find || "").split(/\n/)[0]]), "સ્ત્રોત: સંશોધકની સાહિત્ય સમીક્ષા."));
+          const yrs = all.map(r => +r.year).filter(Boolean); if (yrs.length) b.push(P(`કુલ ${all.length} સંશોધનોની સમીક્ષા કરી (${Math.min(...yrs)}–${Math.max(...yrs)}); તેમાંથી ${all.filter(r => r.place !== "વિદેશમાં").length} ભારતમાં અને ${all.filter(r => r.place === "વિદેશમાં").length} વિદેશમાં થયેલાં છે.`)); }
+        else b.push(TODO("2.4 માં સંશોધનો ઉમેર્યા પછી વિહંગાવલોકન કોષ્ટક આપમેળે બનશે")); }
+    }
+    if (!String(s.text || "").trim() && !auto.length && !(ch === 2 && (d.rev || []).some(r => r.area === s.no)) && !(ch === 2 && s.no === "2.5")) b.push(TODO(`${s.no} નું લખાણ ✍️ થીસિસ લેખનમાં ઉમેરો`));
+  }
+  return K.pack(b);
+}
+function twRefsList(){
+  const out = [];
+  for (const c of [1, 2, 3, 4, 5]) { const d = TW.docs.get(c); if (!d) continue;
+    for (const r of d.rev || []) if (r.author) { const thesis = /ph\.?d|m\.?phil|m\.?ed|મહાનિબંધ|શોધનિબંધ/i.test(r.type || "");
+      out.push(`${r.author} (${r.year || "n.d."}). ${r.title || ""}${thesis ? ` [${r.type}, ${r.source || ""}]` : r.source ? `. ${r.source}` : ""}.`.replace(/\.\./g, ".")); }
+    for (const l of String(d.refs || "").split("\n")) if (l.trim()) out.push(l.trim()); }
+  return [...new Set(out)].sort((a, b) => a.localeCompare(b, "gu"));
+}
+function twRefsDoc(){
+  const K = docKit(); const {P, H} = K; const L = twRefsList();
+  const gu = L.filter(x => /^[\u0A80-\u0AFF]/.test(x)), en = L.filter(x => !/^[\u0A80-\u0AFF]/.test(x));
+  return K.pack([H("સંદર્ભસૂચિ", 1), ...(L.length ? [...(gu.length ? [H("ગુજરાતી સંદર્ભો", 2), ...gu.map(x => P(x, {ind:720}))] : []), ...(en.length ? [H("અંગ્રેજી સંદર્ભો (English References)", 2), ...en.map(x => P(x, {ind:720}))] : [])] : [P("[સંદર્ભો ✍️ થીસિસ લેખન → પ્રકરણ 2 માં ઉમેરો]", {i:true})])]);
+}
+
 /* ====================== THESIS CHAPTERS 3 · 4 · 5 (.docx, Shruti) ====================== */
 // Every number comes from the saved records; sentences are rule-based drafts. [કૌંસ] = the researcher must write or confirm.
 function docKit(){
   const X = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const run = (t, o = {}) => `<w:r><w:rPr>${o.b ? "<w:b/><w:bCs/>" : ""}${o.i ? "<w:i/><w:iCs/>" : ""}${o.sz ? `<w:sz w:val="${o.sz}"/><w:szCs w:val="${o.sz}"/>` : ""}</w:rPr><w:t xml:space="preserve">${X(t)}</w:t></w:r>`;
-  const P = (t, o = {}) => `<w:p><w:pPr>${o.after != null ? `<w:spacing w:after="${o.after}"/>` : ""}<w:jc w:val="${o.center ? "center" : o.left ? "left" : "both"}"/>${o.keep ? "<w:keepNext/>" : ""}${o.ind ? `<w:ind w:left="${o.ind}" w:hanging="300"/>` : ""}</w:pPr>${Array.isArray(t) ? t.join("") : run(t, o)}</w:p>`;
-  const H = (t, lvl) => `<w:p><w:pPr><w:pStyle w:val="Heading${lvl}"/></w:pPr>${run(t)}</w:p>`;
+  let fresh = false;   // true right after a heading that received the researcher's own text → the next [કૌંસ] note is dropped
+  const P0 = (t, o = {}) => `<w:p><w:pPr>${o.after != null ? `<w:spacing w:after="${o.after}"/>` : ""}<w:jc w:val="${o.center ? "center" : o.left ? "left" : "both"}"/>${o.keep ? "<w:keepNext/>" : ""}${o.ind ? `<w:ind w:left="${o.ind}" w:hanging="300"/>` : ""}</w:pPr>${Array.isArray(t) ? t.join("") : run(t, o)}</w:p>`;
+  const P = (t, o) => { fresh = false; return P0(t, o); };
   const B = t => P([run("•  "), run(t)], {ind:500, after:60});
   const N = (n, t) => P([run(n + "  "), run(t)], {ind:500, after:60});
-  const TODO = t => P("[" + t + "]", {i:true});
+  const H = (t, lvl) => { let x = `<w:p><w:pPr><w:pStyle w:val="Heading${lvl}"/></w:pPr>${run(t)}</w:p>`; fresh = false;
+    const no = (String(t).match(/^(\d+(?:\.\d+)+)\s/) || [])[1]; const txt = no && TW.ins && TW.ins[no];
+    if (txt && String(txt).trim()) { x += twParas({P:P0, B:z => P0([run("•  "), run(z)], {ind:500, after:60})}, txt).join(""); fresh = true; } return x; };
+  const TODO = t => { if (fresh) { fresh = false; return ""; } return P0("[" + t + "]", {i:true}); };
   const cap = t => P(t, {b:true, keep:true, left:true, after:60});
   const T = (head, rows, note) => {
     const wt = head.map(x => /^(ક્રમ|કોડ|f|n)$/.test(x) ? 0.6 : /^(મધ્યક|ક્રમાંક|%)$/.test(x) ? 1.0 : /^(વિધાન|વિકલ્પ|પ્રશ્ન|જવાબ|વર્ગ|વિભાગ|બાબત|વિગત|સૂચક|પુરાવો|વર્ણનકર્તા|સૂચન|અવલોકન|કરેલો સુધારો \/ કારણ)$/.test(x) ? 4 : x === "જિલ્લો" ? 2.4 : 1.3);
     const tw = wt.reduce((a, b) => a + b, 0), W = wt.map(x => Math.floor(9000 * x / tw));
+    fresh = false;
     const cell = (t, hd, i) => `<w:tc><w:tcPr><w:tcW w:w="${W[i]}" w:type="dxa"/>${hd ? '<w:shd w:val="clear" w:color="auto" w:fill="E7EFEA"/>' : ""}</w:tcPr><w:p><w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/><w:jc w:val="left"/></w:pPr>${run(t, {b:hd, sz:20})}</w:p></w:tc>`;
     const bd = ["top", "left", "bottom", "right", "insideH", "insideV"].map(k => `<w:${k} w:val="single" w:sz="4" w:space="0" w:color="808080"/>`).join("");
     return `<w:tbl><w:tblPr><w:tblW w:w="9000" w:type="dxa"/><w:jc w:val="center"/><w:tblBorders>${bd}</w:tblBorders><w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid>${W.map(x => `<w:gridCol w:w="${x}"/>`).join("")}</w:tblGrid>`
@@ -1837,6 +1977,8 @@ function teacherAnalysis(recs, K, onlyVerified){
     if (isO3 || sec === lastO2) {
       const o = isO3 ? "3" : "2";
       body.push(H(`હેતુ ${o} નાં મુખ્ય તારણો (શિક્ષક સાધન)`, 3), ...(isO3 ? F3 : F2).map(B),
+        ...(isO3 ? [H("4.5.2 વિદ્યાર્થીઓના મૂલ્યાંકન અનુભવો", 3), TODO("વિદ્યાર્થી અનુસૂચિના મૂલ્યાંકન વિભાગ (23 વિધાન) નાં કોષ્ટક અને અર્થઘટન — નમૂના Excel પરથી"), H("4.5.3 હેતુ 3: ત્રિકોણીકરણ", 3), TODO("શિક્ષક અને વિદ્યાર્થીના પ્રતિચારોની સરખામણી (Joint display)")]
+          : [H("4.4.9 વિદ્યાર્થી અનુસૂચિ: વિદ્યાર્થીઓની દૃષ્ટિએ", 3), TODO("વિભાગ A, B2, C નાં કોષ્ટક અને અર્થઘટન — નમૂના Excel પરથી"), H("4.4.10 હેતુ 2: ત્રિકોણીકરણ", 3), TODO("શિક્ષક અને વિદ્યાર્થીના પ્રતિચારોની સરખામણી (Joint display)")]),
         TODO(`સંશોધન પ્રશ્ન ${o} નો ઉત્તર: ઉપરનાં તારણો, વિદ્યાર્થી સાધન અને ગુણાત્મક જવાબો સાથે ત્રિકોણીકરણ કરી 3–4 વાક્યોમાં સંશોધકે લખવું`));
     }
   }
@@ -1947,7 +2089,9 @@ function thesisCh4(onlyVerified){
     P(`આ પ્રકરણમાં હેતુ 2 અને 3 માટે ગણિત શિક્ષક મુલાકાત પત્રક દ્વારા મળેલી માહિતી (N = ${A.N}${onlyVerified ? ", ફક્ત Verified" : ""}) નું વિશ્લેષણ રજૂ કર્યું છે. ક્રમવાળા પ્રશ્નોમાં મોટો અંક = વધુ પ્રમાણ (3 = નિયમિત/વધુ, 2 = ક્યારેક/મધ્યમ, 1 = ક્યારેય નહીં/ઓછું). 3-બિંદુ મધ્યક: 2.34–3.00 ઉચ્ચ, 1.67–2.33 મધ્યમ, 1.00–1.66 નીચું. ટકાવારી જવાબ આપનાર (valid) પર છે.`),
     P("પ્રકરણનો ક્રમ: 4.2 હેતુ 1 (પાઠ્યપુસ્તક વિષયવસ્તુ વિશ્લેષણ), 4.3 નમૂનાનું વર્ણન, 4.4 હેતુ 2, 4.5 હેતુ 3, 4.6 હેતુ 4, 4.7 હેતુ 5, 4.8 હેતુ 6 અને 4.9 ઉપસંહાર."),
     ...C1.b, ...A.body,
-    TODO("વિદ્યાર્થી સાધનોના વિભાગો (4.4.9 વિદ્યાર્થી અનુસૂચિ, 4.4.10 ત્રિકોણીકરણ, 4.5.2 વિદ્યાર્થી મૂલ્યાંકન અનુભવ, 4.5.3 ત્રિકોણીકરણ), હેતુ 4 (4.6), હેતુ 5 (4.7) અને હેતુ 6 (4.8) તે-તે એપની ફાઇલો પરથી ઉમેરો")];
+    H("4.6 હેતુ 4: ગણિત સિદ્ધિ", 2), TODO("સિદ્ધિ કસોટીનાં કોષ્ટકો (નિરૂપક આંકડા, સ્તર, ક્ષમતાવાર, પ્રશ્નવાર) — 📝 હેતુ 4 ની ફાઇલ પરથી"),
+    H("4.7 હેતુ 5: ગણિતીકરણ", 2), TODO("MI કોષ્ટકો (4.7.b–4.7.h) — હેતુ 5 ફાઇલ પરથી"),
+    H("4.8 હેતુ 6: ગણિત ચિંતા", 2), TODO("MAS કોષ્ટકો — 😟 હેતુ 6 ની ફાઇલ પરથી")];
   if (!A.N) b.push(P("હજી કોઈ રેકોર્ડ નથી."));
   const texts = VARS.filter(v => v.type === "text" && v.sec !== "info" && !HIDE_Q.has(v.name)); const qrows = [];
   for (const v of texts) for (const r of recs) { const t = String(r[v.name] ?? "").trim(); if (t) qrows.push([r.TID, `${v.no || ""} ${thesisQ(v.gu_q || "", v.group)}`.trim() + (v.gu && v.gu !== v.gu_q ? ` — ${v.gu}` : ""), t]); }
@@ -1998,10 +2142,13 @@ function thesisCh5(onlyVerified){
   return K.pack(b);
 }
 async function thesisDownload(ch){
-  const v = !!(document.querySelector("#thV") || {}).checked; const fn = {3:thesisCh3, 4:thesisCh4, 5:thesisCh5}[ch];
+  const v = !!(document.querySelector("#thV") || {}).checked; const fn = {1:() => twChapterDoc(1), 2:() => twChapterDoc(2), 3:thesisCh3, 4:thesisCh4, 5:thesisCh5}[ch];
   try { await caLoad(true); } catch (e) {}
   try { await tdLoad(true); } catch (e) {}
-  download(`Thesis_Chapter${ch}_${today()}.docx`, fn(v), "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+  try { await twLoad(true); } catch (e) {}
+  if (ch >= 3) { TW.ins = {}; for (const s of twDoc(ch).sec) if (String(s.text || "").trim()) TW.ins[s.no] = s.text; }
+  let file; try { file = fn(v); } finally { TW.ins = null; }
+  download(`Thesis_Chapter${ch}_${today()}.docx`, file, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
   audit("export", "", [], {file:"thesis_ch" + ch});
 }
 function viewThesis(){
@@ -2014,6 +2161,9 @@ function viewThesis(){
     h("label", {class:"note", style:"display:flex;gap:8px;align-items:center;margin:8px 0"}, h("input", {type:"checkbox", id:"thV", checked:nv > 0}), "ફક્ત Verified રેકોર્ડ (અંતિમ થીસિસ માટે ✓ રાખો)"),
     h("a", {href:"#tools", class:"btn", id:"tdLink", style:"display:block;text-align:left;padding:12px 16px;margin:10px 0;font-size:1rem"}, "🛠 ઉપકરણ રચના: 5 ઉપકરણ × 6 તબક્કા (પ્રથમ મુસદ્દો → તજ્જ્ઞ → દ્વિતીય મુસદ્દો → પૂર્વ-અજમાયશ → અજમાયશ → અંતિમ), ફાઇલ જોડો"),
     h("a", {href:"#ca", class:"btn", id:"caLink", style:"display:block;text-align:left;padding:12px 16px;margin:10px 0;font-size:1rem"}, "📚 હેતુ 1: વિષયવસ્તુ વિશ્લેષણ — 13 પ્રકરણના ગુણ દાખલ કરો"),
+    h("a", {href:"#write", class:"btn", id:"twLink", style:"display:block;text-align:left;padding:12px 16px;margin:10px 0;font-size:1rem"}, "✍️ થીસિસ લેખન: પ્રકરણ 1–5 ના મુદ્દા/પેટા-મુદ્દામાં લખાણ, ફાઇલ (.txt/.docx/.pdf) માંથી ઉમેરો, સાહિત્ય સમીક્ષા અને સંદર્ભસૂચિ"),
+    big(1, "પ્રસ્તાવના", "15 મુદ્દા: પૃષ્ઠભૂમિ, સૈદ્ધાંતિક આધાર, જરૂરિયાત, સમસ્યા કથન, વ્યાખ્યાઓ, હેતુઓ, પ્રશ્નો, સીમાંકન, પ્રકરણ યોજના"),
+    big(2, "સંબંધિત સાહિત્યની સમીક્ષા", "6 ક્ષેત્રવાર સંશોધનો (ભારત/વિદેશ, સમયાનુક્રમ), વિહંગાવલોકન કોષ્ટક, સંશોધન-અંતર, પ્રસ્તુત સંશોધનનું સ્થાન"),
     big(3, "સંશોધન પદ્ધતિ", "ડિઝાઇન, હેતુઓ, વ્યાપવિશ્વ-નમૂનો (ડેટા પરથી કોષ્ટક), ઉપકરણો, માહિતી દાખલ-ચકાસણી, કોડિંગ, વિશ્લેષણ પ્રવિધિ, નૈતિક બાબતો"),
     big(4, "માહિતીનું વિશ્લેષણ અને અર્થઘટન", "હેતુ 1 (13 પ્રકરણ × 9 ઘટક, સૂચકાંક, વિશ્વસનીયતા) અને હેતુ 2, 3: ક્રમાંકિત કોષ્ટકો (f, %, મધ્યક, ક્રમાંક), દરેક કોષ્ટકનું અર્થઘટન, મુખ્ય તારણો, ગુણાત્મક જવાબોનું પરિશિષ્ટ"),
     big(5, "સારાંશ, તારણો અને ભલામણો", "સંશોધન સાર, હેતુવાર તારણો, ઉચ્ચ/ઓછી પ્રથાઓ અને પડકારો પરથી ભલામણો, મર્યાદાઓ, ભાવિ સંશોધન"),
@@ -2318,7 +2468,7 @@ function buildVerifyWorkbook(){
     ["Original checkbox options compared", VERIFY_ROWS.reduce((a, r) => a + (r.n_opts || 0), 0)], ["Original table statements compared", VERIFY_ROWS.filter(r => r.kind === "table-row").length]];
   return xlsx([{name:"Summary", rows:sum, filter:false, freeze:false, widths:[40, 20]}, {name:"Verification_Report", rows, wrap:true, widths:[8, 30, 10, 60, 50, 60, 50, 10, 50]}]);
 }
-window.__TEST__ = {S, buildWorkbook, buildVerifyWorkbook, spssSyntax, spssCsv, masterCsv, codebookRows, thesisCh3, thesisCh4, thesisCh5, caStats, kAlphaOrdinal, CA, caLoad, raterKit, TD, tdLoad, splitItems, fileToText, qualityOf, completeness, readForm};
+window.__TEST__ = {S, buildWorkbook, buildVerifyWorkbook, spssSyntax, spssCsv, masterCsv, codebookRows, thesisCh3, thesisCh4, thesisCh5, caStats, kAlphaOrdinal, CA, caLoad, raterKit, TD, tdLoad, splitItems, fileToText, TW, twLoad, twChapterDoc, twRefsDoc, qualityOf, completeness, readForm};
 boot();
 </script>
 </body>

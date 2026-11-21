@@ -224,7 +224,7 @@ const CONSTRUCTS = [{"id": "A_TEACH", "gu": "વર્ગખંડ અધ્ય�
 const DISTRICTS = [{"id": "D01", "en": "Vav-Tharad", "gu": "વાવ-થરાદ", "n": 1, "l": "VT"}, {"id": "D02", "en": "Ahmedabad", "gu": "અમદાવાદ", "n": 2, "l": "A"}, {"id": "D03", "en": "Bhavnagar", "gu": "ભાવનગર", "n": 3, "l": "B"}, {"id": "D04", "en": "Navsari", "gu": "નવસારી", "n": 4, "l": "N"}];
 const STYPES = [{"n": 1, "en": "Government", "gu": "સરકારી", "l": "G"}, {"n": 2, "en": "Grant-in-Aid", "gu": "અનુદાનિત", "l": "GIA"}, {"n": 3, "en": "Self-Financed (Private)", "gu": "સ્વનિર્ભર (ખાનગી)", "l": "P"}];
 const COVER = {"title": "વિદ્યાર્થીઓના અધ્યયન અનુભવો અને મૂલ્યાંકન અનુસૂચિ", "sub": "(ધોરણ 8ના ગણિત શિક્ષણમાં NCF- SE- 2023 મુજબ અધ્યાપનશાસ્ત્રમાં)", "instr": ["(1) આ કોઈ પરીક્ષા નથી. તેથી અહીં કોઈ જવાબ સાચો કે ખોટો નથી.", "(2) દરેક વિધાન ધ્યાનપૂર્વક વાંચો અને તમારા અનુભવને સૌથી વધુ અનુરૂપ લાગતો એક જ વિકલ્પ પસંદ કરીને (✓) ની નિશાની કરો.", "(3) કોઈપણ વિધાનનો જવાબ ખાલી રાખશો નહીં.", "(4) પ્રશ્નોના જવાબ તમારા પોતાના અનુભવ અને અભિપ્રાયના આધારે આપશો. અન્ય વિદ્યાર્થીઓ સાથે ચર્ચા કર્યા વગર સ્વતંત્ર રીતે પ્રતિભાવ આપશો.", "(5) આપના દ્વારા આપવામાં આવેલા તમામ પ્રતિભાવો સંપૂર્ણપણે ગોપનીય રાખવામાં આવશે અને તેનો ઉપયોગ માત્ર સંશોધનના હેતુ માટે જ કરવામાં આવશે.", "(6) ઉદાહરણ: જો વિધાન હોય \"શિક્ષક બોર્ડ દ્વારા સમજાવે છે.\" અને તમારા શિક્ષક લગભગ દરેક વખતે બોર્ડનો ઉપયોગ કરતા હોય, તો \"નિયમિત રીતે (✓)\" ની નિશાની કરો. જો શિક્ષક ક્યારેક જ બોર્ડનો ઉપયોગ કરતા હોય, તો \"ક્યારેક (✓)\" અને જો ક્યારેય ઉપયોગ ન કરતા હોય, તો \"ક્યારેય નહીં (✓)\" ની નિશાની કરો.", "(7) માહિતી ભરતી વખતે કોઈ પ્રશ્ન હોય તો સંશોધક અથવા શિક્ષકનો સંપર્ક કરશો.", "(8) આપના સાચા અને નિખાલસ સહકાર બદલ હાર્દિક આભાર"]};
-const APP_VERSION = "1.14";
+const APP_VERSION = "1.15";
 const BACKEND = "firebase";   // "claude" = Claude artifact database · "firebase" = own Firebase project (Play Store / installable app)
 const FB_VER = "10.12.2";
 const TARGET_N = 2000;
@@ -1477,6 +1477,9 @@ function viewAdmin(){
       h("button", {class:"btn", type:"button", onclick:() => download(`Student_Obj2-3_SPSS_${today()}.zip`, spssZip())}, "SPSS પેકેજ (.csv + .sps)"),
       h("button", {class:"btn", type:"button", onclick:() => download(`Student_Obj2-3_raw_${today()}.csv`, toCsv(rawRows(false)))}, "Raw CSV"),
       h("button", {class:"btn", type:"button", onclick:() => download(`Student_Obj2-3_backup_${today()}.json`, JSON.stringify(backupObj()))}, "બેકઅપ (JSON)")),
+    BACKEND === "firebase" ? h("div", {class:"chips", style:"margin-top:8px"}, h("button", {class:"btn primary", type:"button", onclick:async e => { const b = e.currentTarget; b.disabled = true; b.textContent = "તૈયાર થાય છે…";
+      try { download(`Chauhan_Research_Namuna_${today()}.xlsx`, await templateXlsx()); say("✓ નમૂના મુજબ Excel ડાઉનલોડ થઈ.", "ok"); } catch (err) { say("ન થયું: " + (err.code || err.message), "bad"); }
+      b.disabled = false; b.textContent = "📥 નમૂના મુજબ Excel (A · B · C · હેતુ 3 · D ચિંતા · MARKS)"; }}, "📥 નમૂના મુજબ Excel (A · B · C · હેતુ 3 · D ચિંતા · MARKS)")) : null,
     h("p", {class:"note"}, "Excel માં raw (05, 06) અને clean (15) અલગ શીટ છે. .sav ફાઇલ: SPSS માં .sps ચલાવવાથી બને, અથવા CSV મોકલો — Python થી .sav અને પ્રકરણ 4 આંકડા તૈયાર થશે. અઠવાડિયે એક વાર બેકઅપ ડાઉનલોડ કરો.")));
   const queue = D.filter(d => !d.verified && d.entry === "Complete").sort((a, b) => a.id < b.id ? -1 : 1);
   add(m, h("div", {class:"card"}, h("h2", {}, `ચકાસણી બાકી (Complete, ${queue.length})`),
@@ -1669,6 +1672,82 @@ function xlsx(sheets){
   sheets.forEach((s, i) => f.push([`xl/worksheets/sheet${i + 1}.xml`, sheetXml(s)]));
   return zip(f);
 }
+/* ---- "Namuna" workbook: the researcher's sheet layout (A, B, C, હેતુ 3, D anxiety, MARKS) + one coded sheet for analysis ---- */
+const AXQ = ["ગણિતનો તાસ શરૂ થાય તે પહેલાં મને ચિંતા થાય છે.", "ગણિતનું નવું પ્રકરણ સમજવામાં મને ચિંતા થાય છે.", "શિક્ષક ગણિતનું ગૃહકાર્ય તપાસે ત્યારે હું આત્મવિશ્વાસ અનુભવતો નથી.",
+  "શિક્ષક જ્યારે ગણિતનું ગૃહકાર્ય તપાસે ત્યારે મને ગભરામણ થાય છે.", "વર્ગમાં શિક્ષક મને મૌખિક રીતે ગણિતનો પ્રશ્ન પૂછે ત્યારે મને ગભરામણ થાય છે.", "શિક્ષક ગણિતનો નવો મુદ્દો સમજાવે ત્યારે મને હળવાશ અનુભવાય છે.",
+  "ગણિતના તાસમાં મારી મૂંઝવણ રજૂ કરવામાં મને સંકોચ થાય છે.", "હું ગણિતના પ્રશ્નો ઉકેલવાનું શરૂ કરવાથી ડરું છું.", "ગણિત શીખવામાં મને આનંદ આવે છે.",
+  "ગણિતના મુશ્કેલ પ્રશ્નો જોતા જ મને ગભરામણ થાય છે.", "ગણિત વિષય વિશે વિચારીને જ મારા મનમાં તણાવ ઊભો થાય છે.", "ગણિતના અધૂરા દાખલા ઉકેલવાનો પ્રયત્ન કરવામાં મને આનંદ આવે છે.",
+  "ગણિત વિશે વિચારતાં મને ચિંતા થાય છે.", "ચિંતાના કારણે ગણિતના પ્રશ્નો સમજવામાં મને મુશ્કેલી પડે છે.", "ગણિતની પરીક્ષા નજીક આવે ત્યારે મારી ચિંતા વધતી જાય છે.",
+  "મને ગણિતની પરીક્ષામાં દાખલા ખોટા પડવાનો ડર લાગે છે.", "ગણિતની પરીક્ષાની આગલી રાત્રે ચિંતાના કારણે મને ઊંઘ આવવામાં તકલીફ પડે છે.", "હું ગણિતની પરીક્ષા દરમિયાન સામાન્ય રીતે શાંત રહું છું.",
+  "ગણિતની પરીક્ષા વખતે મારા હૃદયના ધબકારા વધી જાય છે અથવા હાથ ધ્રૂજે છે.", "ગણિતની પરીક્ષાનું પ્રશ્નપત્ર હાથમાં આવતાં જ મને ચિંતા થાય છે.", "પરીક્ષાનું પરિણામ આવ્યા પછી પણ હું સ્વસ્થ રહી શકું છું."];
+const AX_LAB = {5:"સંપૂર્ણ સહમત", 4:"સહમત", 3:"તટસ્થ", 2:"અસહમત", 1:"સંપૂર્ણ અસહમત", 98:"અમાન્ય (બે ✓)"};
+const L3_LAB = {3:"નિયમિત રીતે", 2:"ક્યારેક", 1:"ક્યારેય નહીં", 98:"અમાન્ય (બે ✓)"};
+const RANK_LAB = {1:"સૌથી વધુ ગમે", 2:"વધુ", 3:"મધ્યમ", 4:"સૌથી ઓછું ગમે", 98:"અમાન્ય"};
+const QMAX = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 4, 4, 3, 3];
+async function templateXlsx(){
+  const {F, fdb} = S.fb;
+  const getAll = async c => { const m = new Map(); (await F.getDocs(F.collection(fdb, c))).forEach(d => m.set(d.id, d.data())); return m; };
+  const [ac, ax] = await Promise.all([getAll("ac_students").catch(() => new Map()), getAll("ax_students").catch(() => new Map())]);
+  const st = new Map([...S.students.values()].map(r => [r.STUDENT_ID, r]));
+  const ids = [...new Set([...st.keys(), ...ac.keys(), ...ax.keys()])].filter(Boolean).sort();
+  const meta = id => { const r = st.get(id) || ac.get(id) || ax.get(id) || {}; const pc = parseCode(r.SCHOOL_ID || String(id).split("-")[0]);
+    const g = (st.get(id) || {}).GENDER || (ax.get(id) || {}).GENDER;
+    return [id, pc ? STYPES.find(t => t.n === pc.type).gu : "", pc ? DISTRICTS.find(d => d.id === pc.district).gu : "", g === 1 ? "કુમાર" : g === 2 ? "કન્યા" : ""]; };
+  const H4 = ["Student ID", "શાળાનો પ્રકાર", "જિલ્લો", "જાતિ"];
+  const secOf = id => SECTIONS.find(x => x.id === id);
+  const sheets = [];
+  const tableSheet = (name, groups) => {   // groups: [[label, items]]
+    const r1 = ["", "", "", ""], r2 = ["", "", "", ""], r3 = H4.slice();
+    groups.forEach(([lab, items]) => items.forEach((it, i) => { r1.push(i === 0 ? lab : ""); r2.push(it.no); r3.push(it.gu); }));
+    const rows = [r1, r2, r3];
+    for (const id of ids) { const r = st.get(id); if (!r) continue; rows.push([...meta(id), ...groups.flatMap(([, items]) => items.map(it => L3_LAB[r[it.v]] || ""))]); }
+    sheets.push({name, rows, headRows:3, freezeCol:1, filter:true, maxW:28, wrap:false});
+  };
+  const tbl = sec => sec.qs.filter(q => q.k === "table");
+  tableSheet("A", tbl(secOf("A")).map(q => ["વિભાગ - A", q.items]));
+  tableSheet("B", tbl(secOf("B")).map((q, i) => [i ? "B-2" : "B-1", q.items]));
+  const choiceSheet = (name, qs, extraTable) => {
+    const r1 = ["", "", "", ""], r3 = H4.slice(); const cols = [];
+    if (extraTable) extraTable.items.forEach((it, i) => { r1.push(i === 0 ? "મૂલ્યાંકન વિધાન" : ""); r3.push(`${it.no}. ${it.gu}`); cols.push(r => L3_LAB[r[it.v]] || ""); });
+    for (const q of qs) {
+      if (q.k === "rank") q.items.forEach((it, j) => { r1.push(j === 0 ? q.q : ""); r3.push(it); cols.push(r => RANK_LAB[r[q.raw[j]]] || ""); });
+      else if (q.k === "choice" && q.clean !== "multi") { r1.push(q.q); r3.push("પસંદ કરેલ વિકલ્પ"); cols.push(r => { const on = q.raw.map((v, j) => r[v] === 1 ? q.opts[j] : null).filter(Boolean); return on.length > 1 ? "અમાન્ય (એકથી વધુ ✓): " + on.join(" + ") : on[0] || ""; });
+        if (q.oth) { r1.push(""); r3.push("અન્ય (લખાણ)"); cols.push(r => r[q.oth] || ""); } }
+      else if (q.k === "choice") { q.opts.forEach((o, j) => { r1.push(j === 0 ? q.q : ""); r3.push(o); cols.push(r => r[q.raw[j]] === 1 ? "✔" : ""); });
+        if (q.oth) { r1.push(""); r3.push("અન્ય (લખાણ)"); cols.push(r => r[q.oth] || ""); } }
+    }
+    const rows = [r1, r3];
+    for (const id of ids) { const r = st.get(id); if (!r) continue; rows.push([...meta(id), ...cols.map(f => f(r))]); }
+    sheets.push({name, rows, headRows:2, freezeCol:1, filter:true, maxW:26});
+  };
+  choiceSheet("C", secOf("C").qs);
+  choiceSheet("હેતુ 3", secOf("D").qs, tbl(secOf("O3"))[0]);
+  { const rows = [["", "", "", "", "D — ગણિત ચિંતા માપદંડ (હેતુ 6)"], ["", "", "", "", ...AXQ.map((_, i) => i + 1)], H4.concat(AXQ)];
+    for (const id of ids) { const r = ax.get(id); if (!r) continue; rows.push([...meta(id), ...AXQ.map((_, i) => AX_LAB[r["AX" + (i + 1)]] || "")]); }
+    sheets.push({name:"D ચિંતા", rows, headRows:3, freezeCol:1, filter:true, maxW:26}); }
+  { const rows = [H4.concat(QMAX.map((_, i) => i + 1), ["કુલ /40", "હાજરી"]), ["", "", "", "મહત્તમ ગુણ →", ...QMAX, 40, ""]];
+    for (const id of ids) { const r = ac.get(id); if (!r) continue;
+      const q = QMAX.map((_, i) => r.ABSENT ? "" : (typeof r["Q" + (i + 1)] === "number" ? r["Q" + (i + 1)] : ""));
+      rows.push([...meta(id), ...q, r.ABSENT ? "" : (typeof r.TOTAL === "number" ? r.TOTAL : ""), r.ABSENT ? "ગેરહાજર" : "હાજર"]); }
+    sheets.push({name:"MARKS", rows, headRows:2, freezeCol:1, filter:true}); }
+  // coded sheet — the one to analyse
+  const vars = []; for (const sec of SECTIONS) for (const q of (sec.qs || [])) {
+    if (q.k === "table") q.items.forEach(it => vars.push(it.v)); else if (q.raw) q.raw.forEach(v => vars.push(v)); if (q.oth) vars.push(q.oth); }
+  { const head = ["STUDENT_ID", "SCHOOL_ID", "DISTRICT_N", "SCHOOL_TYPE", "GENDER", "HAS_O23", "HAS_O4", "HAS_O6", ...vars, ...AXQ.map((_, i) => "AX" + (i + 1)), ...QMAX.map((_, i) => "Q" + (i + 1)), "TEST_TOTAL", "TEST_ABSENT"];
+    const rows = [head];
+    for (const id of ids) { const r = st.get(id) || {}, a = ax.get(id) || {}, t = ac.get(id) || {}; const pc = parseCode((st.get(id) || ac.get(id) || ax.get(id) || {}).SCHOOL_ID || String(id).split("-")[0]);
+      const num = v => typeof v === "number" ? v : (v == null ? "" : v);
+      rows.push([id, pc ? makeCode(pc.dl, pc.tl, pc.no) : "", pc ? DISTRICTS.find(d => d.id === pc.district).n : "", pc ? pc.type : "", num(r.GENDER ?? a.GENDER), st.has(id) ? 1 : 0, ac.has(id) ? 1 : 0, ax.has(id) ? 1 : 0,
+        ...vars.map(v => num(r[v])), ...AXQ.map((_, i) => num(a["AX" + (i + 1)])), ...QMAX.map((_, i) => t.ABSENT ? "" : num(t["Q" + (i + 1)])), t.ABSENT ? "" : num(t.TOTAL), ac.has(id) ? (t.ABSENT ? 1 : 0) : ""]); }
+    sheets.push({name:"કોડ (વિશ્લેષણ)", rows, headRows:1, freezeCol:1, filter:true, maxW:14}); }
+  sheets.unshift({name:"વાંચો", headRows:1, maxW:110, rows:[["Chauhan Research — નમૂના મુજબ Excel"],
+    [`બનાવ્યું: ${fmtTime(nowIso())} · વિદ્યાર્થી ID: ${ids.length} · હેતુ 2–3: ${st.size} · હેતુ 4: ${ac.size} · હેતુ 6: ${ax.size}`],
+    ["A, B, C, હેતુ 3, D ચિંતા, MARKS: જવાબ શબ્દોમાં, વાંચવા અને ચકાસવા માટે. બધા રેકોર્ડ (ચકાસણી બાકીવાળા સહિત)."],
+    ["'કોડ (વિશ્લેષણ)' શીટ: આંકડાકીય કોડ — વિશ્લેષણ આ શીટ પરથી કરો. હેતુ 2–3: 3 = નિયમિત રીતે, 2 = ક્યારેક, 1 = ક્યારેય નહીં; C/D: ✔ = 1. ચિંતા: 5 = સંપૂર્ણ સહમત … 1 = સંપૂર્ણ અસહમત (ધન વિધાન 6, 9, 12, 18, 21 ગુણમાં ઊલટાં). 98 = અમાન્ય, 99 = જવાબ નથી."],
+    ["DISTRICT_N: 1 વાવ-થરાદ, 2 અમદાવાદ, 3 ભાવનગર, 4 નવસારી · SCHOOL_TYPE: 1 સરકારી, 2 અનુદાનિત, 3 સ્વનિર્ભર · GENDER: 1 કુમાર, 2 કન્યા."],
+    ["વિદ્યાર્થીનું નામ અને રોલ નંબર આ ફાઇલમાં નથી (ગોપનીયતા). ત્રણે સાધન એક જ Student ID થી જોડાયેલાં છે."]]});
+  return xlsx(sheets);
+}
 const N2 = x => isFinite(x) ? Math.round(x * 100) / 100 : "";
 const N3 = x => isFinite(x) ? Math.round(x * 1000) / 1000 : "";
 function buildWorkbook(){
@@ -1736,5 +1815,42 @@ if (BACKEND === "firebase" && "serviceWorker" in navigator && location.protocol 
 window.__TEST__ = {S, derived, cleanRow, codebook, buildWorkbook, spssRows, spssSyntax, rawRows, reliability, CONSTRUCTS, ITEMS, QS, RAW};
 boot();
 </script>
-</body>
+<script data-pp>/* Paper-photo panel: shows the photo of the filled paper form at the top of the screen while the operator enters data below.
+   Photos stay only in this browser tab (nothing is uploaded or saved). */
+(() => {
+  if (window.__pp) return; window.__pp = 1;
+  const st = document.createElement("style");
+  st.textContent = `.pp-fab{position:fixed;right:6px;top:50%;z-index:70;height:46px;padding:0 14px;opacity:.95;border-radius:23px;border:2px solid #fff;background:#d9480f;color:#fff;font-size:16px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+.pp-pan{position:fixed;left:0;right:0;top:0;z-index:69;background:#1b1b1b;display:none;flex-direction:column;border-bottom:3px solid #1f6f54}
+.pp-pan.on{display:flex}.pp-bar{display:flex;gap:4px;padding:4px;background:#111;align-items:center;flex-wrap:wrap}
+.pp-bar button,.pp-bar label{background:#333;color:#fff;border:0;border-radius:8px;padding:6px 10px;font-size:15px;line-height:1.2;cursor:pointer}
+.pp-bar span{color:#ddd;font-size:13px;margin:0 4px}.pp-view{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}.pp-view img{display:block;max-width:none}
+.pp-empty{color:#ccc;padding:16px;font-size:15px}`;
+  document.head.appendChild(st);
+  const S = {imgs:[], i:0, z:100, hv:45};
+  const pan = document.createElement("div"); pan.className = "pp-pan";
+  const bar = document.createElement("div"); bar.className = "pp-bar";
+  const view = document.createElement("div"); view.className = "pp-view";
+  const img = document.createElement("img"); const empty = document.createElement("div"); empty.className = "pp-empty"; empty.textContent = "📂 દબાવી ભરેલા પેપરનો ફોટો પસંદ કરો (એકથી વધુ પાનાં પસંદ કરી શકાય). ફોટો ફક્ત આ ફોનમાં જ રહે છે, ક્યાંય સેવ થતો નથી.";
+  view.append(empty, img);
+  const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.multiple = true; inp.style.display = "none";
+  const lab = document.createElement("label"); lab.textContent = "📂 ફોટો"; lab.appendChild(inp);
+  const btn = (t, f, title) => { const b = document.createElement("button"); b.type = "button"; b.textContent = t; if (title) b.title = title; b.onclick = f; return b; };
+  const info = document.createElement("span");
+  const show = () => { const has = S.imgs.length > 0; empty.style.display = has ? "none" : "block"; img.style.display = has ? "block" : "none";
+    if (has) { img.src = S.imgs[S.i]; img.style.width = S.z + "%"; } info.textContent = has ? `પાનું ${S.i + 1}/${S.imgs.length} · ${S.z}%` : "";
+    pan.style.height = S.hv + "vh"; document.body.style.paddingTop = pan.classList.contains("on") ? S.hv + "vh" : ""; };
+  inp.onchange = () => { const fs = [...inp.files]; if (!fs.length) return; S.imgs.forEach(u => URL.revokeObjectURL(u)); S.imgs = fs.map(f => URL.createObjectURL(f)); S.i = 0; S.z = 100; view.scrollTo(0, 0); show(); inp.value = ""; };
+  const rotate = () => { if (!S.imgs.length) return; const im = new Image(); im.onload = () => { const c = document.createElement("canvas"); c.width = im.naturalHeight; c.height = im.naturalWidth; const g = c.getContext("2d");
+    g.translate(c.width, 0); g.rotate(Math.PI / 2); g.drawImage(im, 0, 0); c.toBlob(b => { URL.revokeObjectURL(S.imgs[S.i]); S.imgs[S.i] = URL.createObjectURL(b); show(); }, "image/jpeg", 0.92); }; im.src = S.imgs[S.i]; };
+  bar.append(lab, btn("◀", () => { if (S.i > 0) { S.i--; view.scrollTo(0, 0); show(); } }, "પાછલું પાનું"), btn("▶", () => { if (S.i < S.imgs.length - 1) { S.i++; view.scrollTo(0, 0); show(); } }, "આગળનું પાનું"),
+    btn("−", () => { S.z = Math.max(50, S.z - 25); show(); }), btn("+", () => { S.z = Math.min(400, S.z + 25); show(); }), btn("⟳", rotate, "ફેરવો"),
+    btn("↕", () => { S.hv = S.hv >= 60 ? 30 : S.hv + 15; show(); }, "ઊંચાઈ"), info, btn("✕", () => { pan.classList.remove("on"); show(); }, "બંધ કરો"));
+  pan.append(bar, view);
+  const fab = document.createElement("button"); fab.className = "pp-fab"; fab.type = "button"; fab.title = "પેપરનો ફોટો"; fab.textContent = "📷 પેપર ફોટો";
+  fab.onclick = () => { pan.classList.toggle("on"); show(); if (pan.classList.contains("on") && !S.imgs.length) inp.click(); };
+  const mount = () => { document.body.append(pan, fab); };
+  if (document.body) mount(); else addEventListener("DOMContentLoaded", mount);
+})();
+</script></body>
 </html>

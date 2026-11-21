@@ -2471,5 +2471,42 @@ function buildVerifyWorkbook(){
 window.__TEST__ = {S, buildWorkbook, buildVerifyWorkbook, spssSyntax, spssCsv, masterCsv, codebookRows, thesisCh3, thesisCh4, thesisCh5, caStats, kAlphaOrdinal, CA, caLoad, raterKit, TD, tdLoad, splitItems, fileToText, TW, twLoad, twChapterDoc, twRefsDoc, qualityOf, completeness, readForm};
 boot();
 </script>
-</body>
+<script data-pp>/* Paper-photo panel: shows the photo of the filled paper form at the top of the screen while the operator enters data below.
+   Photos stay only in this browser tab (nothing is uploaded or saved). */
+(() => {
+  if (window.__pp) return; window.__pp = 1;
+  const st = document.createElement("style");
+  st.textContent = `.pp-fab{position:fixed;right:6px;top:50%;z-index:70;height:46px;padding:0 14px;opacity:.95;border-radius:23px;border:2px solid #fff;background:#d9480f;color:#fff;font-size:16px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+.pp-pan{position:fixed;left:0;right:0;top:0;z-index:69;background:#1b1b1b;display:none;flex-direction:column;border-bottom:3px solid #1f6f54}
+.pp-pan.on{display:flex}.pp-bar{display:flex;gap:4px;padding:4px;background:#111;align-items:center;flex-wrap:wrap}
+.pp-bar button,.pp-bar label{background:#333;color:#fff;border:0;border-radius:8px;padding:6px 10px;font-size:15px;line-height:1.2;cursor:pointer}
+.pp-bar span{color:#ddd;font-size:13px;margin:0 4px}.pp-view{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}.pp-view img{display:block;max-width:none}
+.pp-empty{color:#ccc;padding:16px;font-size:15px}`;
+  document.head.appendChild(st);
+  const S = {imgs:[], i:0, z:100, hv:45};
+  const pan = document.createElement("div"); pan.className = "pp-pan";
+  const bar = document.createElement("div"); bar.className = "pp-bar";
+  const view = document.createElement("div"); view.className = "pp-view";
+  const img = document.createElement("img"); const empty = document.createElement("div"); empty.className = "pp-empty"; empty.textContent = "📂 દબાવી ભરેલા પેપરનો ફોટો પસંદ કરો (એકથી વધુ પાનાં પસંદ કરી શકાય). ફોટો ફક્ત આ ફોનમાં જ રહે છે, ક્યાંય સેવ થતો નથી.";
+  view.append(empty, img);
+  const inp = document.createElement("input"); inp.type = "file"; inp.accept = "image/*"; inp.multiple = true; inp.style.display = "none";
+  const lab = document.createElement("label"); lab.textContent = "📂 ફોટો"; lab.appendChild(inp);
+  const btn = (t, f, title) => { const b = document.createElement("button"); b.type = "button"; b.textContent = t; if (title) b.title = title; b.onclick = f; return b; };
+  const info = document.createElement("span");
+  const show = () => { const has = S.imgs.length > 0; empty.style.display = has ? "none" : "block"; img.style.display = has ? "block" : "none";
+    if (has) { img.src = S.imgs[S.i]; img.style.width = S.z + "%"; } info.textContent = has ? `પાનું ${S.i + 1}/${S.imgs.length} · ${S.z}%` : "";
+    pan.style.height = S.hv + "vh"; document.body.style.paddingTop = pan.classList.contains("on") ? S.hv + "vh" : ""; };
+  inp.onchange = () => { const fs = [...inp.files]; if (!fs.length) return; S.imgs.forEach(u => URL.revokeObjectURL(u)); S.imgs = fs.map(f => URL.createObjectURL(f)); S.i = 0; S.z = 100; view.scrollTo(0, 0); show(); inp.value = ""; };
+  const rotate = () => { if (!S.imgs.length) return; const im = new Image(); im.onload = () => { const c = document.createElement("canvas"); c.width = im.naturalHeight; c.height = im.naturalWidth; const g = c.getContext("2d");
+    g.translate(c.width, 0); g.rotate(Math.PI / 2); g.drawImage(im, 0, 0); c.toBlob(b => { URL.revokeObjectURL(S.imgs[S.i]); S.imgs[S.i] = URL.createObjectURL(b); show(); }, "image/jpeg", 0.92); }; im.src = S.imgs[S.i]; };
+  bar.append(lab, btn("◀", () => { if (S.i > 0) { S.i--; view.scrollTo(0, 0); show(); } }, "પાછલું પાનું"), btn("▶", () => { if (S.i < S.imgs.length - 1) { S.i++; view.scrollTo(0, 0); show(); } }, "આગળનું પાનું"),
+    btn("−", () => { S.z = Math.max(50, S.z - 25); show(); }), btn("+", () => { S.z = Math.min(400, S.z + 25); show(); }), btn("⟳", rotate, "ફેરવો"),
+    btn("↕", () => { S.hv = S.hv >= 60 ? 30 : S.hv + 15; show(); }, "ઊંચાઈ"), info, btn("✕", () => { pan.classList.remove("on"); show(); }, "બંધ કરો"));
+  pan.append(bar, view);
+  const fab = document.createElement("button"); fab.className = "pp-fab"; fab.type = "button"; fab.title = "પેપરનો ફોટો"; fab.textContent = "📷 પેપર ફોટો";
+  fab.onclick = () => { pan.classList.toggle("on"); show(); if (pan.classList.contains("on") && !S.imgs.length) inp.click(); };
+  const mount = () => { document.body.append(pan, fab); };
+  if (document.body) mount(); else addEventListener("DOMContentLoaded", mount);
+})();
+</script></body>
 </html>

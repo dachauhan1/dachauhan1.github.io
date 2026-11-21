@@ -1266,6 +1266,119 @@ function viewCodebook(){
       h("tbody", {}, ...rows.map(r => h("tr", {}, ...CB_COLS.map(c => h("td", {}, String(r[c[0]] ?? ""))))))))));
 }
 
+/* ====================== CHAPTER 4 DRAFT (.docx) ====================== */
+// Draft text is generated only from the saved records: tables + rule-based sentences. The researcher reviews and edits it.
+function chapter4Docx(onlyVerified){
+  const X = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const F = '<w:rFonts w:ascii="Shruti" w:hAnsi="Shruti" w:cs="Shruti" w:eastAsia="Shruti"/>';
+  const run = (t, o = {}) => `<w:r><w:rPr>${F}${o.b ? "<w:b/><w:bCs/>" : ""}${o.i ? "<w:i/><w:iCs/>" : ""}<w:sz w:val="${o.sz || 22}"/><w:szCs w:val="${o.sz || 22}"/></w:rPr><w:t xml:space="preserve">${X(t)}</w:t></w:r>`;
+  const P = (t, o = {}) => `<w:p><w:pPr><w:spacing w:after="${o.after ?? 120}" w:line="300" w:lineRule="auto"/>${o.center ? '<w:jc w:val="center"/>' : o.just ? '<w:jc w:val="both"/>' : ""}${o.keep ? "<w:keepNext/>" : ""}</w:pPr>${Array.isArray(t) ? t.join("") : run(t, o)}</w:p>`;
+  const H = (t, lvl) => P(t, {b:true, sz:lvl === 1 ? 32 : lvl === 2 ? 28 : 24, keep:true, after:160, center:lvl === 1});
+  const B = t => P([run("• "), run(t)], {just:true, after:80});
+  const T = (head, rows, note) => {
+    const wt = head.map((x, i) => /^(ક્રમ|કોડ|f|n)$/.test(x) ? 0.6 : /^(મધ્યક|ક્રમાંક|%)$/.test(x) ? 1.0 : /^(વિધાન|વિકલ્પ|પ્રશ્ન|જવાબ|વર્ગ)$/.test(x) ? 4 : 1.3);
+    const tw = wt.reduce((a, b) => a + b, 0), W = wt.map(x => Math.floor(9300 * x / tw)); let ci = 0;
+    const cell = (t, hd) => `<w:tc><w:tcPr><w:tcW w:w="${W[ci++ % W.length]}" w:type="dxa"/>${hd ? '<w:shd w:val="clear" w:color="auto" w:fill="E7EFEA"/>' : ""}</w:tcPr><w:p><w:pPr><w:spacing w:after="0"/></w:pPr>${run(t, {b:hd, sz:20})}</w:p></w:tc>`;
+    const bd = ["top", "left", "bottom", "right", "insideH", "insideV"].map(k => `<w:${k} w:val="single" w:sz="4" w:space="0" w:color="808080"/>`).join("");
+    return `<w:tbl><w:tblPr><w:tblW w:w="9300" w:type="dxa"/><w:tblBorders>${bd}</w:tblBorders><w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid>${W.map(x => `<w:gridCol w:w="${x}"/>`).join("")}</w:tblGrid>`
+      + `<w:tr><w:trPr><w:tblHeader/></w:trPr>${head.map(x => cell(x, true)).join("")}</w:tr>` + rows.map(r => `<w:tr>${r.map(x => cell(x, false)).join("")}</w:tr>`).join("") + "</w:tbl>"
+      + P(note || "", {sz:18, i:true, after:200});
+  };
+  const fx = x => x === "" || x == null || isNaN(x) ? "–" : (Math.round(x * 100) / 100).toFixed(2);
+  const pc = (a, b) => b ? (Math.round(a / b * 1000) / 10).toFixed(1) : "–";
+  const recs = [...S.teachers.values()].filter(r => !onlyVerified || r.VERIFY_STATUS === "Verified").sort((a, b) => String(a.TID).localeCompare(String(b.TID)));
+  const N = recs.length;
+  const src = `સ્ત્રોત: ગણિત શિક્ષક અર્ધ-માળખાગત મુલાકાત પત્રક (N = ${N}${onlyVerified ? ", ફક્ત Verified" : ""}).`;
+  const qtext = (vq, v) => (v && SHOW_Q[v] ? SHOW_Q[v](vq) : vq).replace(/\s+/g, " ").trim();
+  const level = (m, k) => { if (isNaN(m)) return ""; const w = (k - 1) / 3; return m >= 1 + 2 * w + 0.005 ? "ઉચ્ચ" : m >= 1 + w + 0.005 ? "મધ્યમ" : "નીચું"; };
+  const body = []; const findings = {o2:[], o3:[]};
+  body.push(H("પ્રકરણ 4: માહિતીનું વિશ્લેષણ અને અર્થઘટન", 1),
+    H("હેતુ 2 અને 3 — ગણિત શિક્ષક મુલાકાત પત્રક (સ્વયંસંચાલિત મુસદ્દો)", 2),
+    P(`આ મુસદ્દો ${new Date().toLocaleDateString("en-GB")} ના રોજ 'Chauhan Research' એપમાં સેવ થયેલા ${N} શિક્ષકોના રેકોર્ડ પરથી આપમેળે બન્યો છે. કોષ્ટકોના આંકડા સીધા ડેટા પરથી છે; અર્થઘટનનાં વાક્યો નિયમ-આધારિત છે. સંશોધકે દરેક વાક્ય ચકાસી, NCF-SE 2023 અને સંબંધિત સંશોધનો સાથે જોડીને અંતિમ ભાષા લખવી.`, {i:true, just:true}),
+    P("કોડ: ક્રમવાળા પ્રશ્નોમાં મોટો અંક = વધુ પ્રમાણ (3 = નિયમિત/વધુ, 2 = ક્યારેક/મધ્યમ, 1 = ક્યારેય નહીં/ઓછું). મધ્યક (3-બિંદુ): 2.34–3.00 ઉચ્ચ, 1.67–2.33 મધ્યમ, 1.00–1.66 નીચું. % ની ગણતરી જવાબ આપનાર (valid) પર છે.", {sz:20, just:true}));
+  if (!N) { body.push(P("હજી કોઈ રેકોર્ડ નથી.")); }
+  // 4.2 sample
+  let tno = 0;
+  const one = (title, labels, count) => { tno++; const rows = labels.map((l, i) => { const f = count(i); return [l, f, pc(f, N)]; }); const top = rows.reduce((a, r) => r[1] > a[1] ? r : a, rows[0] || ["", 0]);
+    body.push(P(`કોષ્ટક 4.2.${tno}: ${title}`, {b:true, keep:true}), T(["વર્ગ", "f", "%"], rows.concat([["કુલ", N, N ? "100.0" : "–"]]), src));
+    return top; };
+  if (N) {
+    body.push(H("4.2 નમૂનાનું વર્ણન (શિક્ષકો)", 2));
+    const t1 = one("જિલ્લાવાર શિક્ષકો", DISTRICTS.map(distGu), i => recs.filter(r => r.DISTRICT === DISTRICTS[i]).length);
+    const vs = VARMAP.get("SCHOOL_TYPE_PAPER"), va = VARMAP.get("APPOINTMENT_TYPE");
+    const t2 = vs ? one("શાળાના પ્રકાર મુજબ શિક્ષકો", vs.opts, i => recs.filter(r => r.SCHOOL_TYPE_PAPER === codeOf(vs, i)).length) : null;
+    const t3 = va ? one("નિમણૂંકના પ્રકાર મુજબ શિક્ષકો", va.opts, i => recs.filter(r => r.APPOINTMENT_TYPE === codeOf(va, i)).length) : null;
+    const bands = [["0–5 વર્ષ", 0, 5], ["5 થી વધુ–10 વર્ષ", 5.0001, 10], ["10 થી વધુ–20 વર્ષ", 10.0001, 20], ["20 વર્ષથી વધુ", 20.0001, 99]];
+    const t4 = one("શૈક્ષણિક અનુભવ મુજબ શિક્ષકો", bands.map(b => b[0]), i => recs.filter(r => typeof r.TEACH_EXP === "number" && r.TEACH_EXP >= bands[i][1] && r.TEACH_EXP <= bands[i][2]).length);
+    const st = numStats(recs.map(r => r.TEACH_EXP));
+    body.push(P(`નમૂનામાં કુલ ${N} ગણિત શિક્ષકો છે. સૌથી વધુ શિક્ષકો ${t1[0]} જિલ્લામાંથી (${t1[1]}, ${t1[2]}%) છે.${t2 ? ` શાળાના પ્રકારમાં ${t2[0]} શાળાના શિક્ષકો સૌથી વધુ (${t2[2]}%) છે.` : ""}${t3 ? ` નિમણૂંકમાં ${t3[0]} સૌથી વધુ (${t3[2]}%) છે.` : ""} શિક્ષકોનો સરેરાશ અનુભવ ${fx(st.mean)} વર્ષ (SD ${fx(st.sd)}, ${st.min ?? "–"}–${st.max ?? "–"} વર્ષ) છે, અને સૌથી મોટો જૂથ '${t4[0]}' (${t4[2]}%) છે.`, {just:true}));
+  }
+  // 4.3 / 4.4
+  const secs = SPEC.filter(s => s.id !== "info" && s.qs.some(q => q.k !== "note" && q.k !== "text"));
+  let o2 = 0;
+  for (const sec of secs) {
+    if (!N) break;
+    const isO3 = sec.id === "as"; const sub = isO3 ? "4.4.1" : `4.3.${++o2}`;
+    if (isO3) body.push(H("4.4 હેતુ 3: ગણિતમાં મૂલ્યાંકન પ્રથાઓ", 2)); else if (o2 === 1) body.push(H("4.3 હેતુ 2: ગણિતમાં અધ્યયન-અધ્યાપન પ્રથાઓ", 2));
+    body.push(H(`${sub} ${sec.title[0]}`, 3));
+    let k = 0; const fl = isO3 ? findings.o3 : findings.o2;
+    for (const q of sec.qs) {
+      if (q.k === "note" || q.k === "text" || HIDE_Q.has(q.v) || NOT_IN_REPORTS.has(q.v) || q.k === "exp") continue;
+      const lab = `કોષ્ટક ${sub}.${++k}`; const qq = qtext(q.q, q.v);
+      if (q.k === "table") {
+        const vars = q.items.map((_, i) => `${q.v}_${String(i + 1).padStart(2, "0")}`).map(n => VARMAP.get(n)).filter(Boolean);
+        const kmax = vars[0].opts.length;
+        const rows = vars.map(v => { const f = freq(v, recs); const sum = f.rows.reduce((a, r) => a + r.code * r.f, 0); return {v, f, m:f.answered ? sum / f.answered : NaN}; });
+        const order = rows.filter(r => !isNaN(r.m)).slice().sort((a, b) => b.m - a.m); order.forEach((r, i) => { r.rank = i + 1; });
+        body.push(P(`${lab}: ${qq}`, {b:true, keep:true}), T(["ક્રમ", "વિધાન", ...vars[0].opts.map(o => o + " f (%)"), "n", "મધ્યક", "ક્રમાંક"],
+          rows.map((r, i) => [i + 1, r.v.gu, ...r.f.rows.map(x => `${x.f} (${pc(x.f, r.f.answered)})`), r.f.answered, fx(r.m), r.rank ?? "–"]), src));
+        if (order.length) {
+          const hi = order[0], lo = order[order.length - 1]; const cnt = l => order.filter(r => level(r.m, kmax) === l).length;
+          const topOpt = vars[0].opts[0]; const p1 = r => pc(r.f.rows[0].f, r.f.answered);
+          const s = `${lab} પરથી જોવા મળે છે કે '${hi.v.gu}' નો મધ્યક સૌથી વધુ (${fx(hi.m)}) છે; ${p1(hi)}% શિક્ષકોએ '${topOpt}' જવાબ આપ્યો. '${lo.v.gu}' નો મધ્યક સૌથી ઓછો (${fx(lo.m)}) છે. કુલ ${order.length} વિધાનોમાંથી ${cnt("ઉચ્ચ")} ઉચ્ચ, ${cnt("મધ્યમ")} મધ્યમ અને ${cnt("નીચું")} નીચા સ્તરે છે.`;
+          body.push(P(s, {just:true}));
+          fl.push(`${qq.replace(/[?:]$/, "")}: '${hi.v.gu}' સૌથી વધુ (મધ્યક ${fx(hi.m)}) અને '${lo.v.gu}' સૌથી ઓછું (મધ્યક ${fx(lo.m)}) જોવા મળ્યું.`);
+        }
+      } else if (q.k === "multi") {
+        const vars = multiVars(q).map(n => VARMAP.get(n)).filter(Boolean);
+        const rows = vars.map(v => { const f = freq(v, recs); return {lab:v.gu, f:f.rows[0].f, ans:f.answered}; });
+        const ans = rows.length ? rows[0].ans : 0; const sorted = rows.slice().sort((a, b) => b.f - a.f);
+        body.push(P(`${lab}: ${qq} (બહુવિકલ્પ, જવાબ આપનાર = ${ans})`, {b:true, keep:true}), T(["ક્રમ", "વિકલ્પ", "f", "% (જવાબ આપનાર)"], sorted.map((r, i) => [i + 1, r.lab, r.f, pc(r.f, ans)]), src + " એક શિક્ષક એકથી વધુ વિકલ્પ પસંદ કરી શકે, તેથી કુલ 100% થી વધુ થઈ શકે."));
+        if (ans && sorted.length) {
+          const t = sorted.slice(0, 3).filter(r => r.f > 0); const last = sorted[sorted.length - 1];
+          if (t.length) {
+            body.push(P(`${lab} મુજબ સૌથી વધુ શિક્ષકોએ '${t[0].lab}' (${pc(t[0].f, ans)}%) પસંદ કર્યું${t[1] ? `, ત્યાર બાદ '${t[1].lab}' (${pc(t[1].f, ans)}%)` : ""}${t[2] ? ` અને '${t[2].lab}' (${pc(t[2].f, ans)}%)` : ""}. સૌથી ઓછું '${last.lab}' (${pc(last.f, ans)}%) જોવા મળ્યું.`, {just:true}));
+            fl.push(`${qq.replace(/[?:]$/, "")}: '${t[0].lab}' સૌથી વધુ (${pc(t[0].f, ans)}%).`);
+          }
+        }
+      } else if (q.k === "single") {
+        const v = VARMAP.get(q.v); if (!v) continue; const f = freq(v, recs);
+        body.push(P(`${lab}: ${qq}`, {b:true, keep:true}), T(["કોડ", "વિકલ્પ", "f", "%"], f.rows.map(r => [r.code, r.label, r.f, pc(r.f, f.answered)]).concat([["", "કુલ (જવાબ આપનાર)", f.answered, f.answered ? "100.0" : "–"]]), src + (f.na ? ` લાગુ પડતું નથી: ${f.na}.` : "")));
+        if (f.answered) {
+          const top = f.rows.reduce((a, r) => r.f > a.f ? r : a, f.rows[0]);
+          const sum = f.rows.reduce((a, r) => a + r.code * r.f, 0); const ord = v.level === "ordinal";
+          body.push(P(`${lab} મુજબ સૌથી વધુ શિક્ષકો (${top.f}, ${pc(top.f, f.answered)}%) '${top.label}' જણાવે છે.${ord ? ` મધ્યક ${fx(sum / f.answered)} (મહત્તમ ${v.opts.length}) છે.` : ""}`, {just:true}));
+          fl.push(`${qq.replace(/[?:]$/, "")}: '${top.label}' (${pc(top.f, f.answered)}%).`);
+        }
+      }
+    }
+    if (isO3 || sec === secs.filter(s => s.id !== "as").at(-1)) {
+      const o = isO3 ? "3" : "2"; const L = isO3 ? findings.o3 : findings.o2;
+      body.push(H(`હેતુ ${o} નાં મુખ્ય તારણો (શિક્ષક સાધન)`, 3), ...L.map(B),
+        P(`સંશોધન પ્રશ્ન ${o} નો ઉત્તર: [ઉપરનાં તારણો, વિદ્યાર્થી સાધન અને ગુણાત્મક જવાબો સાથે ત્રિકોણીકરણ કરી 3–4 વાક્યોમાં સંશોધકે લખવું.]`, {i:true, just:true}));
+    }
+  }
+  // qualitative appendix
+  const texts = VARS.filter(v => v.type === "text" && v.sec !== "info" && !HIDE_Q.has(v.name));
+  const qrows = []; for (const v of texts) for (const r of recs) { const t = String(r[v.name] ?? "").trim(); if (t) qrows.push([r.TID, `${v.no || ""} ${qtext(v.gu_q || "", v.group)}`.trim() + (v.gu && v.gu !== v.gu_q ? ` — ${v.gu}` : ""), t]); }
+  body.push(H("પરિશિષ્ટ: ગુણાત્મક (ખુલ્લા) જવાબો", 2), P("આ જવાબો પરથી થીમ બનાવી પેટાવિભાગ 4.3.9 / 4.4.3 માં ટૂંકાં અવતરણ (શિક્ષક કોડ સાથે) લો.", {i:true}),
+    qrows.length ? T(["શિક્ષક કોડ", "પ્રશ્ન", "જવાબ"], qrows, src) : P("હજી કોઈ ખુલ્લો જવાબ નથી."));
+  const doc = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body.join("")}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1300" w:right="1300" w:bottom="1300" w:left="1300" w:header="700" w:footer="700" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+  return zip([["[Content_Types].xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>'],
+    ["_rels/.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'],
+    ["word/document.xml", doc]]);
+}
+
 /* ====================== ADMIN ====================== */
 function viewAdmin(){
   const m = $("#main");
@@ -1275,6 +1388,7 @@ function viewAdmin(){
       "વિશ્લેષણ શીટ, જિલ્લા ક્રોસ-ટેબ અને Chapter 4 (232 કૉલમ) ફક્ત Verified રેકોર્ડ પરથી બનાવો (અંતિમ પ્રકરણ 4 માટે ભલામણ)"),
     h("div", {class:"chips"},
       h("button", {class:"btn primary", type:"button", onclick:() => download("Teacher_Research_Data.xlsx", buildWorkbook(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}, "Excel workbook (9 શીટ)"),
+      h("button", {class:"btn primary", type:"button", id:"ch4Btn", onclick:() => { download(`Chapter4_Objective2_3_Teacher_${today()}.docx`, chapter4Docx(EXP.verifiedOnly), "application/vnd.openxmlformats-officedocument.wordprocessingml.document"); audit("export", "", [], {file:"chapter4_docx"}); }}, "📄 પ્રકરણ 4 મુસદ્દો (Word: કોષ્ટક + અર્થઘટન + તારણો)"),
       h("button", {class:"btn", type:"button", onclick:() => download("teacher_master_coded.csv", masterCsv(), "text/csv")}, "Master CSV"),
       h("button", {class:"btn", type:"button", onclick:() => download("Chapter4_232_columns.csv", toCsv(legacyRows(EXP.verifiedOnly)), "text/csv")}, "Chapter 4 Excel માટે (232 કૉલમ CSV)"),
       h("button", {class:"btn", type:"button", onclick:() => download("teachers_spss.csv", spssCsv(), "text/csv")}, "SPSS CSV"),
@@ -1563,7 +1677,7 @@ function buildVerifyWorkbook(){
     ["Original checkbox options compared", VERIFY_ROWS.reduce((a, r) => a + (r.n_opts || 0), 0)], ["Original table statements compared", VERIFY_ROWS.filter(r => r.kind === "table-row").length]];
   return xlsx([{name:"Summary", rows:sum, filter:false, freeze:false, widths:[40, 20]}, {name:"Verification_Report", rows, wrap:true, widths:[8, 30, 10, 60, 50, 60, 50, 10, 50]}]);
 }
-window.__TEST__ = {S, buildWorkbook, buildVerifyWorkbook, spssSyntax, spssCsv, masterCsv, codebookRows, qualityOf, completeness, readForm};
+window.__TEST__ = {S, buildWorkbook, buildVerifyWorkbook, spssSyntax, spssCsv, masterCsv, codebookRows, chapter4Docx, qualityOf, completeness, readForm};
 boot();
 </script>
 </body>

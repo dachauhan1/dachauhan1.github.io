@@ -663,7 +663,7 @@ boot();
 (() => {
   if (window.__pp) return; window.__pp = 1;
   const st = document.createElement("style");
-  st.textContent = `.pp-fab{position:fixed;right:6px;top:50%;z-index:70;height:46px;padding:0 14px;opacity:.95;border-radius:23px;border:2px solid #fff;background:#d9480f;color:#fff;font-size:16px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+  st.textContent = `.pp-fab{position:fixed;left:0;top:50%;z-index:70;height:44px;padding:0 10px 0 8px;opacity:.95;border-radius:0 22px 22px 0;border:2px solid #fff;background:#d9480f;color:#fff;font-size:16px;font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.35)}
 .pp-pan{position:fixed;left:0;right:0;top:0;z-index:69;background:#1b1b1b;display:none;flex-direction:column;border-bottom:3px solid #1f6f54}
 .pp-pan.on{display:flex}.pp-bar{display:flex;gap:4px;padding:4px;background:#111;align-items:center;flex-wrap:wrap}
 .pp-bar button,.pp-bar label{background:#333;color:#fff;border:0;border-radius:8px;padding:6px 10px;font-size:15px;line-height:1.2;cursor:pointer}
@@ -690,10 +690,221 @@ boot();
     btn("−", () => { S.z = Math.max(50, S.z - 25); show(); }), btn("+", () => { S.z = Math.min(400, S.z + 25); show(); }), btn("⟳", rotate, "ફેરવો"),
     btn("↕", () => { S.hv = S.hv >= 60 ? 30 : S.hv + 15; show(); }, "ઊંચાઈ"), info, btn("✕", () => { pan.classList.remove("on"); show(); }, "બંધ કરો"));
   pan.append(bar, view);
-  const fab = document.createElement("button"); fab.className = "pp-fab"; fab.type = "button"; fab.title = "પેપરનો ફોટો"; fab.textContent = "📷 પેપર ફોટો";
+  const fab = document.createElement("button"); fab.className = "pp-fab"; fab.type = "button"; fab.title = "પેપરનો ફોટો"; fab.textContent = "📷 ફોટો";
   fab.onclick = () => { pan.classList.toggle("on"); show(); if (pan.classList.contains("on") && !S.imgs.length) inp.click(); };
   const mount = () => { document.body.append(pan, fab); };
   if (document.body) mount(); else addEventListener("DOMContentLoaded", mount);
+})();
+
+/* PhotoRead: semi-automatic reading of ✓ marks from a photo of a paper rating table.
+   The operator taps the 4 corners of the answer-column block; the app straightens it, finds the printed row/column lines,
+   measures pen ink in every cell and proposes one answer per row. Unclear rows (two marks, cut/over-written, empty) are NOT filled:
+   they are flagged for manual entry. Everything runs on the phone; the photo is never uploaded. */
+(() => {
+  if (window.PhotoRead) return;
+  const css = `.pr-ovl{position:fixed;inset:0;z-index:90;background:#f4f6f5;display:flex;flex-direction:column;font-size:15px}
+.pr-top{background:#1f6f54;color:#fff;padding:6px 8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pr-top b{font-size:16px;margin-right:auto}.pr-top button,.pr-top label.pr-btn{background:#fff;color:#1f6f54;border:0;border-radius:8px;padding:7px 11px;font-weight:700;font-size:15px}
+.pr-cfg{display:flex;flex-wrap:wrap;gap:6px;padding:6px 8px;background:#e3efe9;align-items:center}
+.pr-cfg select,.pr-cfg input{font-size:15px;padding:5px;border-radius:6px;border:1px solid #9bb}.pr-cfg input{width:62px}
+.pr-hint{padding:6px 10px;background:#fff3bf;color:#5c3d00;font-weight:600}
+.pr-body{flex:1;overflow:auto;position:relative;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+.pr-wrap{position:relative;margin:0 auto}.pr-wrap canvas{display:block;width:100%}
+.pr-pt{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:3px solid #d9480f;background:rgba(255,255,255,.35);color:#d9480f;font-weight:800;display:flex;align-items:center;justify-content:center;touch-action:none}
+.pr-bot{display:flex;gap:6px;padding:8px;background:#fff;border-top:1px solid #ccd}.pr-bot button{flex:1;min-height:48px;border-radius:10px;border:1px solid #1f6f54;background:#fff;color:#1f6f54;font-weight:700;font-size:16px}
+.pr-bot button.pri{background:#1f6f54;color:#fff}.pr-bot button:disabled{opacity:.4}
+.pr-res{padding:8px}.pr-res table{border-collapse:collapse;width:100%;background:#fff}.pr-res td,.pr-res th{border:1px solid #bcc;padding:0;text-align:center;height:42px}
+.pr-res th{background:#e3efe9;font-size:13px;padding:2px}.pr-res td.no{width:44px;font-weight:700}.pr-res td.c{cursor:pointer;font-size:20px}
+.pr-res td.c.on{background:#2f9e44;color:#fff}.pr-res tr.flag td.no{background:#ffc9c9;color:#a00}.pr-res td.img{width:42%;padding:0}.pr-res td.img canvas{display:block;width:100%;height:42px}
+.pr-res td.why{font-size:12px;color:#a00;width:62px}.pr-sum{margin:6px 0;font-weight:700}`;
+  let cssDone = false;
+  const el = (t, a = {}, ...k) => { const e = document.createElement(t); for (const [x, v] of Object.entries(a)) { if (x === "style") e.style.cssText = v; else if (x.startsWith("on")) e[x] = v; else if (v != null) e.setAttribute(x, v); } for (const c of k.flat()) if (c != null) e.append(c); return e; };
+
+  /* ---- image maths ---- */
+  function homography(src, dst) {           // maps dst -> src (8-parameter projective), points [[x,y]x4]
+    const A = [], b = [];
+    for (let i = 0; i < 4; i++) { const [x, y] = dst[i], [u, v] = src[i];
+      A.push([x, y, 1, 0, 0, 0, -u * x, -u * y]); b.push(u); A.push([0, 0, 0, x, y, 1, -v * x, -v * y]); b.push(v); }
+    for (let c = 0; c < 8; c++) { let p = c; for (let r = c + 1; r < 8; r++) if (Math.abs(A[r][c]) > Math.abs(A[p][c])) p = r;
+      [A[c], A[p]] = [A[p], A[c]]; [b[c], b[p]] = [b[p], b[c]];
+      for (let r = 0; r < 8; r++) if (r !== c) { const f = A[r][c] / A[c][c]; for (let k = c; k < 8; k++) A[r][k] -= f * A[c][k]; b[r] -= f * b[c]; } }
+    const h = b.map((v, i) => v / A[i][i]); h.push(1); return h;
+  }
+  function warp(img, quad, W, H) {
+    const H8 = homography(quad, [[0, 0], [W, 0], [W, H], [0, H]]);
+    const sw = img.width, sh = img.height, sd = img.data, out = new Uint8ClampedArray(W * H * 4);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const X = x + .5, Y = y + .5, w = H8[6] * X + H8[7] * Y + 1;
+      const u = (H8[0] * X + H8[1] * Y + H8[2]) / w, v = (H8[3] * X + H8[4] * Y + H8[5]) / w;
+      const x0 = Math.floor(u - .5), y0 = Math.floor(v - .5), fx = u - .5 - x0, fy = v - .5 - y0, o = (y * W + x) * 4;
+      for (let c = 0; c < 3; c++) { let s = 0;
+        for (const [dx, dy, wt] of [[0, 0, (1 - fx) * (1 - fy)], [1, 0, fx * (1 - fy)], [0, 1, (1 - fx) * fy], [1, 1, fx * fy]]) {
+          const xx = Math.min(sw - 1, Math.max(0, x0 + dx)), yy = Math.min(sh - 1, Math.max(0, y0 + dy)); s += sd[(yy * sw + xx) * 4 + c] * wt; }
+        out[o + c] = s; }
+      out[o + 3] = 255;
+    }
+    return new ImageData(out, W, H);
+  }
+  function boxMean(g, W, H, r) {             // integral-image local mean
+    const I = new Float64Array((W + 1) * (H + 1));
+    for (let y = 0; y < H; y++) { let s = 0; for (let x = 0; x < W; x++) { s += g[y * W + x]; I[(y + 1) * (W + 1) + x + 1] = I[y * (W + 1) + x + 1] + s; } }
+    const m = new Float32Array(W * H);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const x0 = Math.max(0, x - r), x1 = Math.min(W, x + r + 1), y0 = Math.max(0, y - r), y1 = Math.min(H, y + r + 1);
+      m[y * W + x] = (I[y1 * (W + 1) + x1] - I[y0 * (W + 1) + x1] - I[y1 * (W + 1) + x0] + I[y0 * (W + 1) + x0]) / ((x1 - x0) * (y1 - y0)); }
+    return m;
+  }
+  function pickLines(prof, n, len) {          // n-1 interior separators, strongest well-separated peaks; null if not found
+    const need = n - 1, step = len / n, sm = prof.map((v, i) => (prof[i - 1] || 0) * .5 + v + (prof[i + 1] || 0) * .5);
+    const med = sm.slice().sort((a, b) => a - b)[Math.floor(len / 2)], thr = Math.max(.25, med * 2.5);
+    const pk = []; for (let i = 2; i < len - 2; i++) if (sm[i] >= sm[i - 1] && sm[i] > sm[i + 1] && sm[i] > thr) pk.push([sm[i], i]);
+    pk.sort((a, b) => b[0] - a[0]);
+    const got = [];
+    for (const [, i] of pk) { if (i < step * .3 || i > len - step * .3) continue; if (got.every(j => Math.abs(j - i) > step * .3)) got.push(i); if (got.length === need) break; }
+    if (got.length < need) return null;
+    got.sort((a, b) => a - b); return [0, ...got, len];
+  }
+  function analyse(img, quad, rows, cols) {
+    const CW = 70, RH = 46, W = cols * CW, H = rows * RH;
+    const wi = warp(img, quad, W, H), d = wi.data, N = W * H;
+    const g = new Float32Array(N), blue = new Uint8Array(N);
+    for (let i = 0; i < N; i++) { const r = d[i * 4], gg = d[i * 4 + 1], b = d[i * 4 + 2]; g[i] = (r + gg + b) / 3; blue[i] = (b - r > 22 && b - gg > 5) ? 1 : 0; }
+    const bg = boxMean(g, W, H, 9);
+    const dark = new Uint8Array(N); let nb = 0;
+    for (let i = 0; i < N; i++) { dark[i] = g[i] < bg[i] - 14 ? 1 : 0; nb += blue[i]; }
+    const bluePen = nb / N > .002;
+    const line = new Uint8Array(N); for (let i = 0; i < N; i++) line[i] = dark[i] && !blue[i] ? 1 : 0;
+    // printed lines: fraction of line pixels per row / column (ignoring the outer 5%)
+    const rp = [], cp = [];
+    for (let y = 0; y < H; y++) { let s = 0; for (let x = Math.floor(W * .05); x < W * .95; x++) s += line[y * W + x]; rp.push(s / (W * .9)); }
+    for (let x = 0; x < W; x++) { let s = 0; for (let y = Math.floor(H * .02); y < H * .98; y++) s += line[y * W + x]; cp.push(s / (H * .96)); }
+    let ys = pickLines(rp, rows, H), xs = pickLines(cp, cols, W); const exact = !!(ys && xs);
+    if (!ys) ys = Array.from({length: rows + 1}, (_, i) => i * RH);
+    if (!xs) xs = Array.from({length: cols + 1}, (_, i) => i * CW);
+    const near = (v, arr, t) => arr.some(a => Math.abs(a - v) <= t);
+    const out = [], trust = exact || bluePen;   // black pen needs the printed grid to be found exactly
+    for (let r = 0; r < rows; r++) {
+      const y0 = ys[r], y1 = ys[r + 1], sc = [];
+      for (let c = 0; c < cols; c++) {
+        const x0 = xs[c], x1 = xs[c + 1]; let ink = 0, area = 0;
+        const my = bluePen ? 1 : Math.max(2, (y1 - y0) * .1), mx = bluePen ? 1 : Math.max(2, (x1 - x0) * .1);
+        for (let y = Math.ceil(y0 + my); y < y1 - my; y++) for (let x = Math.ceil(x0 + mx); x < x1 - mx; x++) {
+          const i = y * W + x; area++;
+          if (bluePen ? blue[i] : (dark[i] && !near(y, ys, 3) && !near(x, xs, 3))) ink++; }
+        sc.push(area ? ink / area : 0); }
+      const ord = sc.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]);
+      const [m1, i1] = ord[0], m2 = ord[1] ? ord[1][0] : 0;
+      let ans = i1, why = "";
+      if (!trust) { ans = null; why = "ખૂણા તપાસો"; }
+      else if (m1 < .012) { ans = null; why = "ખાલી"; }
+      else if (m2 >= m1 * .45 && m2 >= .012) { ans = null; why = "બે નિશાન"; }
+      out.push({ans, why, sc, y0, y1});
+    }
+    return {rows: out, xs, ys, W, H, warped: wi, exact, bluePen, cp: cp.map(v => +v.toFixed(2))};
+  }
+
+  /* ---- PDF (scanned bundle) ---- */
+  const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/";
+  const MEM = {doc: null, name: "", page: 1, n: 0, pts: {}, g: 0};      // kept while the page stays open, so the next student continues
+  async function pdfLib() { const lib = await import(PDFJS + "pdf.min.mjs"); lib.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.mjs"; return lib; }
+  async function pdfPage(n) {
+    const pg = await MEM.doc.getPage(n), v1 = pg.getViewport({scale: 1}), sc = 1800 / Math.max(v1.width, v1.height), vp = pg.getViewport({scale: sc});
+    const c = document.createElement("canvas"); c.width = Math.round(vp.width); c.height = Math.round(vp.height); const x = c.getContext("2d");
+    x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); await pg.render({canvasContext: x, canvas: c, viewport: vp}).promise;
+    return x.getImageData(0, 0, c.width, c.height);
+  }
+
+  /* ---- UI ---- */
+  function open(cfg) {
+    if (!cssDone) { document.head.append(el("style", {}, css)); cssDone = true; }
+    const S = {img: null, scale: 1, pts: [], res: null, man: {}};
+    const ovl = el("div", {class: "pr-ovl", role: "dialog"});
+    const close = () => { ovl.remove(); document.body.style.overflow = ""; };
+    const inp = el("input", {type: "file", accept: "image/*,application/pdf,.pdf", style: "display:none"});
+    const gSel = el("select", {}, ...cfg.groups.map((g, i) => el("option", {value: i}, g.label)));
+    const start = el("input", {type: "number", min: 1, value: 1, inputmode: "numeric"});
+    const cnt = el("input", {type: "number", min: 1, inputmode: "numeric"});
+    const G = () => cfg.groups[+gSel.value];
+    const syncCnt = () => { cnt.value = Math.max(1, G().rows - (+start.value || 1) + 1); };
+    gSel.onchange = () => { start.value = 1; syncCnt(); S.res = null; const p = MEM.pts[gSel.value]; if (S.img && p && p.w === S.img.width) S.pts = p.pts.map(q => q.slice()); draw(); }; start.onchange = () => { syncCnt(); S.res = null; draw(); }; cnt.onchange = () => { S.res = null; draw(); };
+    syncCnt();
+    const hint = el("div", {class: "pr-hint"}), body = el("div", {class: "pr-body"});
+    const pInfo = el("span", {style: "font-weight:700"}), pNav = el("div", {class: "pr-cfg", style: "display:none;background:#d0ebff"},
+      el("button", {type: "button", onclick: () => goPage(MEM.page - 1)}, "◀"), pInfo, el("button", {type: "button", onclick: () => goPage(MEM.page + 1)}, "▶"),
+      el("span", {style: "font-size:13px"}, "ખૂણા દરેક કોષ્ટક માટે યાદ રહે છે"));
+    async function goPage(n) {
+      if (!MEM.doc || n < 1 || n > MEM.n) return; MEM.page = n; pNav.style.display = "flex"; pInfo.textContent = `PDF પાનું ${n}/${MEM.n} · ${MEM.name}`;
+      hint.textContent = "પાનું ખૂલે છે…"; body.innerHTML = "";
+      try { S.img = await pdfPage(n); } catch (e) { hint.textContent = "PDF પાનું ખૂલ્યું નહીં: " + (e.message || e); return; }
+      const p = MEM.pts[gSel.value]; S.pts = p && p.w === S.img.width ? p.pts.map(q => q.slice()) : []; S.res = null; S.man = {}; draw();
+    }
+    async function loadPdf(f) {
+      hint.textContent = "PDF ખૂલે છે… (પહેલી વાર ઇન્ટરનેટ જોઈએ)"; body.innerHTML = "";
+      try { const lib = await pdfLib(); MEM.doc = await lib.getDocument({data: new Uint8Array(await f.arrayBuffer())}).promise; MEM.n = MEM.doc.numPages; MEM.name = f.name; MEM.pts = {}; }
+      catch (e) { MEM.doc = null; hint.textContent = "PDF ખૂલી નહીં: " + (e.message || e) + " — ઇન્ટરનેટ ચાલુ કરી ફરી પ્રયત્ન કરો અથવા પાનાનો ફોટો વાપરો."; return; }
+      goPage(1);
+    }
+    const bRead = el("button", {type: "button"}, "🔍 વાંચો"), bApply = el("button", {type: "button", class: "pri"}, "✓ ફોર્મમાં ભરો"), bReset = el("button", {type: "button"}, "↺ ખૂણા ફરી");
+    ovl.append(el("div", {class: "pr-top"}, el("b", {}, "🪄 ફોટામાંથી વાંચો"), el("label", {class: "pr-btn"}, "📂 ફોટો / PDF", inp), el("button", {type: "button", onclick: close}, "✕")),
+      el("div", {class: "pr-cfg"}, "કોષ્ટક:", gSel, "પ્રથમ પ્ર.નં.", start, "હરોળ", cnt), pNav, hint, body, el("div", {class: "pr-bot"}, bReset, bRead, bApply));
+    document.body.append(ovl); document.body.style.overflow = "hidden";
+    const corner = ["ઉપર-ડાબે", "ઉપર-જમણે", "નીચે-જમણે", "નીચે-ડાબે"];
+    function draw() {
+      body.innerHTML = ""; bApply.disabled = !S.res; bRead.disabled = !(S.img && S.pts.length === 4);
+      if (!S.img) { hint.textContent = "📂 ફોટો / PDF દબાવી ભરેલા પાનાનો ફોટો કે સ્કૅન કરેલી PDF (આખું બંડલ) પસંદ કરો. પાનું સીધું, પૂરા પ્રકાશમાં."; return; }
+      if (S.res) return drawRes();
+      hint.textContent = S.pts.length < 4 ? `ફક્ત ✓ વાળાં ખાનાંનો વિસ્તાર: પ્ર. ${start.value} ના પહેલા જવાબ-ખાનાનો ${corner[S.pts.length]} ખૂણો દબાવો (${S.pts.length + 1}/4). મથાળાની હરોળ નહીં.`
+        : "ખૂણા ખસેડી શકાય છે. બરાબર હોય તો 🔍 વાંચો દબાવો.";
+      const cv = el("canvas"); cv.width = S.img.width; cv.height = S.img.height; cv.getContext("2d").putImageData(S.img, 0, 0);
+      const wrap = el("div", {class: "pr-wrap"}, cv); body.append(wrap);
+      const k = () => cv.getBoundingClientRect().width / S.img.width;
+      const g = cv.getContext("2d");
+      if (S.pts.length > 1) { g.strokeStyle = "#d9480f"; g.lineWidth = Math.max(2, S.img.width / 300); g.beginPath(); S.pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); if (S.pts.length === 4) g.closePath(); g.stroke(); }
+      S.pts.forEach(([x, y], i) => { const p = el("div", {class: "pr-pt", style: `left:${x * k()}px;top:${y * k()}px`}, String(i + 1));
+        p.onpointerdown = e => { e.preventDefault(); p.setPointerCapture(e.pointerId);
+          p.onpointermove = ev => { const r = cv.getBoundingClientRect(); S.pts[i] = [Math.max(0, Math.min(S.img.width, (ev.clientX - r.left) / k())), Math.max(0, Math.min(S.img.height, (ev.clientY - r.top) / k()))]; p.style.left = S.pts[i][0] * k() + "px"; p.style.top = S.pts[i][1] * k() + "px"; };
+          p.onpointerup = () => { p.onpointermove = null; draw(); }; };
+        wrap.append(p); });
+      cv.onclick = e => { if (S.pts.length >= 4) return; const r = cv.getBoundingClientRect(); S.pts.push([(e.clientX - r.left) / k(), (e.clientY - r.top) / k()]); draw(); };
+      requestAnimationFrame(() => wrap.querySelectorAll(".pr-pt").forEach((p, i) => { p.style.left = S.pts[i][0] * k() + "px"; p.style.top = S.pts[i][1] * k() + "px"; }));
+    }
+    function final(r, i) { return i in S.man ? S.man[i] : r.ans; }
+    function drawRes() {
+      const R = S.res, g = G(), s0 = +start.value || 1;
+      const flagged = R.rows.filter((r, i) => final(r, i) == null).length;
+      hint.textContent = `${R.rows.length - flagged} જવાબ વંચાયા · ${flagged} શંકાસ્પદ (લાલ) — ફોટાના ટુકડા સાથે દરેક હરોળ મેળવો; ખોટું હોય તો સાચા ખાના પર દબાવો. ${R.exact ? "" : "⚠ કોષ્ટકની બધી લીટીઓ સ્પષ્ટ ન દેખાઈ — દરેક હરોળ ફોટા સાથે ખાસ મેળવો."}`;
+      const tb = el("table", {}, el("tr", {}, el("th", {}, "પ્ર."), el("th", {}, "ફોટો"), ...g.colLabels.map(c => el("th", {}, c)), el("th", {}, "")));
+      R.rows.forEach((r, i) => {
+        const f = final(r, i), tr = el("tr", {class: f == null ? "flag" : ""});
+        const cv = el("canvas"); const hh = Math.max(1, Math.round(r.y1 - r.y0)); cv.width = R.W; cv.height = hh;
+        cv.getContext("2d").putImageData(R.warped, 0, -Math.round(r.y0), 0, Math.round(r.y0), R.W, hh);
+        tr.append(el("td", {class: "no"}, String(s0 + i)), el("td", {class: "img"}, cv));
+        g.colLabels.forEach((_, c) => tr.append(el("td", {class: "c" + (f === c ? " on" : ""), onclick: () => { S.man[i] = f === c ? null : c; drawRes(); }}, f === c ? "✓" : "")));
+        tr.append(el("td", {class: "why"}, i in S.man ? "જાતે" : r.why)); tb.append(tr); });
+      body.innerHTML = ""; body.append(el("div", {class: "pr-res"}, tb));
+      bApply.disabled = false;
+    }
+    inp.onchange = () => { const f = inp.files[0]; if (!f) return;
+      if (f.type === "application/pdf" || /\.pdf$/i.test(f.name)) { inp.value = ""; return loadPdf(f); }
+      MEM.doc = null; pNav.style.display = "none"; const u = URL.createObjectURL(f), im = new Image();
+      im.onload = () => { const m = Math.min(1, 1800 / Math.max(im.naturalWidth, im.naturalHeight)); const c = document.createElement("canvas");
+        c.width = Math.round(im.naturalWidth * m); c.height = Math.round(im.naturalHeight * m); const x = c.getContext("2d"); x.drawImage(im, 0, 0, c.width, c.height);
+        S.img = x.getImageData(0, 0, c.width, c.height); S.pts = []; S.res = null; S.man = {}; URL.revokeObjectURL(u); draw(); };
+      im.src = u; inp.value = ""; };
+    bReset.onclick = () => { S.pts = []; S.res = null; S.man = {}; draw(); };
+    bRead.onclick = () => { const n = Math.max(1, Math.min(+cnt.value || 1, G().rows - (+start.value || 1) + 1)); cnt.value = n;
+      MEM.pts[gSel.value] = {w: S.img.width, pts: S.pts.map(q => q.slice())};
+      S.res = analyse(S.img, S.pts, n, G().colLabels.length); S.man = {}; draw(); };
+    bApply.onclick = () => { if (!S.res) return; const ans = S.res.rows.map((r, i) => final(r, i));
+      const msg = cfg.onApply(+gSel.value, (+start.value || 1) - 1, ans);
+      if (MEM.doc) { const full = (+start.value || 1) + ans.length - 1 >= G().rows; MEM.g = full ? (+gSel.value + 1) % cfg.groups.length : +gSel.value; if (MEM.page < MEM.n) MEM.page++; }
+      close(); if (cfg.after) cfg.after(ans, msg); };
+    gSel.value = MEM.doc ? MEM.g : 0; syncCnt();
+    if (MEM.doc) goPage(MEM.page);
+    draw();
+    return {ovl, S, setImage: im => { S.img = im; S.pts = []; S.res = null; draw(); }, setPts: p => { S.pts = p; draw(); }, read: () => bRead.click(), apply: () => bApply.click(), sel: (gi, st, n) => { gSel.value = gi; start.value = st; cnt.value = n; } };
+  }
+  window.PhotoRead = {open, analyse};
 })();
 </script></body>
 </html>

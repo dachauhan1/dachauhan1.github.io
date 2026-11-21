@@ -535,7 +535,7 @@ function viewExport(){
     h("div", {class:"row"}, ...(KIND === "AX" ? [b("raw", "RAW CSV (કોડ 5–1, 98, 99)", true), b("scored", "SCORED CSV"), b("sps", "SPSS syntax")]
                                             : [b("raw", "કસોટી CSV (ગુણ + ઘટક %)", true), b("sps", "કસોટી SPSS syntax"), b("obj5", "હેતુ 5: ગણિતીકરણ સૂચકાંક (MI)", true)])), out,
     h("p", {class:"muted", style:"margin-top:8px"}, KIND === "AX" ? "ગુણ ફક્ત SCORED ફાઇલમાં બને છે; RAW જેમનો તેમ." :
-      "હેતુ 5 ફાઇલ: એક જ Student ID થી હેતુ 2–3 + કસોટી (+ હેતુ 6) જોડી દરેક વિદ્યાર્થીના A-MI, B2-MI, EV, TL, AC, MI, સ્તર, ભાત (A–D) અને ઘટક C1–C7 ગણે છે. Summary ફાઇલમાં કોષ્ટક 4.5.b, 4.5.c, 4.5.e, 4.5.g, 4.5.h ના આંકડા.")));
+      "હેતુ 5 ફાઇલ: એક જ Student ID થી હેતુ 2–3 + કસોટી (+ હેતુ 6) જોડી દરેક વિદ્યાર્થીના A-MI, B2-MI, EV, TL, AC, MI, સ્તર, ભાત (A–D) અને ઘટક C1–C7 ગણે છે. Summary ફાઇલમાં કોષ્ટક 4.7.b, 4.5.c, 4.5.e, 4.5.g, 4.5.h ના આંકડા.")));
 }
 
 /* ---- Objective 5: Mathematisation Index (item map from "Chapter 4 – Objective 5" analysis note) ---- */
@@ -590,18 +590,18 @@ function obj5(s23, ac, ax){
     const med = so.length % 2 ? so[(so.length - 1) / 2] : (so[so.length / 2 - 1] + so[so.length / 2]) / 2;
     return [v.length, mean.toFixed(2), sd.toFixed(2), med.toFixed(2), so[0].toFixed(2), so[so.length - 1].toFixed(2), LEVELS[level(mean)]]; };
   const sm = [["Objective 5 summary — valid N (all three tools complete)", n], [],
-    ["કોષ્ટક 4.5.b ક્ષેત્રવાર સૂચકાંક", "N", "Mean %", "SD", "Median", "Min", "Max", "સ્તર"],
+    ["કોષ્ટક 4.7.b ક્ષેત્રવાર સૂચકાંક", "N", "Mean %", "SD", "Median", "Min", "Max", "સ્તર"],
     ["TL અધ્યયન–અધ્યાપન", ...stat(V.map(d => d.TL))], ["EV મૂલ્યાંકન", ...stat(V.map(d => d.EV))], ["AC શૈક્ષણિક સિદ્ધિ", ...stat(V.map(d => d.AC))], ["MI સંકલિત", ...stat(V.map(d => d.MI))], [],
-    ["કોષ્ટક 4.5.c ઘટકવાર (Mean %)", "TL", "EV", "AC"]];
+    ["કોષ્ટક 4.7.c ઘટકવાર (Mean %)", "TL", "EV", "AC"]];
   const mean = xs => { const v = xs.filter(x => x != null); return v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(2) : "—"; };
   ["C1", "C2", "C3", "C4", "C5", "C6", "C7"].forEach(c => { const ti = comps.indexOf(c), ei = ["C1", "C2", "C3", "C4", "C5", "C6"].indexOf(c), ai = Object.keys(AC_COMP).indexOf(c);
     sm.push([c, ti < 0 ? "—" : mean(V.map(d => d.tlc[ti])), ei < 0 ? "—" : mean(V.map(d => d.evc[ei])), ai < 0 ? (c === "C1" ? "(C4 સાથે)" : "—") : mean(V.map(d => d.acc[ai]))]); });
-  sm.push([], ["કોષ્ટક 4.5.e સ્તર", "MI ગાળો", "f", "%"]);
+  sm.push([], ["કોષ્ટક 4.7.e સ્તર", "MI ગાળો", "f", "%"]);
   [[1, "0–40.00"], [2, "40.01–60.00"], [3, "60.01–80.00"], [4, "80.01–100"]].forEach(([l, g]) => { const f = V.filter(d => d.lv === l).length; sm.push([LEVELS[l], g, f, n ? (f / n * 100).toFixed(2) : ""]); });
-  sm.push(["કુલ", "", n, n ? "100" : ""], [], ["કોષ્ટક 4.5.g તક × સિદ્ધિ", "f", "%"]);
+  sm.push(["કુલ", "", n, n ? "100" : ""], [], ["કોષ્ટક 4.7.g તક × સિદ્ધિ", "f", "%"]);
   [["A", "સુસંગત ગણિતીકરણ (તક > 60, AC > 60)"], ["B", "સ્થાનાંતર અંતર (તક > 60, AC ≤ 60)"], ["C", "સ્વ-પ્રેરિત (તક ≤ 60, AC > 60)"], ["D", "ગણિતીકરણનો અભાવ (તક ≤ 60, AC ≤ 60)"]]
     .forEach(([p, l]) => { const f = V.filter(d => d.pat === p).length; sm.push([p + ": " + l, f, n ? (f / n * 100).toFixed(2) : ""]); });
-  sm.push([], ["કોષ્ટક 4.5.h ગણિતીકરણ પ્રશ્નો: પૂરા ગુણ મેળવનાર (%)", "%", "સરેરાશ ગુણ"]);
+  sm.push([], ["કોષ્ટક 4.7.h ગણિતીકરણ પ્રશ્નો: પૂરા ગુણ મેળવનાર (%)", "%", "સરેરાશ ગુણ"]);
   const pct = i => { const v = V.map(d => d.fsi[i]).filter(x => x != null); return v.length ? (v.reduce((a, b) => a + b, 0) / v.length * 100).toFixed(2) : "—"; };
   const qm = q => { const v = V.map(d => d.qm && d.qm[q]).filter(x => x != null); return v.length ? (v.reduce((a, b) => a + b, 0) / v.length).toFixed(2) : "—"; };
   sm.push(["Q20 બેંક ખાતું (4)", pct(0), qm(20)], ["Q21 ખુરશી (4)", pct(1), qm(21)], ["Q22 વિકર્ણનું વિધાન (3)", pct(2), qm(22)], ["Q23 સ્તંભ આલેખ (3)", pct(3), qm(23)]);

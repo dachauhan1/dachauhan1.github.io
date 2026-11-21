@@ -222,7 +222,7 @@ function say(text, kind, el){ const m = el || $("#msg"); if (!m) return; m.textC
 /* ====================== question units ====================== */
 // Each question unit groups its variables; used for completeness, missing lists and section progress.
 // merged app: name, school name and district-as-written are not entered — district and school type come from the teacher code
-const HIDE_Q = MERGED ? new Set(["TEACHER_NAME", "SCHOOL_NAME", "SCHOOL_DISTRICT_TEXT"]) : new Set();
+const HIDE_Q = MERGED ? new Set(["TEACHER_NAME", "SCHOOL_NAME", "SCHOOL_DISTRICT_TEXT", "TM_Q3_EXAMPLE"]) : new Set();
 const UNITS = [];
 for (const sec of SPEC) for (const q of sec.qs) {
   if (q.k === "note") continue;

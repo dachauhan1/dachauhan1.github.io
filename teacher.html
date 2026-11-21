@@ -530,7 +530,7 @@ function refreshView(){
 }
 
 /* ====================== shell & routing ====================== */
-const TABS = [["thesis", "📄 થીસિસ પ્રકરણ 3 · 4 · 5"], ["ca", "📚 હેતુ 1 વિષયવસ્તુ વિશ્લેષણ"], ["rate", "📋 તજ્જ્ઞ પત્રક (હેતુ 1)"], ["dash", "ડેશબોર્ડ"], ["list", "શિક્ષક યાદી"], ["form", "ફોર્મ"], ["schools", "શાળા માસ્ટર"], ["qual", "ગુણાત્મક"], ["analysis", "વિશ્લેષણ"],
+const TABS = [["thesis", "📄 થીસિસ પ્રકરણ 3 · 4 · 5"], ["tools", "🛠 ઉપકરણ રચના"], ["ca", "📚 હેતુ 1 વિષયવસ્તુ વિશ્લેષણ"], ["rate", "📋 તજ્જ્ઞ પત્રક (હેતુ 1)"], ["dash", "ડેશબોર્ડ"], ["list", "શિક્ષક યાદી"], ["form", "ફોર્મ"], ["schools", "શાળા માસ્ટર"], ["qual", "ગુણાત્મક"], ["analysis", "વિશ્લેષણ"],
               ["quality", "ડેટા ગુણવત્તા"], ["codebook", "કોડબુક"], ["admin", "એડમિન"]];
 function renderShell(){
   const t = $("#tabs"); t.textContent = ""; t.hidden = false; t.classList.remove("open");
@@ -539,13 +539,13 @@ function renderShell(){
       h("a", {href:"./anxiety.html", class:"main"}, "😟 હેતુ 6"), h("a", {href:"#form", class:"main cur"}, "👩‍🏫 શિક્ષક"),
       isAdmin() ? h("a", {href:"#thesis", class:"main", "data-k":"thesis"}, "📄 થીસિસ") : null,
       h("a", {href:"#", class:"main mbtn", "aria-label":"વધુ વિકલ્પ", onclick:e => { e.preventDefault(); t.classList.toggle("open"); }}, "☰"), h("span", {class:"brk more"}));
-    TABS.forEach(([k, l]) => { if (k === "form" || ((k === "admin" || k === "thesis" || k === "ca") && !isAdmin())) return; t.append(h("a", {href:"#" + k, "data-k":k, class:"more", onclick:() => t.classList.remove("open")}, l)); });
+    TABS.forEach(([k, l]) => { if (k === "form" || ((k === "admin" || k === "thesis" || k === "ca" || k === "tools") && !isAdmin())) return; t.append(h("a", {href:"#" + k, "data-k":k, class:"more", onclick:() => t.classList.remove("open")}, l)); });
     t.append(h("a", {href:"#", class:"more", onclick:async e => { e.preventDefault(); if (S.form && S.form.dirty && !(await ask("સેવ ન થયેલ ફેરફાર છે. છતાં બહાર નીકળવું છે?"))) return; S.fb.U.signOut(S.fb.auth); }},
       "બહાર (" + (S.user.email || "") + (isAdmin() ? " · એડમિન" : "") + ")"));
     return;
   }
   if (MERGED) t.append(h("a", {href:"./index.html", style:"background:var(--soft)"}, "← વિદ્યાર્થી ફોર્મ"));
-  TABS.forEach(([k, l]) => { if ((k === "admin" || k === "thesis" || k === "ca") && !isAdmin()) return; t.append(h("a", {href:"#" + k, "data-k":k}, l)); });
+  TABS.forEach(([k, l]) => { if ((k === "admin" || k === "thesis" || k === "ca" || k === "tools") && !isAdmin()) return; t.append(h("a", {href:"#" + k, "data-k":k}, l)); });
   if (BACKEND === "claude") t.append(h("span", {class:"pill", style:"align-self:center"}, (NAMES.get(S.user.uid) || "તમે") + (isAdmin() ? " · એડમિન" : " · ડેટા એન્ટ્રી")));
   else t.append(h("a", {href:"#", onclick:async e => { e.preventDefault(); if (S.form && S.form.dirty && !(await ask("સેવ ન થયેલ ફેરફાર છે. છતાં બહાર નીકળવું છે?"))) return; S.fb.U.signOut(S.fb.auth); }},
     "બહાર (" + (S.user.email || "") + (isAdmin() ? " · એડમિન" : "") + ")"));
@@ -565,12 +565,12 @@ async function route(soft){
   if (soft && name === S.route && name === "form") return;
   S.route = name;
   document.querySelectorAll("#tabs a").forEach(a => a.classList.toggle("on", a.dataset.k === name));
-  document.querySelectorAll('#tabs a.main[href="#form"]').forEach(a => a.classList.toggle("cur", !["thesis", "ca", "rate", "cons"].includes(name)));
+  document.querySelectorAll('#tabs a.main[href="#form"]').forEach(a => a.classList.toggle("cur", !["thesis", "ca", "rate", "cons", "tools"].includes(name)));
   $("#savebar").hidden = name !== "form";
   const m = $("#main"); const keepScroll = soft ? scrollY : 0;
   m.textContent = ""; m.append(h("p", {class:"msg", id:"msg", hidden:true}));
   const R = {dash:viewDash, list:viewList, form:() => viewForm(arg), schools:viewSchools, qual:viewQual, analysis:viewAnalysis, quality:viewQuality, codebook:viewCodebook,
-             admin:() => isAdmin() ? viewAdmin() : viewDash(), thesis:viewThesis, ca:viewCA, rate:() => viewRate(arg), cons:() => viewCons(arg)}[name] || viewDash;
+             admin:() => isAdmin() ? viewAdmin() : viewDash(), thesis:viewThesis, tools:viewTools, ca:viewCA, rate:() => viewRate(arg), cons:() => viewCons(arg)}[name] || viewDash;
   R();
   if (soft) scrollTo(0, keepScroll);
 }
@@ -1560,6 +1560,98 @@ function caConsStats(){
   return {rows, keep, tot, up, down};
 }
 
+/* ====================== TOOL DEVELOPMENT (ઉપકરણ રચના) → Chapter 3 ====================== */
+// one admin doc per tool: config/td_<tool>; one small file per stage: config/tdf_<tool>_<stage> (≤ 650 KB, base64). Larger files → Google Drive link.
+const TD_TOOLS = [["T1", "વિષયવસ્તુ-વિશ્લેષણ પત્રક", "હેતુ 1", "પાઠ્યપુસ્તક (13 પ્રકરણ)"], ["T2", "ગણિત શિક્ષક અર્ધ-માળખાગત મુલાકાત પત્રક", "હેતુ 2, 3", "ગણિત શિક્ષકો"],
+  ["T3", "વિદ્યાર્થી પ્રત્યક્ષીકરણ અને અધ્યયન અનુભવ અનુસૂચિ", "હેતુ 2, 3", "વિદ્યાર્થીઓ"], ["T4", "ગણિત સિદ્ધિ કસોટી", "હેતુ 4", "વિદ્યાર્થીઓ"], ["T6", "ગણિત ચિંતા માપદંડ", "હેતુ 6", "વિદ્યાર્થીઓ"]];
+const TD_STAGES = [
+  ["d1", "1. પ્રથમ મુસદ્દો (1st Draft)", [["date", "તારીખ/માસ"], ["items", "વિધાનો/પ્રશ્નોની સંખ્યા", "number"], ["basis", "રચનાનો આધાર (NCF-SE 2023, પાઠ્યપુસ્તક, સંદર્ભ સાહિત્ય, અગાઉનાં ઉપકરણો…)", "area"], ["structure", "માળખું (વિભાગો, પ્રતિચાર પ્રકાર, ગુણાંકન)", "area"]]],
+  ["ex", "2. તજ્જ્ઞ અભિપ્રાય (Expert Suggestions)", [["date", "તારીખ/માસ"], ["n", "તજ્જ્ઞોની સંખ્યા", "number"], ["method", "પદ્ધતિ (દા.ત. ગુણાત્મક અભિપ્રાય, CVR/CVI, RAC બેઠક)"], ["experts", "તજ્જ્ઞો — દરેક લાઇનમાં: નામ, હોદ્દો, સંસ્થા", "area"], ["sugg", "મુખ્ય સૂચનો — દરેક લાઇનમાં એક", "area"], ["cvi", "CVI / સહમતિ પરિણામ (હોય તો)"]]],
+  ["d2", "3. દ્વિતીય મુસદ્દો (2nd Draft)", [["date", "તારીખ/માસ"], ["items", "વિધાનો/પ્રશ્નોની સંખ્યા", "number"], ["changes", "તજ્જ્ઞ સૂચનો મુજબ કરેલા ફેરફાર — દરેક લાઇનમાં એક", "area"]]],
+  ["pp", "4. પૂર્વ-અજમાયશ (Pre-pilot / Try-out)", [["date", "તારીખ/માસ"], ["n", "નમૂનો (સંખ્યા)", "number"], ["sample", "નમૂનાનું વર્ણન (શાળા, ધોરણ, જાતિ…)"], ["purpose", "હેતુ (ભાષાની સ્પષ્ટતા, સમય, સૂચનાઓ…)"], ["finding", "મળેલાં અવલોકનો", "area"], ["changes", "કરેલા ફેરફાર", "area"], ["time", "જરૂરી સમય (મિનિટ)"]]],
+  ["pl", "5. અજમાયશ (Pilot Study)", [["date", "તારીખ/માસ"], ["n", "નમૂનો (સંખ્યા)", "number"], ["sample", "નમૂનાનું વર્ણન"], ["analysis", "વિશ્લેષણ (દા.ત. પદ-વિશ્લેષણ: કઠિનતા/વિવેચકતા, સહસંબંધ)", "area"], ["kept", "રાખેલાં", "number"], ["mod", "સુધારેલાં", "number"], ["drop", "કાઢેલાં", "number"], ["relm", "વિશ્વસનીયતા પદ્ધતિ (Cronbach α, KR-20, Split-half, Test-retest, Krippendorff α)"], ["relv", "વિશ્વસનીયતા મૂલ્ય"]]],
+  ["fn", "6. અંતિમ ઉપકરણ (Final Tool)", [["items", "અંતિમ વિધાનો/પ્રશ્નો", "number"], ["structure", "અંતિમ માળખું અને ગુણાંકન", "area"], ["time", "સમય (મિનિટ)"], ["validity", "યથાર્થતા (Content/Face/Construct)", "area"], ["rel", "અંતિમ વિશ્વસનીયતા (પદ્ધતિ અને મૂલ્ય)"]]]];
+const TD = {docs:new Map(), loaded:false, tool:"T1"};
+async function tdLoad(force){
+  if (TD.loaded && !force) return;
+  const r = await Promise.all(TD_TOOLS.map(t => fs().getDoc(dref("config", "td_" + t[0])).then(x => [t[0], x.exists() ? x.data() : null]).catch(() => [t[0], null])));
+  TD.docs = new Map(r.filter(x => x[1])); TD.loaded = true;
+}
+function viewTools(){
+  const m = $("#main"); if (!isAdmin()) { viewDash(); return; }
+  const box = h("div"); m.append(box);
+  tdLoad().then(draw).catch(e => box.append(h("p", {class:"msg bad"}, "લોડ ન થયું: " + (e.code || e.message))));
+  function draw(){
+    box.textContent = ""; const tool = TD_TOOLS.find(t => t[0] === TD.tool);
+    const d = JSON.parse(JSON.stringify(TD.docs.get(TD.tool) || {S:{}, F:{}})); d.S = d.S || {}; d.F = d.F || {};
+    box.append(h("div", {class:"card"}, h("h2", {}, "🛠 ઉપકરણ રચના (પ્રકરણ 3 માટે)"),
+      h("p", {class:"note"}, "દરેક ઉપકરણના 6 તબક્કાની વિગત ભરો; પ્રકરણ 3 (Word) માં એ જ માહિતી પરથી 'ઉપકરણ રચના' ના ફકરા અને કોષ્ટક આપમેળે બનશે. ખાલી ખાનું [કૌંસ] માં બાકી બતાવાશે. હેતુ 5 નું અલગ ઉપકરણ નથી (હેતુ 2, 3, 4 નું સંકલન), તેનું વર્ણન આપમેળે આવે છે."),
+      h("div", {class:"chips"}, ...TD_TOOLS.map(t => h("button", {class:"btn" + (t[0] === TD.tool ? " primary" : ""), type:"button", onclick:() => { TD.tool = t[0]; draw(); }}, `${t[2]}: ${t[1]}`)))));
+    for (const [sid, title, fields] of TD_STAGES) {
+      const st = d.S[sid] = d.S[sid] || {}; const filled = fields.filter(f => String(st[f[0]] ?? "").trim()).length;
+      const fileInfo = d.F[sid]; const fileBox = h("div", {class:"note"});
+      const showFile = () => { fileBox.textContent = ""; const fi = d.F[sid];
+        if (fi) fileBox.append("📎 " + fi.name + ` (${Math.round(fi.size / 1024)} KB) `, h("button", {class:"btn small", type:"button", onclick:async () => { try { const x = await fs().getDoc(dref("config", `tdf_${TD.tool}_${sid}`)); if (!x.exists()) return say("ફાઇલ મળી નહીં.", "warn");
+          const f = x.data(); const bin = atob(f.b64); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); download(f.name, u, f.type || "application/octet-stream"); } catch (er) { say(er.code || er.message, "bad"); } }}, "ડાઉનલોડ"),
+          h("button", {class:"btn small danger", type:"button", onclick:async () => { if (!(await ask("આ ફાઇલ કાઢવી છે?"))) return; try { await fs().deleteDoc(dref("config", `tdf_${TD.tool}_${sid}`)); delete d.F[sid]; await saveDoc(true); showFile(); } catch (er) { say(er.code || er.message, "bad"); } }}, "કાઢો")); };
+      const fileIn = h("input", {type:"file", accept:".pdf,.doc,.docx,.txt,.xlsx,.jpg,.jpeg,.png", onchange:async e => {
+        const f = e.target.files[0]; if (!f) return;
+        if (f.size > 650 * 1024) { e.target.value = ""; return say(`ફાઇલ ${Math.round(f.size / 1024)} KB છે; 650 KB સુધીની જ અહીં સચવાય. મોટી ફાઇલ Google Drive માં મૂકી નીચે લિંક લખો.`, "warn"); }
+        const buf = new Uint8Array(await f.arrayBuffer()); let bin = ""; for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+        try { await tracked(fs().setDoc(dref("config", `tdf_${TD.tool}_${sid}`), {name:f.name, type:f.type, size:f.size, b64:btoa(bin), _at:nowIso()}), "ફાઇલ");
+          d.F[sid] = {name:f.name, size:f.size, type:f.type}; await saveDoc(true); showFile(); say("✓ ફાઇલ સચવાઈ: " + f.name, "ok");
+          if (/\.txt$/i.test(f.name)) { const area = [...box.querySelectorAll(`textarea[data-s="${sid}"]`)].find(x => !x.value); if (area && (await ask("આ લખાણ ફોર્મના ખાનામાં પણ ઉમેરવું છે?"))) { area.value = new TextDecoder().decode(buf); area.dispatchEvent(new Event("input")); } } }
+        catch (er) { say("ફાઇલ સેવ ન થઈ: " + (er.code || er.message), "bad"); } e.target.value = ""; }});
+      box.append(h("details", {class:"card", open:sid === "d1"}, h("summary", {}, h("b", {}, title), ` (${filled}/${fields.length})`),
+        ...fields.map(([fid, lab, type]) => h("div", {class:"field", style:"margin:6px 0"}, h("label", {}, lab),
+          type === "area" ? h("textarea", {rows:3, "data-s":sid, "data-f":fid, style:"width:100%", oninput:e => { st[fid] = e.target.value; }}, st[fid] || "")
+            : h("input", {type:type || "text", "data-s":sid, "data-f":fid, value:st[fid] ?? "", style:"width:100%", oninput:e => { st[fid] = e.target.value; }}))),
+        h("div", {class:"field", style:"margin:6px 0"}, h("label", {}, "Google Drive / ફાઇલની લિંક (મોટી PDF/Word માટે)"), h("input", {type:"url", "data-s":sid, "data-f":"link", value:st.link || "", style:"width:100%", oninput:e => { st.link = e.target.value; }})),
+        h("div", {class:"field"}, h("label", {}, "ફાઇલ જોડો (PDF / Word / Excel / ફોટો / .txt, 650 KB સુધી)"), fileIn), fileBox));
+      if (fileInfo) showFile();
+    }
+    async function saveDoc(quiet){ d.TOOL = TD.tool; d._at = nowIso(); d._by = S.user.email || S.user.uid;
+      await tracked(fs().setDoc(dref("config", "td_" + TD.tool), d), "ઉપકરણ રચના"); TD.docs.set(TD.tool, JSON.parse(JSON.stringify(d))); if (!quiet) say(`✓ ${tool[1]}: સેવ થયું.`, "ok"); }
+    box.append(h("div", {class:"card", style:"position:sticky;bottom:0;z-index:5"}, h("div", {class:"chips"},
+      h("button", {class:"btn primary", type:"button", id:"tdSave", onclick:() => saveDoc().catch(er => say("સેવ ન થયું: " + (er.code || er.message), "bad"))}, "💾 સેવ કરો"),
+      h("button", {class:"btn", type:"button", onclick:async () => { try { await saveDoc(true); thesisDownload(3); } catch (er) { say(er.code || er.message, "bad"); } }}, "📄 પ્રકરણ 3 (Word)"))));
+  }
+}
+// Chapter 3: development narrative for one tool, from its six stages
+function tdBlock(K, tid, sec, k0){
+  const {P, B, T, TODO, cap} = K; const d = TD.docs.get(tid) || {S:{}}; const S0 = d.S || {}; const g = (s, f) => String((S0[s] || {})[f] ?? "").trim();
+  const lines = t => t.split(/\n+/).map(x => x.replace(/^\s*(?:[-•*]|\d+[.)])\s*/, "").trim()).filter(Boolean);
+  const out = [P("ઉપકરણ રચનાના તબક્કા:", {b:true, after:40})]; let k = k0 || 0;
+  // 1st draft
+  out.push(P(`(1) પ્રથમ મુસદ્દો: ${g("d1", "basis") ? `${g("d1", "basis")} ના આધારે ` : ""}સંશોધકે ${g("d1", "date") ? g("d1", "date") + " માં " : ""}ઉપકરણનો પ્રથમ મુસદ્દો રચ્યો${g("d1", "items") ? `, જેમાં ${g("d1", "items")} વિધાનો/પ્રશ્નો હતાં` : ""}.${g("d1", "structure") ? " " + g("d1", "structure") : ""}`));
+  if (!g("d1", "basis")) out.push(TODO("પ્રથમ મુસદ્દાનો આધાર અને માળખું 🛠 ઉપકરણ રચનામાં ભરો"));
+  // experts
+  const ex = lines(g("ex", "experts"));
+  out.push(P(`(2) તજ્જ્ઞ અભિપ્રાય: પ્રથમ મુસદ્દો ${g("ex", "n") || ex.length || "__"} તજ્જ્ઞોને ${g("ex", "date") ? `(${g("ex", "date")}) ` : ""}વિષયવસ્તુ યથાર્થતા (Content Validity) માટે આપ્યો${g("ex", "method") ? `; પદ્ધતિ: ${g("ex", "method")}` : ""}.${g("ex", "cvi") ? ` પરિણામ: ${g("ex", "cvi")}.` : ""}`));
+  if (ex.length) out.push(cap(`કોષ્ટક ${sec}.${++k}: તજ્જ્ઞોની યાદી`), T(["ક્રમ", "નામ", "હોદ્દો", "સંસ્થા"], ex.map((x, i) => { const p = x.split(/\s*[,،]\s*/); return [i + 1, p[0] || "", p[1] || "", p.slice(2).join(", ")]; }), "સ્ત્રોત: સંશોધકની નોંધ."));
+  const sg = lines(g("ex", "sugg")); if (sg.length) out.push(P("તજ્જ્ઞોનાં મુખ્ય સૂચનો:", {after:40}), ...sg.map(B)); else out.push(TODO("તજ્જ્ઞોનાં સૂચનો ભરો"));
+  // 2nd draft
+  const ch = lines(g("d2", "changes"));
+  out.push(P(`(3) દ્વિતીય મુસદ્દો: તજ્જ્ઞ સૂચનો મુજબ સુધારા કરી ${g("d2", "date") ? g("d2", "date") + " માં " : ""}દ્વિતીય મુસદ્દો તૈયાર કર્યો${g("d2", "items") ? `, જેમાં ${g("d2", "items")} વિધાનો/પ્રશ્નો રહ્યાં` : ""}.`));
+  if (ch.length) out.push(...ch.map(B));
+  // pre-pilot
+  if (g("pp", "n") || g("pp", "finding")) out.push(P(`(4) પૂર્વ-અજમાયશ: દ્વિતીય મુસદ્દો ${g("pp", "n") || "__"} ઉત્તરદાતાઓ${g("pp", "sample") ? ` (${g("pp", "sample")})` : ""} પર ${g("pp", "date") ? `${g("pp", "date")} માં ` : ""}અજમાવ્યો${g("pp", "purpose") ? `; હેતુ: ${g("pp", "purpose")}` : ""}.${g("pp", "time") ? ` જરૂરી સમય આશરે ${g("pp", "time")} મિનિટ જણાયો.` : ""}${g("pp", "finding") ? " " + lines(g("pp", "finding")).join("; ") + "." : ""}${g("pp", "changes") ? " ફેરફાર: " + lines(g("pp", "changes")).join("; ") + "." : ""}`));
+  else out.push(TODO("(4) પૂર્વ-અજમાયશની વિગત ભરો"));
+  // pilot
+  if (g("pl", "n") || g("pl", "relv")) {
+    out.push(P(`(5) અજમાયશ: ઉપકરણ ${g("pl", "n") || "__"} ઉત્તરદાતાઓ${g("pl", "sample") ? ` (${g("pl", "sample")})` : ""} પર ${g("pl", "date") ? `${g("pl", "date")} માં ` : ""}અજમાવ્યું.${g("pl", "analysis") ? " " + lines(g("pl", "analysis")).join("; ") + "." : ""}${g("pl", "relv") ? ` વિશ્વસનીયતા (${g("pl", "relm") || "પદ્ધતિ"}) = ${g("pl", "relv")}.` : ""}`));
+    if (g("pl", "kept") || g("pl", "mod") || g("pl", "drop")) out.push(cap(`કોષ્ટક ${sec}.${++k}: અજમાયશ પછી વિધાનો/પ્રશ્નોની સ્થિતિ`), T(["સ્થિતિ", "સંખ્યા"], [["રાખેલાં", g("pl", "kept") || 0], ["સુધારેલાં", g("pl", "mod") || 0], ["કાઢેલાં", g("pl", "drop") || 0]], "સ્ત્રોત: અજમાયશનું પદ-વિશ્લેષણ."));
+  } else out.push(TODO("(5) અજમાયશ (નમૂનો, પદ-વિશ્લેષણ, વિશ્વસનીયતા) ભરો"));
+  // stage table
+  const rows = [["પ્રથમ મુસદ્દો", g("d1", "date"), g("d1", "items")], ["તજ્જ્ઞ અભિપ્રાય", g("ex", "date"), g("ex", "n") ? g("ex", "n") + " તજ્જ્ઞ" : ""], ["દ્વિતીય મુસદ્દો", g("d2", "date"), g("d2", "items")],
+    ["પૂર્વ-અજમાયશ", g("pp", "date"), g("pp", "n") ? "N = " + g("pp", "n") : ""], ["અજમાયશ", g("pl", "date"), g("pl", "n") ? "N = " + g("pl", "n") : ""], ["અંતિમ ઉપકરણ", "", g("fn", "items")]].filter(r => r[1] || r[2]);
+  if (rows.length >= 2) out.push(cap(`કોષ્ટક ${sec}.${++k}: ઉપકરણ રચનાના તબક્કા`), T(["તબક્કો", "સમય", "વિધાનો / નમૂનો"], rows, "સ્ત્રોત: સંશોધકની નોંધ."));
+  // final
+  out.push(P(`(6) અંતિમ ઉપકરણ: ${g("fn", "items") ? `અંતિમ ઉપકરણમાં ${g("fn", "items")} વિધાનો/પ્રશ્નો છે. ` : ""}${g("fn", "structure")}${g("fn", "time") ? ` સમય: ${g("fn", "time")} મિનિટ.` : ""}${g("fn", "validity") ? ` યથાર્થતા: ${g("fn", "validity")}.` : ""}${g("fn", "rel") ? ` વિશ્વસનીયતા: ${g("fn", "rel")}.` : ""}`));
+  if (!g("fn", "validity") && !g("fn", "rel")) out.push(TODO("અંતિમ ઉપકરણની યથાર્થતા અને વિશ્વસનીયતા ભરો"));
+  return out;
+}
+
 /* ====================== THESIS CHAPTERS 3 · 4 · 5 (.docx, Shruti) ====================== */
 // Every number comes from the saved records; sentences are rule-based drafts. [કૌંસ] = the researcher must write or confirm.
 function docKit(){
@@ -1710,7 +1802,7 @@ function thesisCh3(onlyVerified){
     P("વિશ્વસનીયતા: ધોરણ 8 ગણિત શીખવતા 13 અનુભવી શિક્ષકોને (તજ્જ્ઞ મૂલ્યાંકનકાર) એક-એક પ્રકરણ ફાળવ્યું. તેમને સૂચનાઓ, માપદંડ, 11 ગુણાંકન-નિયમો અને દરેક સૂચકની 'શું જોવું' વ્યાખ્યા આપી કેલિબ્રેશન કરાવ્યું. તેમણે સંશોધકના ગુણ જોયા વિના સ્વતંત્ર રીતે ડિજિટલ પત્રકમાં ગુણ આપ્યા. આમ 13 × 51 = 663 સૂચક-જોડીઓ પરથી સંપૂર્ણ સહમતિ %, ±1 સહમતિ % અને Krippendorff's α (ordinal) ગણ્યા. ત્યાર બાદ તફાવતવાળા સૂચકો પર ચર્ચા કરી અંતિમ (સહમતિ) ગુણ નક્કી કર્યા."),
     ...(() => { const rows = []; for (let c = 1; c <= 13; c++) { const d = CA.docs.get("r2_" + c); if (d && d.NAME_R) rows.push([c, d.NAME_R, d.POST || "", d.EXP || "", d.QUAL || ""]); }
       return rows.length ? [cap("કોષ્ટક 3.3 (ક): તજ્જ્ઞ મૂલ્યાંકનકારો"), T(["પ્રકરણ", "નામ", "હોદ્દો/સંસ્થા", "અનુભવ (વર્ષ)", "લાયકાત"], rows, "સ્ત્રોત: તજ્જ્ઞ મૂલ્યાંકન પત્રક.")] : [TODO("તજ્જ્ઞોની યાદી (નામ, હોદ્દો, અનુભવ) — તેઓ ડિજિટલ પત્રક ભરે એટલે આપમેળે આવશે")]; })(),
-    TODO("પત્રકની વિષયવસ્તુ યથાર્થતા (તજ્જ્ઞ અભિપ્રાય/RAC સૂચનો) લખો"),
+    ...tdBlock(K, "T1", "3.7.1"),
     H("3.7.2 ગણિત શિક્ષક અર્ધ-માળખાગત મુલાકાત પત્રક", 3),
     P("આ પત્રક ધોરણ 8 ગણિત શિક્ષણ માટે NCF-SE 2023 મુજબની અધ્યાપનશાસ્ત્રીય પ્રથાઓ અને વર્તમાન મૂલ્યાંકન પ્રક્રિયા જાણવા સંશોધકે રચ્યું છે. તેના વિભાગો અને પ્રશ્નોની સંખ્યા કોષ્ટક 3.4 માં છે."));
   const secRows = SPEC.filter(s => s.id !== "info" && s.qs.some(q => q.k !== "note")).map(s => {
@@ -1720,7 +1812,29 @@ function thesisCh3(onlyVerified){
     return [s.title[0], qs.length, items || "–", kinds]; });
   b.push(cap("કોષ્ટક 3.4: શિક્ષક મુલાકાત પત્રકના વિભાગો"), T(["વિભાગ", "પ્રશ્નો", "કોષ્ટક-વિધાનો", "પ્રતિચાર પ્રકાર"], secRows, "સ્ત્રોત: શિક્ષક મુલાકાત પત્રક. 'પ્રશ્નો' માં કોષ્ટક-પ્રશ્ન એક ગણ્યો છે."),
     P("ડિજિટલ માહિતી દાખલ ફોર્મમાં પેપર પત્રક ઉપરાંત ત્રણ ફેરફાર કર્યા છે: (1) નિમણૂંકના પ્રકારમાં 'હંગામી' વિકલ્પ ઉમેર્યો; (2) શૈક્ષણિક અનુભવ વર્ષ અને મહિના બંનેમાં લીધો, અને વિશ્લેષણ માટે અનુભવ = વર્ષ + મહિના ÷ 12 ગણ્યો; (3) શિક્ષકનું નામ, શાળાનું નામ અને જિલ્લો શિક્ષક કોડ દ્વારા ઓળખાય છે, તેથી તે અલગ દાખલ કર્યાં નથી."),
-    TODO("ઉપકરણની રચના, તજ્જ્ઞ અભિપ્રાય (Content validity), પ્રાયોગિક અજમાયશ (Try-out) અને સુધારા લખો; વિદ્યાર્થી ઉપકરણો માટે પણ વિશ્વસનીયતા/યથાર્થતા લખો"),
+    ...tdBlock(K, "T2", "3.7.2"),
+    H("3.7.3 વિદ્યાર્થી પ્રત્યક્ષીકરણ અને અધ્યયન અનુભવ અનુસૂચિ (હેતુ 2, 3)", 3),
+    P("વર્ગખંડમાં ગણિતની અધ્યયન-અધ્યાપન પ્રથાઓ અને મૂલ્યાંકન પ્રથાઓનો વિદ્યાર્થીઓનો અનુભવ જાણવા સંશોધકે આ અનુસૂચિ રચી છે. તેના દ્વારા શિક્ષક પત્રકની માહિતીનું ત્રિકોણીકરણ થાય છે, અને વિભાગ A, B2 તથા મૂલ્યાંકન-વિભાગ હેતુ 5 ના ગણિતીકરણ સૂચકાંકનો આધાર છે."),
+    cap("કોષ્ટક 3.7.3.1: વિદ્યાર્થી અનુસૂચિનું માળખું"),
+    T(["વિભાગ", "વિધાનો", "પ્રતિચાર", "હેતુ"], [["વિભાગ A", 18, "3-બિંદુ: નિયમિત રીતે / ક્યારેક / ક્યારેય નહીં (3/2/1)", "2"], ["વિભાગ B2", 13, "3-બિંદુ (3/2/1)", "2"], ["વિભાગ C", "ક્રમાંકન", "1 = સૌથી વધુ ગમે … 4 = સૌથી ઓછું ગમે", "2"], ["મૂલ્યાંકન અનુભવ", 23, "3-બિંદુ (3/2/1)", "3"]], "સ્ત્રોત: વિદ્યાર્થી અનુસૂચિ."),
+    TODO("દરેક વિભાગનું પૂરું શીર્ષક પેપર અનુસૂચિ મુજબ ચકાસો"),
+    ...tdBlock(K, "T3", "3.7.3", 1),
+    H("3.7.4 ગણિત સિદ્ધિ કસોટી (હેતુ 4)", 3),
+    P("ધોરણ 8 ના ગણિત પાઠ્યપુસ્તક અને NCF-SE 2023 ની ક્ષમતાઓ પરથી સંશોધકે 23 પ્રશ્નો અને 40 ગુણની કસોટી રચી છે. લાંબા પ્રશ્નો (20–23) ગણિતીકરણ — પરિસ્થિતિનું ગાણિતિક નમૂનામાં રૂપાંતર, તર્ક, રજૂઆત અને અર્થઘટન — માપે છે; ગુણભાર-યોજના મુજબ ½ ગુણના પગથિયે ગુણ આપ્યા છે."),
+    cap("કોષ્ટક 3.7.4.1: કસોટીનું માળખું"),
+    T(["પ્રશ્ન", "પ્રકાર", "ગુણ/પ્રશ્ન", "કુલ ગુણ"], [["1–12", "બહુવિકલ્પ", "1", "12"], ["13–19", "ટૂંકા જવાબ", "2", "14"], ["20–21", "લાંબા જવાબ (ગણિતીકરણ)", "4", "8"], ["22–23", "લાંબા જવાબ (ગણિતીકરણ)", "3", "6"], ["કુલ", "23 પ્રશ્નો", "", "40"]], "સ્ત્રોત: ગણિત સિદ્ધિ કસોટી."),
+    cap("કોષ્ટક 3.7.4.2: ક્ષમતાવાર ગુણભાર (બ્લૂ-પ્રિન્ટ)"),
+    T(["ક્ષમતા", "પ્રશ્નો", "ગુણ", "%"], [["C2", "11, 18, 23", "6", "15.0"], ["C3", "1, 9, 13, 16, 17, 22", "11", "27.5"], ["C4", "2, 6, 12, 14, 15, 20, 21", "15", "37.5"], ["C7", "3, 4, 5, 7, 8, 10, 19", "8", "20.0"], ["કુલ", "23", "40", "100.0"]], "સ્ત્રોત: કસોટીની બ્લૂ-પ્રિન્ટ."),
+    TODO("ક્ષમતા C2, C3, C4, C7 નાં પૂરાં નામ NCF-SE 2023 મુજબ લખો"),
+    ...tdBlock(K, "T4", "3.7.4", 2),
+    H("3.7.5 ગણિતીકરણ સૂચકાંક (હેતુ 5)", 3),
+    P("હેતુ 5 માટે અલગ ઉપકરણ નથી. એક જ Student ID થી હેતુ 2–3 ની વિદ્યાર્થી અનુસૂચિ અને હેતુ 4 ની કસોટીની માહિતી જોડી દરેક વિદ્યાર્થીનો ગણિતીકરણ સૂચકાંક (MI) ગણ્યો છે. વિભાગનો સૂચકાંક = (મધ્યક − 1) ÷ 2 × 100, જ્યારે વિભાગનાં ઓછામાં ઓછાં 80% વિધાનોના જવાબ હોય."),
+    cap("કોષ્ટક 3.7.5.1: ગણિતીકરણ સૂચકાંકના ઘટકો"),
+    T(["ઘટક", "આધાર", "ગણતરી"], [["TL (અધ્યયન-અધ્યાપન તક)", "અનુસૂચિ વિભાગ A અને B2", "(A + B2) ÷ 2"], ["EV (મૂલ્યાંકન અનુભવ)", "અનુસૂચિ, મૂલ્યાંકન વિભાગ", "(મધ્યક − 1) ÷ 2 × 100"], ["AC (સિદ્ધિ)", "ગણિત સિદ્ધિ કસોટી", "ગુણ ÷ 40 × 100"], ["MI", "ત્રણેયનું સંકલન", "(TL + EV + AC) ÷ 3"]], "સ્ત્રોત: સંશોધકની વિશ્લેષણ યોજના."),
+    P("MI સ્તર: 0–40 નીચું, 40.01–60 સરેરાશ, 60.01–80 ઉચ્ચ, 80.01–100 ખૂબ ઉચ્ચ. તક = (TL + EV) ÷ 2 અને AC ને 60 ની સીમાએ સરખાવી ચાર ભાત: A સુસંગત ગણિતીકરણ (તક > 60, AC > 60), B સ્થાનાંતર અંતર (તક > 60, AC ≤ 60), C સ્વ-પ્રેરિત (તક ≤ 60, AC > 60), D ગણિતીકરણનો અભાવ (બંને ≤ 60)."),
+    H("3.7.6 ગણિત ચિંતા માપદંડ (હેતુ 6)", 3),
+    P("ધોરણ 8 ના વિદ્યાર્થીઓની ગણિત ચિંતા માપવા 21 વિધાનોનો 5-બિંદુ (સંપૂર્ણ સહમત = 5 … સંપૂર્ણ અસહમત = 1) માપદંડ વાપર્યો છે. 5 ધન વિધાનો (6, 9, 12, 18, 21) ઊલટા ગણ્યા છે (6 − કોડ), જેથી મોટો અંક = વધુ ચિંતા. ઓછામાં ઓછાં 17 વિધાનોના જવાબ હોય તો જ વિધાનદીઠ મધ્યક (MAS) ગણ્યો છે; સ્તર: 1.00–2.33 ઓછી, 2.34–3.66 મધ્યમ, 3.67–5.00 વધુ."),
+    ...tdBlock(K, "T6", "3.7.6"),
     H("3.8 માહિતી એકત્રીકરણ", 2),
     P("સંશોધકે પસંદ થયેલ શાળાઓની રૂબરૂ મુલાકાત લઈ શિક્ષકો સાથે મુલાકાત પત્રક ભરાવ્યું તથા વિદ્યાર્થીઓ પાસે અનુસૂચિ, સિદ્ધિ કસોટી અને ચિંતા માપદંડ પેપર પર ભરાવ્યાં."), TODO("માહિતી એકત્રીકરણનો સમયગાળો, શાળા પરવાનગી અને સૂચનાઓ લખો"),
     H("3.9 માહિતી દાખલ અને ચકાસણી", 2),
@@ -1811,6 +1925,7 @@ function thesisCh5(onlyVerified){
 async function thesisDownload(ch){
   const v = !!(document.querySelector("#thV") || {}).checked; const fn = {3:thesisCh3, 4:thesisCh4, 5:thesisCh5}[ch];
   try { await caLoad(true); } catch (e) {}
+  try { await tdLoad(true); } catch (e) {}
   download(`Thesis_Chapter${ch}_${today()}.docx`, fn(v), "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
   audit("export", "", [], {file:"thesis_ch" + ch});
 }
@@ -1822,6 +1937,7 @@ function viewThesis(){
   m.append(h("div", {class:"card"}, h("h2", {}, "થીસિસ પ્રકરણ (Word, શ્રુતિ ફોન્ટ)"),
     h("p", {class:"note"}, `સેવ થયેલ શિક્ષકો: ${all.length} · Verified: ${nv}. દરેક ફાઇલ શ્રુતિ (Shruti) ફોન્ટ, A4, 1.5 લાઇન-અંતર, પાન-નંબર અને Heading શૈલી સાથે બને છે (Word માં આપમેળે અનુક્રમણિકા બની શકે). [કૌંસ] માંની બાબતો તમારે લખવાની કે ચકાસવાની છે.`),
     h("label", {class:"note", style:"display:flex;gap:8px;align-items:center;margin:8px 0"}, h("input", {type:"checkbox", id:"thV", checked:nv > 0}), "ફક્ત Verified રેકોર્ડ (અંતિમ થીસિસ માટે ✓ રાખો)"),
+    h("a", {href:"#tools", class:"btn", id:"tdLink", style:"display:block;text-align:left;padding:12px 16px;margin:10px 0;font-size:1rem"}, "🛠 ઉપકરણ રચના: 5 ઉપકરણ × 6 તબક્કા (પ્રથમ મુસદ્દો → તજ્જ્ઞ → દ્વિતીય મુસદ્દો → પૂર્વ-અજમાયશ → અજમાયશ → અંતિમ), ફાઇલ જોડો"),
     h("a", {href:"#ca", class:"btn", id:"caLink", style:"display:block;text-align:left;padding:12px 16px;margin:10px 0;font-size:1rem"}, "📚 હેતુ 1: વિષયવસ્તુ વિશ્લેષણ — 13 પ્રકરણના ગુણ દાખલ કરો"),
     big(3, "સંશોધન પદ્ધતિ", "ડિઝાઇન, હેતુઓ, વ્યાપવિશ્વ-નમૂનો (ડેટા પરથી કોષ્ટક), ઉપકરણો, માહિતી દાખલ-ચકાસણી, કોડિંગ, વિશ્લેષણ પ્રવિધિ, નૈતિક બાબતો"),
     big(4, "માહિતીનું વિશ્લેષણ અને અર્થઘટન", "હેતુ 1 (13 પ્રકરણ × 9 ઘટક, સૂચકાંક, વિશ્વસનીયતા) અને હેતુ 2, 3: ક્રમાંકિત કોષ્ટકો (f, %, મધ્યક, ક્રમાંક), દરેક કોષ્ટકનું અર્થઘટન, મુખ્ય તારણો, ગુણાત્મક જવાબોનું પરિશિષ્ટ"),
@@ -2127,7 +2243,7 @@ function buildVerifyWorkbook(){
     ["Original checkbox options compared", VERIFY_ROWS.reduce((a, r) => a + (r.n_opts || 0), 0)], ["Original table statements compared", VERIFY_ROWS.filter(r => r.kind === "table-row").length]];
   return xlsx([{name:"Summary", rows:sum, filter:false, freeze:false, widths:[40, 20]}, {name:"Verification_Report", rows, wrap:true, widths:[8, 30, 10, 60, 50, 60, 50, 10, 50]}]);
 }
-window.__TEST__ = {S, buildWorkbook, buildVerifyWorkbook, spssSyntax, spssCsv, masterCsv, codebookRows, thesisCh3, thesisCh4, thesisCh5, caStats, kAlphaOrdinal, CA, caLoad, raterKit, qualityOf, completeness, readForm};
+window.__TEST__ = {S, buildWorkbook, buildVerifyWorkbook, spssSyntax, spssCsv, masterCsv, codebookRows, thesisCh3, thesisCh4, thesisCh5, caStats, kAlphaOrdinal, CA, caLoad, raterKit, TD, tdLoad, qualityOf, completeness, readForm};
 boot();
 </script>
 </body>

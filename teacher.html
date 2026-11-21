@@ -280,6 +280,20 @@ function sidPicker(id, onchange){
 const setSid = c => { const w = $("#a_SID") && $("#a_SID").closest(".spick"); if (w) w.setCode(c); };
 
 /* ====================== quality checks ====================== */
+// rating tables: higher code = more (3 = નિયમિત/વધારે/વધુ, 2 = ક્યારેક/મધ્યમ, 1 = ક્યારેય નહીં/ઓછું)
+// ordinal single-choice items whose first option is the "most" end — coded high → low like the tables
+const REV_SINGLE = new Set(["TT_Q11_HOT", "TT_Q12_ACTIVE", "EL_Q3_IMPROVEMENT", "SK_Q2_WHEN", "SK_Q3_CHOICE", "SK_Q5_ADAPT", "ICT_Q4_FREQUENCY",
+  "TRAIN_Q3_CHANGE", "TRAIN_Q5_PEDCHANGE", "TRAIN_Q6_IMPROVED", "TRAIN_Q8_USEFUL", "ASSESS_Q08", "ASSESS_Q09", "ASSESS_Q10", "ASSESS_Q11"]);
+const isRev = v => v.type === "single (rating)" || (v.type === "single" && REV_SINGLE.has(v.name));
+const codeOf = (v, i) => isRev(v) ? v.opts.length - i : i + 1;
+const TBL_CODE = 2;   // records saved before this version used 1 = left column; converted on read
+function normTbl(r){
+  if (!r || r.TBL_CODE === TBL_CODE) return r;
+  for (const n of TABLE_VARS) if (typeof r[n] === "number" && r[n] >= 1 && r[n] <= 3) r[n] = 4 - r[n];
+  for (const n of REV_SINGLE) { const k = VARMAP0.get(n).opts.length; if (typeof r[n] === "number" && r[n] >= 1 && r[n] <= k) r[n] = k + 1 - r[n]; }
+  r.TBL_CODE = TBL_CODE; return r;
+}
+const VARMAP0 = new Map(VARS.map(v => [v.name, v]));
 const TABLE_VARS = VARS.filter(v => v.type === "single (rating)").map(v => v.name);
 function qualityOf(rec){
   const err = [], warn = [];
@@ -489,7 +503,7 @@ function stopSubs(){ subs.forEach(u => { try { u(); } catch {} }); subs = []; S.
 function startSubs(){
   const F = fs();
   const watch = (q, key, after) => subs.push(F.onSnapshot(q, {includeMetadataChanges:true}, snap => {
-    S[key] = new Map(snap.docs.map(d => [d.id, Object.assign({}, d.data())]));
+    S[key] = new Map(snap.docs.map(d => [d.id, (key === "teachers" || key === "second") ? normTbl(Object.assign({}, d.data())) : Object.assign({}, d.data())]));
     if (key === "teachers" || key === "verify") deriveVerify();
     if (key === "teachers") { S.connected = !snap.metadata.fromCache || S.connected; updateNet(); resolveNames(); }
     after && after(); refreshView();
@@ -577,7 +591,7 @@ function tidPicker(onpick){
   const show = h("b", {style:"font-size:1.15rem"}, "—");
   const upd = () => { const c = sd.value && sp.value && sn.value ? `${sd.value}${sp.value}T${String(sn.value).padStart(2, "0")}` : ""; show.textContent = c || "—"; if (c) onpick(c); };
   [sd, sp, sn].forEach(e => e.addEventListener("change", upd));
-  const wrap = h("div", {class:"spick tpick"}, h("div", {class:"chips"}, sd, sp, sn), MERGED ? h("div", {class:"note"}, "શિક્ષક કોડ: ", show) : h("div", {class:"note"}, "શિક્ષક કોડ: ", show, " · દા.ત. AGT01 = અમદાવાદ સરકારી શિક્ષક 01, APT02, AGIAT01"), hid);
+  const wrap = h("div", {class:"spick tpick"}, h("div", {class:"chips"}, sd, sp, sn), MERGED ? h("div", {hidden:true}, show) : h("div", {class:"note"}, "શિક્ષક કોડ: ", show, " · દા.ત. AGT01 = અમદાવાદ સરકારી શિક્ષક 01, APT02, AGIAT01"), hid);
   wrap.setCode = c => { const m = TCODE_RE.exec(c || ""); sd.value = m ? m[1] : ""; sp.value = m ? m[2] : ""; sn.value = m ? String(Number(m[3])) : ""; hid.value = c || ""; show.textContent = c || "—"; };
   return wrap;
 }
@@ -665,7 +679,10 @@ function radioChip(name, val, label, cls){
   const id = "r_" + name + "_" + val;
   return h("label", {class:"chip", for:id}, h("input", {type:"radio", name, value:String(val), id, "data-v":name}), h("span", {}, label));
 }
-function qTitle(q){ return h("div", {class:"qt"}, q.no ? h("span", {class:"no"}, q.no) : null, q.q, h("span", {class:"qv"}, q.v || "")); }
+const SHOW_NO = MERGED ? {"4":"1", "5":"2", "6":"3"} : {};   // Q1–3 are not shown in the app, so renumber the info block
+const SHOW_Q = MERGED ? {TM_Q3_STEPS:t => t.replace(/\s*ઉદાહરણ આપો\.?\s*$/, ""), TM_Q3_EXAMPLE:() => "ઉદાહરણ:"} : {};
+function qTitle(q){ const no = q.v === "TM_Q3_EXAMPLE" && MERGED ? "" : (SHOW_NO[q.no] && ["SCHOOL_TYPE_PAPER", "APPOINTMENT_TYPE", "TEACH_EXP_YEARS / TEACH_EXP_MONTHS"].includes(q.v) ? SHOW_NO[q.no] : q.no);
+  return h("div", {class:"qt"}, no ? h("span", {class:"no"}, no) : null, SHOW_Q[q.v] ? SHOW_Q[q.v](q.q) : q.q, h("span", {class:"qv"}, q.v || "")); }
 function renderQ(q, sec){
   if (q.k === "note") return h("div", {class:"q note-q", "data-note":"1"}, h("div", {class:"qt"}, q.text));
   const box = h("div", {class:"q", "data-q":q.v});
@@ -680,7 +697,7 @@ function renderQ(q, sec){
         h("input", {type:"number", id:"f_TEACH_EXP_MONTHS", "data-v":"TEACH_EXP_MONTHS", min:"0", max:"11", step:"1", inputmode:"numeric", style:"max-width:110px", placeholder:"0"}), h("span", {}, "મહિના")),
       h("div", {class:"qhint", id:"expHint"}, "પેપર પર લખેલી સંખ્યા અને મહિના/વર્ષ પસંદ કરો."));
   } else if (q.k === "single") {
-    box.append(qTitle(q), h("div", {class:"chips", role:"radiogroup"}, q.o.map((o, i) => radioChip(q.v, i + 1, o)),
+    box.append(qTitle(q), h("div", {class:"chips", role:"radiogroup"}, q.o.map((o, i) => radioChip(q.v, REV_SINGLE.has(q.v) ? q.o.length - i : i + 1, o)),
       q.oth ? h("div", {class:"othbox"}, h("span", {}, "અન્ય:"), h("input", {type:"text", id:"f_" + q.v + "_OTH", "data-v":q.v + "_OTH", "aria-label":q.q + " અન્ય"})) : null));
   } else if (q.k === "multi") {
     const vars = multiVars(q);
@@ -692,13 +709,13 @@ function renderQ(q, sec){
     q.items.forEach((it, i) => {
       const v = `${q.v}_${String(i + 1).padStart(2, "0")}`;
       tb.append(h("tr", {"data-row":v}, h("td", {class:"n"}, String(i + 1)), h("td", {class:"it"}, h("span", {class:"mn"}, String(i + 1) + "."), it, h("span", {class:"qv"}, v)),
-        ...q.o.map((o, k) => { const id = "r_" + v + "_" + (k + 1);
-          return h("td", {class:"c"}, h("label", {for:id, title:o}, h("input", {type:"radio", name:v, value:String(k + 1), id, "data-v":v, "aria-label":it + " — " + o}), h("span", {class:"dot"}), h("span", {class:"ml"}, o))); })));
+        ...q.o.map((o, k) => { const cv = q.o.length - k; const id = "r_" + v + "_" + cv;
+          return h("td", {class:"c"}, h("label", {for:id, title:o}, h("input", {type:"radio", name:v, value:String(cv), id, "data-v":v, "aria-label":it + " — " + o}), h("span", {class:"dot"}), h("span", {class:"ml"}, o))); })));
     });
     box.append(h("div", {class:"qt"}, q.q, h("span", {class:"qv"}, q.v + "_01–" + String(q.items.length).padStart(2, "0"))),
-      h("div", {class:"qhint"}, "દરેક હરોળમાં એક વિકલ્પ · કીબોર્ડ: 1/2/3 દબાવો (0 = ખાલી)"),
+      h("div", {class:"qhint"}, "દરેક હરોળમાં એક વિકલ્પ · કીબોર્ડ: 3/2/1 દબાવો (0 = ખાલી)"),
       MERGED ? h("div", {class:"qk"}, h("input", {type:"text", inputmode:"numeric", class:"qkin", "data-t":q.v, "data-n":String(q.items.length), "data-o":String(q.o.length), maxlength:String(q.items.length), placeholder:`⚡ ${q.items.length} અંક એકસાથે`, "aria-label":"ઝડપી એન્ટ્રી"}),
-        h("span", {}, q.o.map((o, k) => `${k + 1}=${o}`).join(" · "))) : null,
+        h("span", {}, q.o.map((o, k) => `${q.o.length - k}=${o}`).join(" · "))) : null,
       h("table", {class:"rt"}, h("thead", {}, h("tr", {}, ...q.cols.map(c => h("th", {}, c)))), tb));
   }
   return box;
@@ -754,11 +771,8 @@ function viewForm(arg){
   const modeChk = h("input", {type:"checkbox", id:"secondMode", checked:second});
   const adm = MERGED ? h("div", {class:"card adm"},
     h("div", {class:"grid2"},
-      h("div", {class:"field"}, h("span", {class:"lbl"}, "શિક્ષક કોડ * — જિલ્લો · પ્રકાર · નંબર"), tidIn),
-      h("div", {class:"field"}, h("label", {for:"a_ENTRY_DATE"}, "તારીખ"), dateIn),
-      h("div", {hidden:true}, distOut, sidSel, noteIn, stOut)),
-    isAdmin() ? h("div", {style:"display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px"}, verBtn,
-      h("label", {class:"note", style:"display:flex;gap:6px;align-items:center"}, modeChk, "બીજી એન્ટ્રી (ડબલ-એન્ટ્રી ચકાસણી)")) : h("span", {hidden:true}, verBtn, modeChk)) :
+      h("div", {class:"field"}, h("span", {class:"lbl"}, "શિક્ષક કોડ"), tidIn),
+      h("div", {hidden:true}, dateIn, distOut, sidSel, noteIn, stOut, verBtn, modeChk))) :
     h("div", {class:"card adm"}, h("h2", {}, "શિક્ષક નોંધણી (વહીવટી માહિતી — પ્રશ્નાવલિનો ભાગ નથી)"),
     h("div", {class:"grid2"},
       h("div", {class:"field"}, h("span", {class:"lbl"}, "શિક્ષક કોડ * (જિલ્લો · પ્રકાર · નંબર)"), tidIn),
@@ -838,7 +852,8 @@ function viewForm(arg){
     const t = e.target; if (t.tagName !== "INPUT" || t.type !== "radio" || !/^[0-9]$/.test(e.key)) return;
     const group = [...qroot.querySelectorAll(`input[type=radio][name="${CSS.escape(t.name)}"]`)]; const d = Number(e.key);
     if (d > group.length) return; e.preventDefault();
-    group.forEach(r => { r.checked = false; }); if (d > 0) { group[d - 1].checked = true; lastChecked[t.name] = group[d - 1].value; } else lastChecked[t.name] = null;
+    const pick = group.find(r => r.value === String(d)) || group[d - 1];
+    group.forEach(r => { r.checked = false; }); if (d > 0) { pick.checked = true; lastChecked[t.name] = pick.value; } else lastChecked[t.name] = null;
     markDirty();
     const secEl = t.closest(".qsec");
     const names = [...new Set([...secEl.querySelectorAll("input[type=radio]")].filter(r => !r.closest(".q.skipped")).map(r => r.name))];
@@ -977,7 +992,7 @@ async function save(){
   if (prev && prev.VERIFY_STATUS === "Verified" && contentChanged && !F.second && !(await ask("આ રેકોર્ડ Verified છે. ફેરફાર કરવાથી સ્થિતિ 'Pending Verification' થશે. આગળ વધવું છે?"))) return;
   rec._answered = comp.answered; rec._applicable = comp.total;
   rec._createdAt = prev?._createdAt || nowIso(); rec._createdBy = prev?._createdBy || S.user.email || S.user.uid;
-  rec._updatedAt = nowIso(); rec._updatedBy = S.user.email || S.user.uid; rec._version = (prev?._version || 0) + 1;
+  rec._updatedAt = nowIso(); rec._updatedBy = S.user.email || S.user.uid; rec._version = (prev?._version || 0) + 1; rec.TBL_CODE = TBL_CODE;
   if (rec.VERIFY_STATUS === "Verified") { rec._verifiedBy = prev._verifiedBy || ""; rec._verifiedAt = prev._verifiedAt || ""; }
   const changes = ALL_FIELDS.filter(k => String(prev?.[k] ?? "") !== String(rec[k] ?? "")).map(k => ({v:k, o:prev?.[k] ?? "", n:rec[k] ?? ""}));
   saving = true; $("#saveBtn").disabled = true; $("#saveSt").textContent = "સેવ થઈ રહ્યું છે…";
@@ -1094,7 +1109,7 @@ function freq(v, recs){
   const res = freq0(v, vals, N, answered); if (res) { res.na = na; res.missing = N - answered - na; } return res;
 }
 function freq0(v, vals, N, answered){
-  if (v.type === "single" || v.type === "single (rating)") return {N, answered, rows:v.opts.map((o, i) => { const f = vals.filter(x => x === i + 1).length; return {code:i + 1, label:o, f, p:pct(f, N), vp:pct(f, answered)}; })};
+  if (v.type === "single" || v.type === "single (rating)") return {N, answered, rows:v.opts.map((o, i) => { const f = vals.filter(x => x === codeOf(v, i)).length; return {code:codeOf(v, i), label:o, f, p:pct(f, N), vp:pct(f, answered)}; })};
   if (v.type === "multiple (binary)") { const f = vals.filter(x => x === 1).length; return {N, answered, rows:[{code:1, label:"પસંદ કર્યું (✓)", f, p:pct(f, N), vp:pct(f, answered)}, {code:0, label:"પસંદ નથી", f:answered - f, p:pct(answered - f, N), vp:pct(answered - f, answered)}]}; }
   return null;
 }
@@ -1173,7 +1188,7 @@ function viewAnalysis(){
 function crossDistrict(v, recs){
   const t = h("table", {class:"t"}, h("tr", {}, h("th", {}, "જિલ્લો ↓ / વિકલ્પ →"), ...v.opts.map(o => h("th", {}, o)), h("th", {}, "n")));
   for (const d of DISTRICTS) { const rr = recs.filter(r => r.DISTRICT === d); const n = rr.filter(r => !isEmpty(r[v.name])).length;
-    t.append(h("tr", {}, h("td", {}, distGu(d)), ...v.opts.map((_, i) => { const f = rr.filter(r => r[v.name] === i + 1).length; return h("td", {}, n ? `${f} (${pct(f, n)}%)` : "–"); }), h("td", {}, n))); }
+    t.append(h("tr", {}, h("td", {}, distGu(d)), ...v.opts.map((_, i) => { const f = rr.filter(r => r[v.name] === codeOf(v, i)).length; return h("td", {}, n ? `${f} (${pct(f, n)}%)` : "–"); }), h("td", {}, n))); }
   return h("details", {}, h("summary", {class:"note"}, "જિલ્લાવાર ક્રોસ-ટેબ્યુલેશન (f, હરોળ %)"), h("div", {class:"scroll"}, t));
 }
 
@@ -1228,7 +1243,7 @@ function codebookRows(){
     missing:"ખાલી = માહિતી નથી", spss:a.en, vlab:a.opts ? a.opts.map((o, i) => `${i + 1} '${o}'`).join(" ") : "", level:a.level, legacy:"", page:""});
   for (const v of VARS) {
     let codes = "", vlab = "", miss = "ખાલી = જવાબ નથી (system-missing)";
-    if (v.type === "single" || v.type === "single (rating)") { codes = v.opts.map((o, i) => `${i + 1} = ${o}`).join("; "); vlab = v.opts.map((o, i) => `${i + 1} '${o} (${v.opts_en[i]})'`).join(" "); }
+    if (v.type === "single" || v.type === "single (rating)") { codes = v.opts.map((o, i) => `${codeOf(v, i)} = ${o}`).join("; "); vlab = v.opts.map((o, i) => `${codeOf(v, i)} '${o} (${v.opts_en[i]})'`).join(" "); }
     else if (v.type === "multiple (binary)") { codes = "1 = પસંદ કર્યું (✓); 0 = પસંદ નથી (ફક્ત જ્યારે આ પ્રશ્નમાં બીજે ક્યાંય ✓ કે 'અન્ય' લખાણ હોય)"; vlab = "0 'Not selected' 1 'Selected'"; miss = "આખો પ્રશ્ન ખાલી = બધા વિકલ્પ ખાલી (0 નહીં)"; }
     else if (v.type.startsWith("numeric")) codes = v.name === "TEACH_EXP" ? "વર્ષ = મહિના ÷ 12 (2 દશાંશ) અથવા વર્ષ" : "પેપર પરની સંખ્યા";
     else codes = "મૂળ ગુજરાતી લખાણ જેમનું તેમ";
@@ -1390,7 +1405,7 @@ function spssSyntax(){
   lab.forEach(([n, l], i) => L.push(`  ${n} ${sq(l)}` + (i === lab.length - 1 ? "." : " /")));
   L.push("", "VALUE LABELS");
   const vl = [["DISTRICT", DISTRICTS.map((d, i) => `${i + 1} ${sq(d)}`).join(" ")], ["ENTRY_STATUS", "1 'Complete' 2 'Incomplete'"], ["VERIFY_STATUS", "1 'Pending Verification' 2 'Verified'"]];
-  vs.filter(x => x.v && (x.v.type === "single" || x.v.type === "single (rating)")).forEach(x => vl.push([x.name, x.v.opts.map((o, i) => `${i + 1} ${sq(cutBytes(o + " (" + x.v.opts_en[i] + ")", 118))}`).join(" ")]));
+  vs.filter(x => x.v && (x.v.type === "single" || x.v.type === "single (rating)")).forEach(x => vl.push([x.name, x.v.opts.map((o, i) => `${codeOf(x.v, i)} ${sq(cutBytes(o + " (" + x.v.opts_en[i] + ")", 118))}`).join(" ")]));
   const bin = vs.filter(x => x.v && x.v.type === "multiple (binary)").map(x => x.name);
   for (let i = 0; i < bin.length; i += 12) vl.push([bin.slice(i, i + 12).join(" "), "0 'Not selected' 1 'Selected'"]);
   vl.forEach(([n, l], i) => L.push((i === 0 ? "  " : "  /") + n + " " + l));
@@ -1531,7 +1546,7 @@ function buildWorkbook(){
   ds.push(["Total", schoolRecs().length, N_SCHOOLS, new Set(all.map(r => r.SID)).size, all.length, all.filter(r => r.ENTRY_STATUS === "Complete").length,
     all.filter(r => r.ENTRY_STATUS !== "Complete").length, all.filter(r => r.VERIFY_STATUS === "Verified").length, all.filter(r => r.VERIFY_STATUS !== "Verified").length]);
   ds.push([""], [`District × option cross-tabulation (counts) for single-choice and rating items — basis: ${EXP.verifiedOnly ? "Verified only" : "all saved"}, N = ${recs.length}`], ["Variable", "Question / Statement", "Option code", "Option"].concat(DISTRICTS, ["Total"]));
-  for (const v of REPORT_VARS) if (v.type === "single" || v.type === "single (rating)") v.opts.forEach((o, i) => ds.push([v.name, v.gu, i + 1, o].concat(DISTRICTS.map(d => recs.filter(r => r.DISTRICT === d && r[v.name] === i + 1).length), [recs.filter(r => r[v.name] === i + 1).length])));
+  for (const v of REPORT_VARS) if (v.type === "single" || v.type === "single (rating)") v.opts.forEach((o, i) => ds.push([v.name, v.gu, codeOf(v, i), o].concat(DISTRICTS.map(d => recs.filter(r => r.DISTRICT === d && r[v.name] === codeOf(v, i)).length), [recs.filter(r => r[v.name] === codeOf(v, i)).length])));
   const ts = [["TID", "SID", "School_Name (master)", "District", "Appointment type", "Experience (years)", "Answered", "Applicable", "ENTRY_STATUS", "VERIFY_STATUS", "Created", "Updated", "Updated by", "Entered by", "Verified by"]]
     .concat(allIds().map(id => { const r = S.teachers.get(id); if (!r) return [id, "", "", "", "", "", "", "", "Pending", "", "", "", "", "", ""];
       const c = completeness(r); return [id, r.SID || "", (S.schools.get(r.SID) || {}).name || "", r.DISTRICT || "", r.APPOINTMENT_TYPE ? VARMAP.get("APPOINTMENT_TYPE").opts[r.APPOINTMENT_TYPE - 1] : "", r.TEACH_EXP ?? "",

@@ -364,7 +364,7 @@ function formAC(m, r){
 function acStats(){
   const el = $("#acStats"); if (!el || !S.cur) return; const s = acSummary(S.cur);
   const part = AC_Q.reduce((a, x) => a + (acQ(S.cur, x) || 0), 0);
-  el.textContent = ""; el.append(h("span", {}, `કુલ: ${fmt(part)} / ${AC_TOTAL}`), s.total != null ? h("span", {}, `${fmt(s.pct)}%`) : null);
+  el.textContent = ""; el.append(h("span", {}, `કુલ: ${fmt(part)} / ${AC_TOTAL}`), s.total != null ? h("span", {}, `${fmt(s.pct)}%`) : "");
 }
 function setVal(i, vn, c, isSub){
   const r = S.cur; r[vn] = r[vn] === c ? null : c;

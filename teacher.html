@@ -2521,7 +2521,7 @@ boot();
 .pr-cfg{display:flex;flex-wrap:wrap;gap:6px;padding:6px 8px;background:#e3efe9;align-items:center}
 .pr-cfg select,.pr-cfg input{font-size:15px;padding:5px;border-radius:6px;border:1px solid #9bb}.pr-cfg input{width:62px}
 .pr-hint{padding:6px 10px;background:#fff3bf;color:#5c3d00;font-weight:600}
-.pr-body{flex:1;overflow:auto;position:relative;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+.pr-body{flex:1;overflow:auto;position:relative;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
 .pr-wrap{position:relative;margin:0 auto}.pr-wrap canvas{display:block;width:100%}
 .pr-pt{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;border:3px solid #d9480f;background:rgba(255,255,255,.35);color:#d9480f;font-weight:800;display:flex;align-items:center;justify-content:center;touch-action:none}
 .pr-bot{display:flex;gap:6px;padding:8px;background:#fff;border-top:1px solid #ccd}.pr-bot button{flex:1;min-height:48px;border-radius:10px;border:1px solid #1f6f54;background:#fff;color:#1f6f54;font-weight:700;font-size:16px}
@@ -2616,6 +2616,49 @@ boot();
     return {rows: out, xs, ys, W, H, warped: wi, exact, bluePen, cp: cp.map(v => +v.toFixed(2))};
   }
 
+  /* ---- automatic table finding: deskew, find ruled lines, take the right-most answer columns and the last n rows ---- */
+  function autoFind(img, rows, cols) {
+    const sc = Math.min(1, 1600 / Math.max(img.width, img.height)), W = Math.round(img.width * sc), H = Math.round(img.height * sc), d = img.data, N = W * H;
+    const g = new Float32Array(N), bl = new Uint8Array(N);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const o = (Math.min(img.height - 1, Math.round(y / sc)) * img.width + Math.min(img.width - 1, Math.round(x / sc))) * 4;
+      const r = d[o], gg = d[o + 1], b = d[o + 2]; g[y * W + x] = (r + gg + b) / 3; bl[y * W + x] = b - r > 22 && b - gg > 5 ? 1 : 0; }
+    const bg = boxMean(g, W, H, 10), pts = [];
+    for (let i = 0; i < N; i++) if (g[i] < bg[i] - 10 && !bl[i]) pts.push(i);
+    let best = 0, bs = -1;                                   // deskew: angle that makes horizontal lines sharpest
+    for (let a = -7; a <= 7.01; a += .25) { const t = a * Math.PI / 180, cs = Math.cos(t), sn = Math.sin(t), h = new Float32Array(H * 2 + W);
+      for (const i of pts) { const x = i % W, y = (i - x) / W; h[Math.round(y * cs - x * sn + W)]++; }
+      let s = 0; for (const v of h) s += v * v; if (s > bs) { bs = s; best = t; } }
+    const cs = Math.cos(best), sn = Math.sin(best), M = new Uint8Array(N);
+    for (const i of pts) { const x = i % W, y = (i - x) / W, X = Math.round(x * cs + y * sn), Y = Math.round(y * cs - x * sn); if (X >= 0 && X < W && Y >= 0 && Y < H) M[Y * W + X] = 1; }
+    const runs = (len, other, at) => { const out = []; for (let k = 0; k < len; k++) { const on = [];
+        for (let j = 0; j < other; j++) if (at(k, j) || (k > 0 && at(k - 1, j)) || (k < len - 1 && at(k + 1, j))) on.push(j);
+        out.push(on.length ? {k, L: on.length, a: on[Math.floor(on.length * .03)], b: on[Math.floor(on.length * .97)]} : {k, L: 0, a: 0, b: 0}); } return out; };
+    const merge = (arr, minL) => { const o = []; for (const r of arr) { if (r.L < minL) continue; const p = o[o.length - 1];
+        if (p && r.k - p.k2 <= 3) { p.k2 = r.k; if (r.L > p.L) { p.L = r.L; p.a = r.a; p.b = r.b; } } else o.push({k: r.k, k2: r.k, L: r.L, a: r.a, b: r.b}); }
+      return o.map(r => ({p: (r.k + r.k2) / 2, a: r.a, b: r.b, L: r.L})); };
+    const vt = merge(runs(W, H, (x, y) => M[y * W + x]), H * .12).filter(v => v.L > (v.b - v.a) * .6);
+
+    if (vt.length < cols + 1) return null;
+    // right-most group of cols+1 vertical lines that overlap in height and are not too far apart
+    let pick = null;
+    for (let e = vt.length - 1; e >= cols && !pick; e--) { const grp = vt.slice(e - cols, e + 1);
+      const y0 = Math.max(...grp.map(v => v.a)), y1 = Math.min(...grp.map(v => v.b)); const gaps = grp.slice(1).map((v, i) => v.p - grp[i].p);
+      const sim = grp.every(v => Math.abs(v.a - grp[0].a) < H * .06 && Math.abs(v.b - grp[0].b) < H * .06);
+      if (sim && y1 - y0 > H * .1 && Math.max(...gaps) < W * .25 && Math.min(...gaps) > W * .02 && Math.max(...gaps) < Math.min(...gaps) * 3) pick = {grp, y0, y1}; }
+    if (!pick) return null;
+    const xL = pick.grp[0].p, xR = pick.grp[cols].p, x0 = Math.round(xL + 3), x1 = Math.round(xR - 3), ext = (pick.y1 - pick.y0) * .06 + 6;
+    const hs = [];
+    for (let y = Math.max(1, Math.round(pick.y0 - ext)); y < Math.min(H - 1, pick.y1 + ext); y++) { let c = 0;
+      for (let x = x0; x < x1; x++) if (M[y * W + x] || M[(y - 1) * W + x] || M[(y + 1) * W + x] || (y > 1 && M[(y - 2) * W + x]) || (y < H - 2 && M[(y + 2) * W + x])) c++;
+      if (c > (x1 - x0) * .6) { if (hs.length && y - hs[hs.length - 1][1] <= 3) hs[hs.length - 1][1] = y; else hs.push([y, y]); } }
+
+    if (hs.length < rows + 2) return null;          // header line + all row lines must be seen, else let the operator place the corners
+    const ysAll = hs.map(([a, b]) => (a + b) / 2);
+    const ys = ysAll.slice(-(rows + 1)), yT = ys[0], yB = ys[rows];
+    const back = (X, Y) => [(X * cs - Y * sn) / sc, (Y * cs + X * sn) / sc];   // inverse rotation, back to full size
+    return [back(xL, yT), back(xR, yT), back(xR, yB), back(xL, yB)];
+  }
+
   /* ---- PDF (scanned bundle) ---- */
   const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/";
   const MEM = {doc: null, name: "", page: 1, n: 0, pts: {}, g: 0};      // kept while the page stays open, so the next student continues
@@ -2624,13 +2667,13 @@ boot();
     const pg = await MEM.doc.getPage(n), v1 = pg.getViewport({scale: 1}), sc = 1800 / Math.max(v1.width, v1.height), vp = pg.getViewport({scale: sc});
     const c = document.createElement("canvas"); c.width = Math.round(vp.width); c.height = Math.round(vp.height); const x = c.getContext("2d");
     x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); await pg.render({canvasContext: x, canvas: c, viewport: vp}).promise;
-    return x.getImageData(0, 0, c.width, c.height);
+    return {img: x.getImageData(0, 0, c.width, c.height), url: c.toDataURL("image/jpeg", .85)};
   }
 
   /* ---- UI ---- */
   function open(cfg) {
     if (!cssDone) { document.head.append(el("style", {}, css)); cssDone = true; }
-    const S = {img: null, scale: 1, pts: [], res: null, man: {}};
+    const S = {img: null, scale: 1, pts: [], res: null, man: {}, z: 100};
     const ovl = el("div", {class: "pr-ovl", role: "dialog"});
     const close = () => { ovl.remove(); document.body.style.overflow = ""; };
     const inp = el("input", {type: "file", accept: "image/*,application/pdf,.pdf", style: "display:none"});
@@ -2639,7 +2682,7 @@ boot();
     const cnt = el("input", {type: "number", min: 1, inputmode: "numeric"});
     const G = () => cfg.groups[+gSel.value];
     const syncCnt = () => { cnt.value = Math.max(1, G().rows - (+start.value || 1) + 1); };
-    gSel.onchange = () => { start.value = 1; syncCnt(); S.res = null; const p = MEM.pts[gSel.value]; if (S.img && p && p.w === S.img.width) S.pts = p.pts.map(q => q.slice()); draw(); }; start.onchange = () => { syncCnt(); S.res = null; draw(); }; cnt.onchange = () => { S.res = null; draw(); };
+    gSel.onchange = () => { start.value = 1; syncCnt(); S.res = null; const p = MEM.pts[gSel.value]; if (S.img) autoRun(p && p.w === S.img.width ? p.pts.map(q => q.slice()) : null); else draw(); }; start.onchange = () => { syncCnt(); S.res = null; draw(); }; cnt.onchange = () => { S.res = null; draw(); };
     syncCnt();
     const hint = el("div", {class: "pr-hint"}), body = el("div", {class: "pr-body"});
     const pInfo = el("span", {style: "font-weight:700"}), pNav = el("div", {class: "pr-cfg", style: "display:none;background:#d0ebff"},
@@ -2648,8 +2691,8 @@ boot();
     async function goPage(n) {
       if (!MEM.doc || n < 1 || n > MEM.n) return; MEM.page = n; pNav.style.display = "flex"; pInfo.textContent = `PDF પાનું ${n}/${MEM.n} · ${MEM.name}`;
       hint.textContent = "પાનું ખૂલે છે…"; body.innerHTML = "";
-      try { S.img = await pdfPage(n); } catch (e) { hint.textContent = "PDF પાનું ખૂલ્યું નહીં: " + (e.message || e); return; }
-      const p = MEM.pts[gSel.value]; S.pts = p && p.w === S.img.width ? p.pts.map(q => q.slice()) : []; S.res = null; S.man = {}; draw();
+      try { const r = await pdfPage(n); S.img = r.img; S.url = r.url; } catch (e) { hint.textContent = "PDF પાનું ખૂલ્યું નહીં: " + (e.message || e); return; }
+      const p = MEM.pts[gSel.value]; S.man = {}; autoRun(p && p.w === S.img.width ? p.pts.map(q => q.slice()) : null);
     }
     async function loadPdf(f) {
       hint.textContent = "PDF ખૂલે છે… (પહેલી વાર ઇન્ટરનેટ જોઈએ)"; body.innerHTML = "";
@@ -2659,20 +2702,25 @@ boot();
     }
     const bRead = el("button", {type: "button"}, "🔍 વાંચો"), bApply = el("button", {type: "button", class: "pri"}, "✓ ફોર્મમાં ભરો"), bReset = el("button", {type: "button"}, "↺ ખૂણા ફરી");
     ovl.append(el("div", {class: "pr-top"}, el("b", {}, "🪄 ફોટામાંથી વાંચો"), el("label", {class: "pr-btn"}, "📂 ફોટો / PDF", inp), el("button", {type: "button", onclick: close}, "✕")),
-      el("div", {class: "pr-cfg"}, "કોષ્ટક:", gSel, "પ્રથમ પ્ર.નં.", start, "હરોળ", cnt), pNav, hint, body, el("div", {class: "pr-bot"}, bReset, bRead, bApply));
+      el("div", {class: "pr-cfg"}, "કોષ્ટક:", gSel, "પ્રથમ પ્ર.નં.", start, "હરોળ", cnt,
+        el("span", {style: "margin-left:auto"}, "ઝૂમ"), el("button", {type: "button", onclick: () => zoom(-100)}, "−"), el("button", {type: "button", onclick: () => zoom(100)}, "+")), pNav, hint, body, el("div", {class: "pr-bot"}, bReset, bRead, bApply));
     document.body.append(ovl); document.body.style.overflow = "hidden";
     const corner = ["ઉપર-ડાબે", "ઉપર-જમણે", "નીચે-જમણે", "નીચે-ડાબે"];
+    function zoom(d) { S.z = Math.max(100, Math.min(400, S.z + d)); if (!S.res) draw(); }
     function draw() {
       body.innerHTML = ""; bApply.disabled = !S.res; bRead.disabled = !(S.img && S.pts.length === 4);
       if (!S.img) { hint.textContent = "📂 ફોટો / PDF દબાવી ભરેલા પાનાનો ફોટો કે સ્કૅન કરેલી PDF (આખું બંડલ) પસંદ કરો. પાનું સીધું, પૂરા પ્રકાશમાં."; return; }
       if (S.res) return drawRes();
       hint.textContent = S.pts.length < 4 ? `ફક્ત ✓ વાળાં ખાનાંનો વિસ્તાર: પ્ર. ${start.value} ના પહેલા જવાબ-ખાનાનો ${corner[S.pts.length]} ખૂણો દબાવો (${S.pts.length + 1}/4). મથાળાની હરોળ નહીં.`
         : "ખૂણા ખસેડી શકાય છે. બરાબર હોય તો 🔍 વાંચો દબાવો.";
-      const cv = el("canvas"); cv.width = S.img.width; cv.height = S.img.height; cv.getContext("2d").putImageData(S.img, 0, 0);
-      const wrap = el("div", {class: "pr-wrap"}, cv); body.append(wrap);
-      const k = () => cv.getBoundingClientRect().width / S.img.width;
-      const g = cv.getContext("2d");
-      if (S.pts.length > 1) { g.strokeStyle = "#d9480f"; g.lineWidth = Math.max(2, S.img.width / 300); g.beginPath(); S.pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); if (S.pts.length === 4) g.closePath(); g.stroke(); }
+      const cv = el("img", {src: S.url, alt: "", draggable: "false", style: "display:block;width:100%;height:auto;user-select:none"});
+      const NS = "http://www.w3.org/2000/svg", sv = document.createElementNS(NS, "svg");
+      sv.setAttribute("viewBox", `0 0 ${S.img.width} ${S.img.height}`); sv.setAttribute("preserveAspectRatio", "none"); sv.style.cssText = "position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none";
+      if (S.pts.length > 1) { const pl = document.createElementNS(NS, S.pts.length === 4 ? "polygon" : "polyline"); pl.setAttribute("points", S.pts.map(q => q.join(",")).join(" "));
+        pl.setAttribute("fill", "rgba(217,72,15,.12)"); pl.setAttribute("stroke", "#d9480f"); pl.setAttribute("stroke-width", Math.max(2, S.img.width / 300)); sv.append(pl); }
+      const wrap = el("div", {class: "pr-wrap", style: `width:${S.z}%`}, cv, sv); body.append(wrap);
+      const k = () => (cv.getBoundingClientRect().width || 1) / S.img.width;
+      cv.onload = () => wrap.querySelectorAll(".pr-pt").forEach((p, i) => { p.style.left = S.pts[i][0] * k() + "px"; p.style.top = S.pts[i][1] * k() + "px"; });
       S.pts.forEach(([x, y], i) => { const p = el("div", {class: "pr-pt", style: `left:${x * k()}px;top:${y * k()}px`}, String(i + 1));
         p.onpointerdown = e => { e.preventDefault(); p.setPointerCapture(e.pointerId);
           p.onpointermove = ev => { const r = cv.getBoundingClientRect(); S.pts[i] = [Math.max(0, Math.min(S.img.width, (ev.clientX - r.left) / k())), Math.max(0, Math.min(S.img.height, (ev.clientY - r.top) / k()))]; p.style.left = S.pts[i][0] * k() + "px"; p.style.top = S.pts[i][1] * k() + "px"; };
@@ -2681,11 +2729,19 @@ boot();
       cv.onclick = e => { if (S.pts.length >= 4) return; const r = cv.getBoundingClientRect(); S.pts.push([(e.clientX - r.left) / k(), (e.clientY - r.top) / k()]); draw(); };
       requestAnimationFrame(() => wrap.querySelectorAll(".pr-pt").forEach((p, i) => { p.style.left = S.pts[i][0] * k() + "px"; p.style.top = S.pts[i][1] * k() + "px"; }));
     }
+    function rowsN() { const n = Math.max(1, Math.min(+cnt.value || 1, G().rows - (+start.value || 1) + 1)); cnt.value = n; return n; }
+    function autoRun(fallback) {                    // find the table by itself; only accept when every printed line was found
+      S.auto = false; let q = null;
+      try { q = autoFind(S.img, rowsN(), G().colLabels.length); } catch (e) { q = null; }
+      if (q) { const r = analyse(S.img, q, rowsN(), G().colLabels.length); if (r.exact) { S.pts = q; S.res = r; S.man = {}; S.auto = true; MEM.pts[gSel.value] = {w: S.img.width, pts: q.map(p => p.slice())}; return draw(); } }
+      S.pts = fallback || []; S.res = null; draw();
+      if (!fallback) hint.textContent = "કોષ્ટક આપમેળે ન મળ્યું — " + hint.textContent;
+    }
     function final(r, i) { return i in S.man ? S.man[i] : r.ans; }
     function drawRes() {
       const R = S.res, g = G(), s0 = +start.value || 1;
       const flagged = R.rows.filter((r, i) => final(r, i) == null).length;
-      hint.textContent = `${R.rows.length - flagged} જવાબ વંચાયા · ${flagged} શંકાસ્પદ (લાલ) — ફોટાના ટુકડા સાથે દરેક હરોળ મેળવો; ખોટું હોય તો સાચા ખાના પર દબાવો. ${R.exact ? "" : "⚠ કોષ્ટકની બધી લીટીઓ સ્પષ્ટ ન દેખાઈ — દરેક હરોળ ફોટા સાથે ખાસ મેળવો."}`;
+      hint.textContent = `${S.auto ? "✓ કોષ્ટક આપમેળે મળ્યું. " : ""}${R.rows.length - flagged} જવાબ વંચાયા · ${flagged} શંકાસ્પદ (લાલ) — ફોટાના ટુકડા સાથે દરેક હરોળ મેળવો; ખોટું હોય તો સાચા ખાના પર દબાવો. ${R.exact ? "" : "⚠ કોષ્ટકની બધી લીટીઓ સ્પષ્ટ ન દેખાઈ — દરેક હરોળ ફોટા સાથે ખાસ મેળવો."}`;
       const tb = el("table", {}, el("tr", {}, el("th", {}, "પ્ર."), el("th", {}, "ફોટો"), ...g.colLabels.map(c => el("th", {}, c)), el("th", {}, "")));
       R.rows.forEach((r, i) => {
         const f = final(r, i), tr = el("tr", {class: f == null ? "flag" : ""});
@@ -2702,10 +2758,11 @@ boot();
       MEM.doc = null; pNav.style.display = "none"; const u = URL.createObjectURL(f), im = new Image();
       im.onload = () => { const m = Math.min(1, 1800 / Math.max(im.naturalWidth, im.naturalHeight)); const c = document.createElement("canvas");
         c.width = Math.round(im.naturalWidth * m); c.height = Math.round(im.naturalHeight * m); const x = c.getContext("2d"); x.drawImage(im, 0, 0, c.width, c.height);
-        S.img = x.getImageData(0, 0, c.width, c.height); S.pts = []; S.res = null; S.man = {}; URL.revokeObjectURL(u); draw(); };
-      im.src = u; inp.value = ""; };
+        S.img = x.getImageData(0, 0, c.width, c.height); S.url = c.toDataURL("image/jpeg", .85); S.pts = []; S.res = null; S.man = {}; URL.revokeObjectURL(u); hint.textContent = "કોષ્ટક શોધાય છે…"; setTimeout(() => autoRun(null), 30); };
+      im.onerror = () => { URL.revokeObjectURL(u); hint.textContent = "આ ફોટો ખૂલ્યો નહીં (HEIC/બીજું ફોર્મેટ?). કેમેરાથી JPG ફોટો પાડો અથવા સ્ક્રીનશૉટ લઈ તે પસંદ કરો."; };
+      hint.textContent = "ફોટો ખૂલે છે…"; im.src = u; inp.value = ""; };
     bReset.onclick = () => { S.pts = []; S.res = null; S.man = {}; draw(); };
-    bRead.onclick = () => { const n = Math.max(1, Math.min(+cnt.value || 1, G().rows - (+start.value || 1) + 1)); cnt.value = n;
+    bRead.onclick = () => { const n = rowsN(); S.auto = false;
       MEM.pts[gSel.value] = {w: S.img.width, pts: S.pts.map(q => q.slice())};
       S.res = analyse(S.img, S.pts, n, G().colLabels.length); S.man = {}; draw(); };
     bApply.onclick = () => { if (!S.res) return; const ans = S.res.rows.map((r, i) => final(r, i));
@@ -2713,11 +2770,11 @@ boot();
       if (MEM.doc) { const full = (+start.value || 1) + ans.length - 1 >= G().rows; MEM.g = full ? (+gSel.value + 1) % cfg.groups.length : +gSel.value; if (MEM.page < MEM.n) MEM.page++; }
       close(); if (cfg.after) cfg.after(ans, msg); };
     gSel.value = MEM.doc ? MEM.g : 0; syncCnt();
-    if (MEM.doc) goPage(MEM.page);
+    if (MEM.doc) goPage(MEM.page); else if (!cfg.noPick) setTimeout(() => { try { inp.click(); } catch (e) {} }, 0);
     draw();
-    return {ovl, S, setImage: im => { S.img = im; S.pts = []; S.res = null; draw(); }, setPts: p => { S.pts = p; draw(); }, read: () => bRead.click(), apply: () => bApply.click(), sel: (gi, st, n) => { gSel.value = gi; start.value = st; cnt.value = n; } };
+    return {ovl, S, setImage: im => { S.img = im; const c = document.createElement("canvas"); c.width = im.width; c.height = im.height; c.getContext("2d").putImageData(im, 0, 0); S.url = c.toDataURL(); S.pts = []; S.res = null; draw(); }, setPts: p => { S.pts = p; draw(); }, read: () => bRead.click(), apply: () => bApply.click(), sel: (gi, st, n) => { gSel.value = gi; start.value = st; cnt.value = n; } };
   }
-  window.PhotoRead = {open, analyse};
+  window.PhotoRead = {open, analyse, autoFind};
 })();
 </script></body>
 </html>

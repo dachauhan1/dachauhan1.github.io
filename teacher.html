@@ -535,11 +535,11 @@ function refreshView(){
 const TABS = [["thesis", "📄 થીસિસ પ્રકરણ 1–5"], ["write", "✍️ થીસિસ લેખન"], ["tools", "🛠 ઉપકરણ રચના"], ["ca", "📚 હેતુ 1 વિષયવસ્તુ વિશ્લેષણ"], ["rate", "📋 તજ્જ્ઞ પત્રક (હેતુ 1)"], ["dash", "ડેશબોર્ડ"], ["list", "શિક્ષક યાદી"], ["form", "ફોર્મ"], ["schools", "શાળા માસ્ટર"], ["qual", "ગુણાત્મક"], ["analysis", "વિશ્લેષણ"],
               ["quality", "ડેટા ગુણવત્તા"], ["codebook", "કોડબુક"], ["admin", "એડમિન"]];
 const MENU = [
-  ["📄 થીસિસ (પ્રકરણ 1–5)", [["thesis", "📄 થીસિસ Word: પ્રકરણ 1–5"], ["write", "✍️ પ્રકરણવાર મુદ્દા / સાહિત્ય સમીક્ષા"], ["tools", "🛠 ઉપકરણ રચના (પ્રકરણ 3)"]], true],
+  ["📄 થીસિસ (પ્રકરણ 1–5)", [["thesis", "📄 થીસિસ Word: પ્રકરણ 1–5"], ["write", "✍️ પ્રકરણવાર મુદ્દા / સાહિત્ય સમીક્ષા"], ["tools", "🛠 ઉપકરણ રચના (પ્રકરણ 3)"], ["integ", "🛡 પ્રામાણિકતા · ગોપનીયતા · Shodhganga"]], true],
   ["📚 હેતુ 1: પાઠ્યપુસ્તક વિષયવસ્તુ વિશ્લેષણ", [["cad", "📑 13 પ્રકરણ × 3 Word (સંશોધક · તજ્જ્ઞ · અંતિમ)"], ["ca", "✏️ સંશોધકના ગુણ દાખલ / સુધારો"], ["cares", "📊 પરિણામ · સહમતિ · વિશ્વસનીયતા"], ["rate", "📋 તજ્જ્ઞ શિક્ષક પત્રક"]]],
   ["👩‍🏫 હેતુ 2–3: શિક્ષક ડેટા", [["dash", "📈 ડેશબોર્ડ"], ["list", "📋 શિક્ષક યાદી"], ["quality", "✔ ડેટા ગુણવત્તા"], ["analysis", "📊 વિશ્લેષણ (Chapter 4)"], ["qual", "💬 ગુણાત્મક જવાબ"], ["codebook", "📖 કોડબુક"], ["schools", "🏫 શાળા માસ્ટર"]]],
   ["⚙️ સેટિંગ", [["admin", "⚙️ એડમિન"]], true]];
-const MENU_ADMIN = new Set(["thesis", "write", "tools", "ca", "cad", "cares", "admin"]);
+const MENU_ADMIN = new Set(["integ", "thesis", "write", "tools", "ca", "cad", "cares", "admin"]);
 function renderShell(){
   const t = $("#tabs"); t.textContent = ""; t.hidden = false; t.classList.remove("open");
   if (MERGED) {
@@ -583,7 +583,7 @@ async function route(soft){
   const m = $("#main"); const keepScroll = soft ? scrollY : 0;
   m.textContent = ""; m.append(h("p", {class:"msg", id:"msg", hidden:true}));
   const R = {dash:viewDash, list:viewList, form:() => viewForm(arg), schools:viewSchools, qual:viewQual, analysis:viewAnalysis, quality:viewQuality, codebook:viewCodebook,
-             admin:() => isAdmin() ? viewAdmin() : viewDash(), thesis:viewThesis, write:() => viewWrite(arg), tools:viewTools, home:viewHome, ca:viewCA, cad:viewCAD, cares:viewCARes, rate:() => viewRate(arg), cons:() => viewCons(arg)}[name] || viewDash;
+             admin:() => isAdmin() ? viewAdmin() : viewDash(), thesis:viewThesis, write:() => viewWrite(arg), tools:viewTools, integ:viewInteg, home:viewHome, ca:viewCA, cad:viewCAD, cares:viewCARes, rate:() => viewRate(arg), cons:() => viewCons(arg)}[name] || viewDash;
   R();
   if (soft) scrollTo(0, keepScroll);
 }
@@ -1654,6 +1654,64 @@ async function fullRestore(file){
   catch (e) { say("પુનઃસ્થાપન અધૂરું: " + (e.code || e.message), "bad"); }
 }
 
+/* ================= 🛡 academic integrity, privacy and Shodhganga readiness ================= */
+const SMP = {};      // verification samples (loaded for Chapter 3)
+let TH_MARK = true;  // highlight app-generated sentences in thesis chapters (to be rewritten in the researcher's own words)
+async function smpLoad(){ for (const k of ["teachers", "s23_students", "ac_students", "ax_students"]) { try { const x = await fs().getDoc(dref("config", "sample_" + k)); SMP[k] = x.exists() ? x.data() : null; } catch (e) { SMP[k] = null; } } }
+const INTEG_ITEMS = [
+  ["priv1", "ડેટામાં વિદ્યાર્થી/શિક્ષકનાં નામ નથી — ફક્ત કોડ; નામ-કોડ યાદી ફક્ત પેપર પર, સંશોધક પાસે"],
+  ["priv2", "થીસિસ/Shodhganga PDF માં શાળા, શિક્ષક કે વિદ્યાર્થીની ઓળખ, કાચો ડેટા કે ફોટા નથી"],
+  ["priv3", "Firebase સર્વર-સ્થાન (Project settings → Default GCP resource location) જોઈને પ્રકરણ 3 માં લખ્યું"],
+  ["bk", "છેલ્લા 7 દિવસમાં પૂરો બૅકઅપ (JSON + Excel) લઈ PC / Google Drive માં રાખ્યો"],
+  ["ch3", "પ્રકરણ 3: ઍપનાં પીળાં વાક્યો પોતાના શબ્દોમાં ફરી લખ્યાં"],
+  ["ch4", "પ્રકરણ 4: દરેક કોષ્ટકનું અર્થઘટન પોતાના શબ્દોમાં, ઉદાહરણ સાથે"],
+  ["ch5", "પ્રકરણ 5: તારણો, ચર્ચા (અગાઉનાં સંશોધનો સાથે સરખામણી) અને ભલામણો પોતાના શબ્દોમાં"],
+  ["lit", "પ્રકરણ 2: દરેક સ્રોતનો સાર પોતાના શબ્દોમાં, APA સંદર્ભ સાથે; સીધાં અવતરણ ટૂંકાં અને \" \" માં"],
+  ["ai", "AI/સોફ્ટવેરની મદદ યુનિવર્સિટીની નીતિ મુજબ Declaration માં જાહેર કરી"],
+  ["drill", "ShodhShuddhi (DrillBit) રિપોર્ટ: સમાનતા ≤ 10% (bibliography/quotes બાદ); AI-ટકાવારી માર્ગદર્શક સાથે ચર્ચી"],
+  ["guide", "માર્ગદર્શકે plagiarism રિપોર્ટ અને Declaration તપાસી સહી કરી"],
+  ["ethic", "શાળા/ઉત્તરદાતાની સંમતિ અને (હોય તો) નૈતિક સમિતિની મંજૂરીની નકલ ફાઇલમાં"]];
+function viewInteg(){
+  const m = $("#main"); if (!isAdmin()) { viewDash(); return; }
+  const box = h("div"); m.append(box); box.append(h("p", {class:"note"}, "લોડ થાય છે…"));
+  (async () => {
+    let d = {}; try { const x = await fs().getDoc(dref("config", "integrity")); d = x.exists() ? x.data() : {}; } catch (e) {}
+    d.C = d.C || {}; d.F = d.F || {};
+    const save = async () => { d._updatedAt = nowIso(); try { await fs().setDoc(dref("config", "integrity"), d); say("✓ સેવ થયું.", "ok"); } catch (e) { say("સેવ ન થયું: " + (e.code || e.message), "bad"); } };
+    const done = () => INTEG_ITEMS.filter(([k]) => d.C[k]).length;
+    const prog = h("b", {}, `${done()}/${INTEG_ITEMS.length}`);
+    const fld = (k, label, ph) => h("div", {class:"field"}, h("label", {}, label), h("input", {type:"text", id:"ig_" + k, value:d.F[k] || "", placeholder:ph || "", oninput:e => { d.F[k] = e.target.value; }}));
+    box.textContent = "";
+    box.append(h("div", {class:"card"}, h("h2", {}, "🛡 શૈક્ષણિક પ્રામાણિકતા, ગોપનીયતા અને Shodhganga તૈયારી"),
+      h("p", {class:"note"}, "UGC (Promotion of Academic Integrity and Prevention of Plagiarism) Regulations, 2018: સમાનતા 10% સુધી Level 0 (દંડ નહીં); 10–40% સુધારેલી થીસિસ છ મહિનામાં; 40–60% એક વર્ષ સુધી ફરી સબમિટ નહીં; 60% થી વધુ નોંધણી રદ. ચકાસણી: INFLIBNET ShodhShuddhi (DrillBit — ગુજરાતી અને AI-લખાણ પણ ઓળખે છે)."),
+      h("p", {}, "પૂર્ણ: ", prog),
+      ...INTEG_ITEMS.map(([k, t]) => h("label", {style:"display:flex;gap:10px;align-items:flex-start;margin:8px 0;font-size:1rem"}, h("input", {type:"checkbox", class:"igC", "data-k":k, checked:!!d.C[k], style:"width:22px;height:22px;flex:none", onchange:e => { d.C[k] = e.target.checked; prog.textContent = `${done()}/${INTEG_ITEMS.length}`; }}), t)),
+      h("button", {type:"button", class:"btn primary", id:"igSave", onclick:save}, "💾 સેવ કરો")),
+      h("div", {class:"card"}, h("h2", {}, "📄 Declaration અને જાહેરાત (Word)"),
+        h("p", {class:"note"}, "ખાનાં ભરીને Word બનાવો. યુનિવર્સિટીનું પોતાનું ફોર્મેટ હોય તો તે જ વાપરો; આ ફાઇલ તેનો મુસદ્દો છે."),
+        fld("name", "સંશોધકનું પૂરું નામ", "દશરથભાઈ એ. ચૌહાણ"), fld("guide", "માર્ગદર્શકનું નામ અને હોદ્દો"), fld("univ", "યુનિવર્સિટી / વિભાગ"), fld("enrol", "નોંધણી નંબર"),
+        fld("sim", "DrillBit સમાનતા % (bibliography/quotes બાદ)", "દા.ત. 6"), fld("aip", "DrillBit AI-ટકાવારી (રિપોર્ટ મુજબ)", "દા.ત. 3"), fld("rid", "રિપોર્ટ ID અને તારીખ"),
+        fld("aiuse", "AI/સોફ્ટવેરનો ઉપયોગ (પ્રામાણિક વર્ણન)", "દા.ત. ભાષા-સુધારણા અને ડેટા-એપ વિકાસ માટે AI સહાય; અર્થઘટન સંશોધકનું"),
+        h("div", {class:"chips"}, h("button", {type:"button", class:"btn primary", id:"igDoc", onclick:async () => { await save(); download(`Declaration_Integrity_${today()}.docx`, integDoc(d), "application/vnd.openxmlformats-officedocument.wordprocessingml.document"); }}, "📄 Declaration Word"))));
+  })().catch(e => { box.textContent = "લોડ ન થયું: " + (e.code || e.message); });
+}
+function integDoc(d){
+  const K = docKit(), {P, H, T, B} = K, F = d.F || {}, v = (k, dflt) => (F[k] || "").trim() || dflt;
+  return K.pack([
+    H("સંશોધકનું ઘોષણાપત્ર (Declaration by the Researcher)", 1),
+    P(`હું, ${v("name", "__________")}, ઘોષણા કરું છું કે '${TH.title}' શીર્ષક હેઠળનો મહાશોધ નિબંધ ${v("univ", "__________")} માં ${v("guide", "__________")} ના માર્ગદર્શન હેઠળ મારું મૌલિક સંશોધન કાર્ય છે. તેમાં અન્ય લેખકોના વિચારો, શબ્દો કે માહિતી જ્યાં ઉપયોગમાં લીધાં છે ત્યાં યોગ્ય સંદર્ભ આપ્યો છે. આ કાર્ય અગાઉ કોઈ પદવી માટે કોઈ યુનિવર્સિટીમાં રજૂ કર્યું નથી.`),
+    H("સમાનતા (Plagiarism) ચકાસણી", 2),
+    T(["બાબત", "વિગત"], [["સોફ્ટવેર", "DrillBit-Extreme (INFLIBNET ShodhShuddhi)"], ["સમાનતા % (bibliography, quotes અને 14 શબ્દ સુધીના સામાન્ય શબ્દસમૂહો બાદ)", v("sim", "____ %")], ["AI-લખાણ ટકાવારી", v("aip", "____ %")], ["રિપોર્ટ ID / તારીખ", v("rid", "__________")], ["UGC 2018 મુજબ સ્તર", isNaN(parseFloat(F.sim)) ? "____" : parseFloat(F.sim) <= 10 ? "Level 0 (10% સુધી — દંડ નહીં)" : "Level 0 થી વધુ — સુધારો જરૂરી"]], "", [3, 2]),
+    H("સોફ્ટવેર અને AI સહાયની જાહેરાત", 2),
+    P(`માહિતી દાખલ, ચકાસણી, કોડિંગ અને આંકડાકીય ગણતરી (આવૃત્તિ, ટકાવારી, મધ્યક, Krippendorff's α, weighted κ, Spearman ρ, Wilcoxon) માટે સંશોધક-નિર્મિત વેબ-એપ 'Chauhan Research' (Firebase ક્લાઉડ ડેટાબેઝ) વાપરી છે. ${v("aiuse", "AI સહાયનો ઉપયોગ: __________")} તમામ અર્થઘટન, ચર્ચા, તારણો અને ભલામણો સંશોધકનાં પોતાનાં છે અને તેની સંપૂર્ણ જવાબદારી સંશોધકની છે.`),
+    H("માહિતીની ગોપનીયતા (Data Privacy)", 2),
+    B("ઉત્તરદાતાઓની ઓળખ ગુપ્ત રાખવા માત્ર કોડ (શાળા, શિક્ષક, વિદ્યાર્થી ID) વાપર્યા; નામ-કોડ યાદી ફક્ત સંશોધક પાસે પેપર સ્વરૂપે છે."),
+    B("ડિજિટલ માહિતી પાસવર્ડ-સુરક્ષિત ક્લાઉડ ડેટાબેઝમાં ભૂમિકા-આધારિત પ્રવેશ (એડમિન / ડેટા-એન્ટ્રી / તજ્જ્ઞ) સાથે રાખી; ભરેલાં પેપરના ફોટા ક્યાંય અપલોડ કર્યા નથી."),
+    B("થીસિસ અને Shodhganga માં કોઈ વ્યક્તિ કે શાળાની ઓળખ, કાચો ડેટા કે ફોટા સમાવ્યા નથી; ફક્ત સમૂહ-સ્તરનાં પરિણામ રજૂ કર્યાં છે."),
+    B("માહિતી ફક્ત સંશોધન હેતુ માટે વાપરી; યુનિવર્સિટીની નીતિ મુજબના સમયગાળા પછી તેનો નાશ કરાશે."),
+    P(" "), T(["", ""], [["સંશોધકની સહી અને તારીખ", ""], ["માર્ગદર્શકની સહી અને તારીખ", ""]], "", [2, 3])]);
+}
+
 window.__ppShow = () => S.route === "form" || S.route === "rate";
 function obj1Nav(k){
   return h("div", {class:"chips obj1nav", style:"margin:0 0 10px"}, ...[["ca", "✏️ ગુણ દાખલ / સુધારો"], ["cad", "📑 13 પ્રકરણ × 3 Word"], ["cares", "📊 પરિણામ · સહમતિ · વિશ્વસનીયતા"]]
@@ -2322,14 +2380,15 @@ function twRefsDoc(){
 /* ====================== THESIS CHAPTERS 3 · 4 · 5 (.docx, Shruti) ====================== */
 // Every number comes from the saved records; sentences are rule-based drafts. [કૌંસ] = the researcher must write or confirm.
 function docKit(opt = {}){
+  const MARK = !!opt.mark;
   const TW0 = opt.land ? 13900 : 9000;
   const X = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const run = (t, o = {}) => `<w:r><w:rPr>${o.b ? "<w:b/><w:bCs/>" : ""}${o.i ? "<w:i/><w:iCs/>" : ""}${o.sz ? `<w:sz w:val="${o.sz}"/><w:szCs w:val="${o.sz}"/>` : ""}</w:rPr><w:t xml:space="preserve">${X(t)}</w:t></w:r>`;
+  const run = (t, o = {}) => `<w:r><w:rPr>${o.hl ? '<w:highlight w:val="yellow"/>' : ""}${o.b ? "<w:b/><w:bCs/>" : ""}${o.i ? "<w:i/><w:iCs/>" : ""}${o.sz ? `<w:sz w:val="${o.sz}"/><w:szCs w:val="${o.sz}"/>` : ""}</w:rPr><w:t xml:space="preserve">${X(t)}</w:t></w:r>`;
   let fresh = false;   // true right after a heading that received the researcher's own text → the next [કૌંસ] note is dropped
   const P0 = (t, o = {}) => `<w:p><w:pPr>${o.after != null ? `<w:spacing w:after="${o.after}"/>` : ""}<w:jc w:val="${o.center ? "center" : o.left ? "left" : "both"}"/>${o.keep ? "<w:keepNext/>" : ""}${o.ind ? `<w:ind w:left="${o.ind}" w:hanging="300"/>` : ""}</w:pPr>${Array.isArray(t) ? t.join("") : run(t, o)}</w:p>`;
-  const P = (t, o) => { fresh = false; return P0(t, o); };
-  const B = t => P([run("•  "), run(t)], {ind:500, after:60});
-  const N = (n, t) => P([run(n + "  "), run(t)], {ind:500, after:60});
+  const P = (t, o) => { fresh = false; return P0(t, MARK && !(o && (o.b || o.sz || o.i)) && !Array.isArray(t) ? Object.assign({}, o, {hl:true}) : o); };
+  const B = t => P([run("•  "), run(t, {hl:MARK})], {ind:500, after:60});
+  const N = (n, t) => P([run(n + "  "), run(t, {hl:MARK})], {ind:500, after:60});
   const H = (t, lvl) => { let x = `<w:p><w:pPr><w:pStyle w:val="Heading${lvl}"/></w:pPr>${run(t)}</w:p>`; fresh = false;
     const no = (String(t).match(/^(\d+(?:\.\d+)+)\s/) || [])[1]; const txt = no && TW.ins && TW.ins[no];
     if (txt && String(txt).trim()) { x += twParas({P:P0, B:z => P0([run("•  "), run(z)], {ind:500, after:60})}, txt).join(""); fresh = true; } return x; };
@@ -2444,7 +2503,7 @@ function teacherAnalysis(recs, K, onlyVerified){
   return {body, F2, F3, items, sample, N};
 }
 function thesisCh3(onlyVerified){
-  const K = docKit(); const {P, H, B, N: Num, T, TODO, cap, pc} = K; const recs = thesisRecs(onlyVerified); const n = recs.length; const b = [];
+  const K = docKit({mark:TH_MARK}); const {P, H, B, N: Num, T, TODO, cap, pc} = K; const recs = thesisRecs(onlyVerified); const n = recs.length; const b = [];
   b.push(H("પ્રકરણ 3: સંશોધન પદ્ધતિ", 1),
     H("3.1 પ્રસ્તાવના", 2), P(`પ્રસ્તુત પ્રકરણમાં '${TH.title}' સંશોધનની રૂપરેખા રજૂ કરી છે: સંશોધન પ્રકાર અને ડિઝાઇન, હેતુઓ અને સંશોધન પ્રશ્નો, વ્યાપવિશ્વ અને નમૂનો, સંશોધન ઉપકરણો, માહિતી એકત્રીકરણ, માહિતી દાખલ અને ચકાસણી, કોડિંગ, વિશ્લેષણ પ્રવિધિ તથા નૈતિક બાબતો.`),
     H("3.2 સંશોધન પ્રકાર અને ડિઝાઇન", 2),
@@ -2519,6 +2578,7 @@ function thesisCh3(onlyVerified){
     B("એપમાં પ્રશ્નવાર ચકાસણી (ખાલી જવાબ, અસંગત જવાબ, મર્યાદા બહારના આંકડા) અને ડેટા ગુણવત્તા અહેવાલ હતા."),
     B("દરેક શિક્ષક રેકોર્ડ પેપર સાથે મેળવી 'Verified' કર્યો; અંતિમ વિશ્લેષણ ફક્ત Verified રેકોર્ડ પર કર્યું."),
     B("ક્લાઉડ ઉપરાંત JSON અને Excel બેકઅપ નિયમિત લેવાયા."),
+    ...Object.entries(SMP).filter(([, x]) => x && x.IDS).map(([k, x]) => B(`ડેટા-એન્ટ્રીની ચોકસાઈ ચકાસવા ${({teachers:"શિક્ષક ફોર્મ", s23_students:"વિદ્યાર્થી અનુસૂચિ", ac_students:"સિદ્ધિ કસોટી", ax_students:"ગણિત ચિંતા માપદંડ"})[k]} ના ${x.N} રેકોર્ડમાંથી જિલ્લાવાર સ્તરીકૃત સાદા યાદચ્છિક નમૂના દ્વારા ${x.PCT}% (${x.IDS.length}) રેકોર્ડ કમ્પ્યુટર-જનિત રીતે (નિશ્ચિત seed ${x.SEED}) પસંદ કરી બીજી વ્યક્તિ પાસે મૂળ પેપર પરથી ફરી દાખલ કરાવ્યા; પસંદગી સંશોધકના પૂર્વગ્રહથી મુક્ત અને ફરી ચકાસી શકાય તેવી છે.`)),
     H("3.10 કોડિંગ યોજના", 2),
     cap("કોષ્ટક 3.5: પ્રતિચારોની કોડિંગ યોજના"),
     T(["પ્રતિચાર પ્રકાર", "કોડ"], [
@@ -2538,12 +2598,14 @@ function thesisCh3(onlyVerified){
     P("3-બિંદુ મધ્યકનું અર્થઘટન: 2.34–3.00 ઉચ્ચ, 1.67–2.33 મધ્યમ, 1.00–1.66 નીચું. ટકાવારી જવાબ આપનાર (valid) પર ગણી છે; બહુવિકલ્પ પ્રશ્નોમાં કુલ 100% થી વધુ થઈ શકે. વિશ્લેષણ માટે Microsoft Excel અને SPSS/PSPP વાપર્યાં."),
     H("3.12 નૈતિક બાબતો", 2),
     B("શાળા વડા અને ઉત્તરદાતાઓની સંમતિ લઈ માહિતી એકત્ર કરી."), B("ઉત્તરદાતાઓની ઓળખ ગુપ્ત રાખી; અહેવાલમાં ફક્ત કોડ વાપર્યા."), B("માહિતીનો ઉપયોગ ફક્ત સંશોધન હેતુ માટે કર્યો; ક્લાઉડ ડેટા પાસવર્ડ-સુરક્ષિત ખાતાથી જ ખૂલે છે."),
-    TODO("સંસ્થાની નૈતિક સમિતિની મંજૂરી હોય તો તેનો ઉલ્લેખ કરો"),
+    B("ડિજિટલ માહિતી પાસવર્ડ-સુરક્ષિત ક્લાઉડ ડેટાબેઝમાં ભૂમિકા-આધારિત પ્રવેશ સાથે રાખી; ભરેલાં પેપરના ફોટા ક્યાંય અપલોડ કર્યા નથી અને થીસિસમાં ફક્ત સમૂહ-સ્તરનાં પરિણામ રજૂ કર્યાં છે."),
+    B("થીસિસની મૌલિકતા INFLIBNET ShodhShuddhi (DrillBit) દ્વારા ચકાસી; UGC (2018) ના પ્લેજરિઝમ નિયમન મુજબ સમાનતા Level 0 (10% સુધી) રાખી."),
+    TODO("સંસ્થાની નૈતિક સમિતિની મંજૂરી હોય તો તેનો ઉલ્લેખ કરો; ડેટા-સર્વરનું સ્થાન (Firebase) અને AI/સોફ્ટવેર સહાયની જાહેરાત યુનિવર્સિટીની નીતિ મુજબ લખો"),
     H("3.13 ઉપસંહાર", 2), P("આ પ્રકરણમાં સંશોધન પદ્ધતિની સમગ્ર રૂપરેખા રજૂ કરી. હવે પછીના પ્રકરણ 4 માં એકત્ર કરેલી માહિતીનું વિશ્લેષણ અને અર્થઘટન રજૂ કર્યું છે."));
   return K.pack(b);
 }
 function thesisCh4(onlyVerified){
-  const K = docKit(); const recs = thesisRecs(onlyVerified); const A = teacherAnalysis(recs, K, onlyVerified); const {P, H, T, TODO, cap} = K; const C1 = caThesis(K);
+  const K = docKit({mark:TH_MARK}); const recs = thesisRecs(onlyVerified); const A = teacherAnalysis(recs, K, onlyVerified); const {P, H, T, TODO, cap} = K; const C1 = caThesis(K);
   const b = [H("પ્રકરણ 4: માહિતીનું વિશ્લેષણ અને અર્થઘટન", 1), H("4.1 પ્રસ્તાવના", 2),
     P(`આ પ્રકરણમાં હેતુ 2 અને 3 માટે ગણિત શિક્ષક મુલાકાત પત્રક દ્વારા મળેલી માહિતી (N = ${A.N}${onlyVerified ? ", ફક્ત Verified" : ""}) નું વિશ્લેષણ રજૂ કર્યું છે. ક્રમવાળા પ્રશ્નોમાં મોટો અંક = વધુ પ્રમાણ (3 = નિયમિત/વધુ, 2 = ક્યારેક/મધ્યમ, 1 = ક્યારેય નહીં/ઓછું). 3-બિંદુ મધ્યક: 2.34–3.00 ઉચ્ચ, 1.67–2.33 મધ્યમ, 1.00–1.66 નીચું. ટકાવારી જવાબ આપનાર (valid) પર છે.`),
     P("પ્રકરણનો ક્રમ: 4.2 હેતુ 1 (પાઠ્યપુસ્તક વિષયવસ્તુ વિશ્લેષણ), 4.3 નમૂનાનું વર્ણન, 4.4 હેતુ 2, 4.5 હેતુ 3, 4.6 હેતુ 4, 4.7 હેતુ 5, 4.8 હેતુ 6 અને 4.9 ઉપસંહાર."),
@@ -2560,7 +2622,7 @@ function thesisCh4(onlyVerified){
   return K.pack(b);
 }
 function thesisCh5(onlyVerified){
-  const K = docKit(); const {P, H, B, N: Num, TODO, fx} = K; const recs = thesisRecs(onlyVerified); const A = teacherAnalysis(recs, K, onlyVerified); const s = A.sample; const C1 = caThesis(K);
+  const K = docKit({mark:TH_MARK}); const {P, H, B, N: Num, TODO, fx} = K; const recs = thesisRecs(onlyVerified); const A = teacherAnalysis(recs, K, onlyVerified); const s = A.sample; const C1 = caThesis(K);
   const prac = A.items.filter(x => x.sec !== "ch"); const low = prac.filter(x => x.lvl !== "ઉચ્ચ").sort((a, b) => a.m - b.m).slice(0, 6);
   const high = prac.filter(x => x.lvl === "ઉચ્ચ").sort((a, b) => b.m - a.m).slice(0, 5); const chal = A.items.filter(x => x.sec === "ch").sort((a, b) => b.m - a.m).slice(0, 3);
   const b = [H("પ્રકરણ 5: સારાંશ, તારણો અને ભલામણો", 1),
@@ -2601,6 +2663,7 @@ function thesisCh5(onlyVerified){
   return K.pack(b);
 }
 async function thesisDownload(ch){
+  const mk = document.querySelector("#thMark"); TH_MARK = mk ? mk.checked : true; try { await smpLoad(); } catch (e) {}
   const v = !!(document.querySelector("#thV") || {}).checked; const fn = {1:() => twChapterDoc(1), 2:() => twChapterDoc(2), 3:thesisCh3, 4:thesisCh4, 5:thesisCh5}[ch];
   try { await caLoad(true); } catch (e) {}
   try { await tdLoad(true); } catch (e) {}
@@ -2618,6 +2681,8 @@ function viewThesis(){
   m.append(h("div", {class:"card"}, h("h2", {}, "થીસિસ પ્રકરણ (Word, શ્રુતિ ફોન્ટ)"),
     h("p", {class:"note"}, `સેવ થયેલ શિક્ષકો: ${all.length} · Verified: ${nv}. દરેક ફાઇલ શ્રુતિ (Shruti) ફોન્ટ, A4, 1.5 લાઇન-અંતર, પાન-નંબર અને Heading શૈલી સાથે બને છે (Word માં આપમેળે અનુક્રમણિકા બની શકે). [કૌંસ] માંની બાબતો તમારે લખવાની કે ચકાસવાની છે.`),
     h("label", {class:"note", style:"display:flex;gap:8px;align-items:center;margin:8px 0"}, h("input", {type:"checkbox", id:"thV", checked:nv > 0}), "ફક્ત Verified રેકોર્ડ (અંતિમ થીસિસ માટે ✓ રાખો)"),
+    h("label", {class:"note", style:"display:flex;gap:8px;align-items:center;margin:8px 0"}, h("input", {type:"checkbox", id:"thMark", checked:TH_MARK, onchange:e => { TH_MARK = e.target.checked; }}), "🟨 ઍપે લખેલાં તૈયાર વાક્યો પીળા રંગમાં બતાવો (પ્રકરણ 3–5) — તેને પોતાના શબ્દોમાં ફરી લખવાં; તમારું પોતાનું લખાણ સાદું રહેશે"),
+    h("a", {href:"#integ", class:"btn", style:"margin:4px 0"}, "🛡 પ્રામાણિકતા / Shodhganga ચેકલિસ્ટ અને Declaration"),
     h("a", {href:"#tools", class:"btn", id:"tdLink", style:"display:block;text-align:left;padding:12px 16px;margin:10px 0;font-size:1rem"}, "🛠 ઉપકરણ રચના: 5 ઉપકરણ × 6 તબક્કા (પ્રથમ મુસદ્દો → તજ્જ્ઞ → દ્વિતીય મુસદ્દો → પૂર્વ-અજમાયશ → અજમાયશ → અંતિમ), ફાઇલ જોડો"),
     h("a", {href:"#ca", class:"btn", id:"caLink", style:"display:block;text-align:left;padding:12px 16px;margin:10px 0;font-size:1rem"}, "📚 હેતુ 1: વિષયવસ્તુ વિશ્લેષણ — 13 પ્રકરણના ગુણ દાખલ કરો"),
     h("a", {href:"#write", class:"btn", id:"twLink", style:"display:block;text-align:left;padding:12px 16px;margin:10px 0;font-size:1rem"}, "✍️ થીસિસ લેખન: પ્રકરણ 1–5 ના મુદ્દા/પેટા-મુદ્દામાં લખાણ, ફાઇલ (.txt/.docx/.pdf) માંથી ઉમેરો, સાહિત્ય સમીક્ષા અને સંદર્ભસૂચિ"),
@@ -2927,7 +2992,7 @@ function buildVerifyWorkbook(){
     ["Original checkbox options compared", VERIFY_ROWS.reduce((a, r) => a + (r.n_opts || 0), 0)], ["Original table statements compared", VERIFY_ROWS.filter(r => r.kind === "table-row").length]];
   return xlsx([{name:"Summary", rows:sum, filter:false, freeze:false, widths:[40, 20]}, {name:"Verification_Report", rows, wrap:true, widths:[8, 30, 10, 60, 50, 60, 50, 10, 50]}]);
 }
-window.__TEST__ = {stratSample, fullBackup, caWorkbook, caStruct, caDocxBlocks, caImportDocx, caChapterDoc, relStats, cadLoad, S, buildWorkbook, buildVerifyWorkbook, spssSyntax, spssCsv, masterCsv, codebookRows, thesisCh3, thesisCh4, thesisCh5, caStats, kAlphaOrdinal, CA, caLoad, raterKit, TD, tdLoad, splitItems, fileToText, TW, twLoad, twChapterDoc, twRefsDoc, qualityOf, completeness, readForm};
+window.__TEST__ = {integDoc, stratSample, fullBackup, caWorkbook, caStruct, caDocxBlocks, caImportDocx, caChapterDoc, relStats, cadLoad, S, buildWorkbook, buildVerifyWorkbook, spssSyntax, spssCsv, masterCsv, codebookRows, thesisCh3, thesisCh4, thesisCh5, caStats, kAlphaOrdinal, CA, caLoad, raterKit, TD, tdLoad, splitItems, fileToText, TW, twLoad, twChapterDoc, twRefsDoc, qualityOf, completeness, readForm};
 boot();
 </script>
 <script data-pp>/* Paper-photo panel: shows the photo of the filled paper form at the top of the screen while the operator enters data below.

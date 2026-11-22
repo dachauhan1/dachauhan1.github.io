@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chauhan Research — Google Sheet ડેટા વિશ્લેષણ (હેતુ 2–3, 4, 6)</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{--font:"Shruti","Nirmala UI","Noto Sans Gujarati","Lohit Gujarati",system-ui,sans-serif;--bg:#f4f6fa;--card:#fff;--ink:#1d2433;--mut:#5b6474;--pri:#1f5a96;--ok:#1d7a46;--warn:#a65b00;--bad:#b3261e;--line:#dfe4ec;color-scheme:light}
+*{box-sizing:border-box}body{margin:0;font-family:var(--font);background:var(--bg);color:var(--ink);font-size:16px;line-height:1.55}
+header{background:#fff;border-bottom:1px solid var(--line);padding:12px 16px;position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:20px}header p{margin:2px 0 0;color:var(--mut);font-size:14px}
+main{max-width:1100px;margin:0 auto;padding:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0}
+h2{font-size:18px;margin:0 0 8px}h3{font-size:16px;margin:14px 0 6px}
+.btn{font:inherit;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 14px;cursor:pointer}
+.btn.primary{background:var(--pri);color:#fff;border-color:var(--pri)}.btn.small{padding:4px 10px;font-size:14px}
+.btn:disabled{opacity:.5}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+input[type=text],input[type=url],select,textarea{font:inherit;width:100%;padding:8px;border:1px solid var(--line);border-radius:8px}
+.src{border:1px dashed var(--line);border-radius:12px;padding:10px;margin:8px 0}
+.src b{display:block}
+.note{color:var(--mut);font-size:14px}
+.msg{padding:8px 12px;border-radius:8px;margin:8px 0}.msg.ok{background:#e7f5ec;color:var(--ok)}.msg.warn{background:#fff4e5;color:var(--warn)}.msg.bad{background:#fdecea;color:var(--bad)}
+.scroll{overflow-x:auto}
+table.t{border-collapse:collapse;width:100%;font-size:14px;margin:6px 0}
+table.t th,table.t td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left;vertical-align:top}
+table.t th{background:#eef2f8}.num{text-align:right!important;white-space:nowrap}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.tabs .btn.on{background:var(--pri);color:#fff}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.kpi div{background:#eef2f8;border-radius:10px;padding:10px}.kpi b{font-size:22px;display:block}
+.dec{font-weight:bold}.dec.rej{color:var(--bad)}.dec.acc{color:var(--ok)}
+</style>
+</head>
+<body>
+<header>
+  <h1>📊 Google Sheet ડેટા વિશ્લેષણ</h1>
+  <p>વિદ્યાર્થી ડેટા: હેતુ 2–3 (અનુસૂચિ) · હેતુ 4 (સિદ્ધિ કસોટી) · હેતુ 6 (ચિંતાતુરતા માપદંડ) · <a href="index.html">← મુખ્ય એપ</a></p>
+</header>
+<main id="main"></main>
+<script>
+"use strict";
+/* ============================ definitions (from the Google Forms and the apps) ============================ */
+const DEFS = {"F23": [{"name": "સામાન્ય માહિતી", "qs": [{"k": "text", "v": "NAME", "t": "(1) વિદ્યાર્થીનું નામ", "short": true}, {"k": "single", "v": "SCH_TYPE", "t": "(2) શાળાનો પ્રકાર", "o": ["સરકારી", "અનુદાનિત", "સ્વનિર્ભર"]}, {"k": "text", "v": "SCHOOL", "t": "(3) શાળાનું નામ", "short": true}, {"k": "text", "v": "ROLL", "t": "(4) રોલ નંબર", "short": true}, {"k": "text", "v": "DIST", "t": "(5) જિલ્લો", "short": true}, {"k": "single", "v": "GENDER", "t": "(6) જાતિ", "o": ["કુમાર", "કન્યા"]}]}, {"name": "હેતુ 2 · વિભાગ A: વર્ગખંડમાં ગણિત અધ્યાપન", "qs": [{"k": "table", "v": "SA1_SA18", "t": "શિક્ષક વર્ગખંડમાં ગણિત કઈ રીતે ભણાવે છે?", "o": ["નિયમિત રીતે", "ક્યારેક", "ક્યારેય નહીં"], "items": ["પ્રકરણની શરૂઆત પૂર્વજ્ઞાન આધારિત પ્રશ્નોથી", "બ્લેકબોર્ડ દ્વારા સમજાવે", "વ્હાઇટબોર્ડ દ્વારા સમજાવે", "ચાર્ટનો ઉપયોગ", "ગાણિતિક મોડેલનો ઉપયોગ", "જૂથમાં કામ કરવાની તક", "પોતાની ઉકેલવાની રીત સમજાવવા પ્રોત્સાહન", "એકથી વધુ (વૈકલ્પિક) ઉકેલ રીતો બતાવે", "પ્રવૃત્તિ દ્વારા શીખવાડે", "દરેક વિદ્યાર્થીને (ધીમા શીખતા સહિત) સમાન તક", "પોતાની ભાષામાં સમજાવવાની તક", "પ્રોજેક્ટ દ્વારા સમજાવે", "ટેક્નોલોજી (ગણિતની એપ) નો ઉપયોગ", "\"શા માટે?\" \"કેવી રીતે?\" પ્રશ્નોથી વિચારવા પ્રેરે", "જુદા-જુદા ઉકેલોની સરખામણી કરી ચર્ચા", "વાસ્તવિક જીવનની પરિસ્થિતિ સાથે જોડે", "દૃશ્ય રજૂઆત (ચિત્ર/આલેખ/કોષ્ટક) દ્વારા સમજાવે", "જાતે વિચાર (અન્વેષણ) કરી શીખવાની તક"], "vars": ["SA1", "SA2", "SA3", "SA4", "SA5", "SA6", "SA7", "SA8", "SA9", "SA10", "SA11", "SA12", "SA13", "SA14", "SA15", "SA16", "SA17", "SA18"]}]}, {"name": "હેતુ 2 · વિભાગ B: વલણ અને ગાણિતિક વિચારશક્તિ", "qs": [{"k": "table", "v": "SB1_1_SB1_6", "t": "B-1 ગણિત પ્રત્યેનું વલણ અને આત્મવિશ્વાસ", "o": ["નિયમિત રીતે", "ક્યારેક", "ક્યારેય નહીં"], "items": ["મને ગણિત ભણવામાં રસ પડે છે", "ગણિતમાં આત્મવિશ્વાસ અનુભવું છું", "પ્રશ્ન પૂછવામાં સંકોચ થતો નથી", "ભૂલ કરું ત્યારે ડર લાગતો નથી", "પ્રશ્ન પૂછવા પૂરતો સમય મળે છે", "સહપાઠીઓ સાથે ચર્ચા કરીને શીખું છું"], "vars": ["SB1_1", "SB1_2", "SB1_3", "SB1_4", "SB1_5", "SB1_6"]}, {"k": "table", "v": "SB2_1_SB2_13", "t": "B-2 ગાણિતિક વિચારશક્તિ (Mathematical Thinking)", "o": ["નિયમિત રીતે", "ક્યારેક", "ક્યારેય નહીં"], "items": ["ઉકેલતા પહેલાં સૌથી યોગ્ય રીત વિચારું", "ગણિતના ખ્યાલોનો રોજિંદા જીવનમાં ઉપયોગ", "નવી રીત શોધવાનો પ્રયાસ", "જવાબ/ઉકેલ-પદ્ધતિ માટે કારણ (તર્ક) આપી શકું", "ભૂલ પછી કેમ થઈ તે સમજવાનો પ્રયત્ન", "ઉદાહરણ/ચિત્ર દ્વારા સમર્થન", "એક પ્રશ્ન અલગ-અલગ રીતે ઉકેલી શકું", "વાસ્તવિક સમસ્યાને ગણિત સાથે જોડું", "પરિસ્થિતિને ગાણિતિક સૂત્ર/મોડેલમાં ફેરવું", "દૃશ્ય રજૂઆત દ્વારા જવાબ સમજાવું", "દૃશ્ય રજૂઆતની માહિતીનું અર્થઘટન", "ગાણિતિક વિચારો સ્પષ્ટ રજૂ કરું", "અઘરો દાખલો હોય તો પણ વારંવાર પ્રયત્ન"], "vars": ["SB2_1", "SB2_2", "SB2_3", "SB2_4", "SB2_5", "SB2_6", "SB2_7", "SB2_8", "SB2_9", "SB2_10", "SB2_11", "SB2_12", "SB2_13"]}]}, {"name": "હેતુ 2 · વિભાગ C: ગણિત શીખવાની પસંદગી", "qs": [{"k": "multi", "v": "C1", "t": "(1) કઈ રીતથી ગણિત વધુ સારી રીતે સમજાય?", "o": ["પ્રવૃત્તિ દ્વારા", "જૂથ-ચર્ચા દ્વારા", "ઉદાહરણો દ્વારા", "ટેક્નોલોજી (વિડિયો/વ્હાઇટબોર્ડ)"]}, {"k": "single", "v": "C2", "t": "(2) સૌથી વધુ ગમતી રીત (એક જ)", "o": ["પ્રવૃત્તિ", "જૂથ ચર્ચા", "ઉદાહરણ", "ટેક્નોલોજી"]}, {"k": "table", "v": "C3_1_C3_4", "t": "(3) ક્રમ (1 = સૌથી વધુ ગમે … 4 = સૌથી ઓછું)", "o": ["1", "2", "3", "4"], "items": ["પ્રવૃત્તિ આધારિત", "જૂથ ચર્ચા", "ઉદાહરણ", "ટેક્નોલોજી"], "vals": [1, 2, 3, 4], "vars": ["C3_1", "C3_2", "C3_3", "C3_4"]}, {"k": "multi", "v": "C4", "t": "(4) ગણિતનો વર્ગ વધુ સારો બને તે માટે બદલાવ", "o": ["વધુ પ્રવૃત્તિ આધારિત શિક્ષણ", "વ્હાઇટબોર્ડ/વિડિયો દ્વારા સમજાવવું", "જૂથમાં કામની વધુ તક", "રોજિંદા જીવનનાં ઉદાહરણો", "મોડેલ અને ચાર્ટનો ઉપયોગ", "રમતો દ્વારા ગણિત", "પ્રશ્ન પૂછવાની વધુ તક", "ગૃહકાર્ય ઓછું", "શિક્ષક ધીમે અને સરળ ભાષામાં"], "other": true}, {"k": "multi", "v": "C5", "t": "(5) દાખલો ઉકેલવામાં મુશ્કેલી પડે ત્યારે શું કરો?", "o": ["ફરી પ્રયત્ન", "મિત્રને પૂછું", "શિક્ષકને પૂછું", "છોડી દઉં"]}, {"k": "multi", "v": "C6", "t": "(6) સૌથી વધુ શું મુશ્કેલ લાગે છે?", "o": ["લાંબા દાખલા ઉકેલવા", "સૂત્રો યાદ રાખવા", "ભાગાકાર", "દશાંશ ગણિત", "ભૂમિતિ", "બીજગણિત", "આંકડાશાસ્ત્ર", "ઝડપથી જવાબ આપવો", "પરીક્ષામાં સમય પૂરતો ન પડવો", "અંગ્રેજી શબ્દો સમજવામાં મુશ્કેલી"], "other": true}, {"k": "multi", "v": "C6R", "t": "(6) શા માટે મુશ્કેલ લાગે છે?", "o": ["યોગ્ય રીતે સમજાયું નથી", "વધુ પ્રેક્ટિસ નથી મળતી", "ડર લાગે છે", "ઝડપથી શીખવવામાં આવે છે", "ધ્યાન કેન્દ્રિત કરવામાં મુશ્કેલી", "અગાઉનો પાયો નબળો", "ઉદાહરણ/દાખલા કઠિન"], "other": true}, {"k": "multi", "v": "C7", "t": "(7) ગણિત સમજવા સૌથી વધુ મદદરૂપ", "o": ["કારણ સમજાવતી ચર્ચા", "વાસ્તવિક જીવનનાં ઉદાહરણો", "ચિત્ર/આલેખ દ્વારા સમજ", "વિવિધ ઉકેલોની તુલના", "પ્રવૃત્તિ આધારિત શિક્ષણ", "ટેક્નોલોજીનો ઉપયોગ"]}]}, {"name": "હેતુ 3 · મૂલ્યાંકન પ્રક્રિયા", "qs": [{"k": "table", "v": "AS1_AS23", "t": "વર્ગમાં કસોટી/પરીક્ષા/મૂલ્યાંકન", "o": ["નિયમિત રીતે", "ક્યારેક", "ક્યારેય નહીં"], "items": ["1 પ્રકરણના અંતે કસોટી", "2 માસિક કસોટી", "(ક્રમ વગર) ત્રિમાસિક કસોટી", "3 સત્રાંત/વાર્ષિક પરીક્ષા", "4 વિચાર કરીને જવાબ આપવા પડે તેવા પ્રશ્નો", "5 સુધારાત્મક (Constructive) પ્રતિભાવ", "6 જવાબ સુધારવાની બીજી તક", "7 મૂલ્યાંકન દરમિયાન ડર લાગતો નથી", "8 ભૂલો ઓળખવામાં મદદ", "9 ભૂલો સુધારવામાં મદદ", "10 પ્રગતિ સમજવામાં મદદ", "11 પ્રવૃત્તિ/પ્રોજેક્ટ આધારિત મૂલ્યાંકન", "12 જવાબનું કારણ (શા માટે?) પૂછાય", "13 દૃશ્ય રજૂઆતનું અર્થઘટન", "14 વાસ્તવિક જીવન આધારિત પ્રશ્નો", "15 એકથી વધુ યોગ્ય ઉકેલો સ્વીકારાય", "16 ગુણમાં તર્ક (reasoning) પણ ધ્યાનમાં", "17 ઉકેલ-પદ્ધતિ મૌખિક/લેખિત સમજાવવાની તક", "18 પરિસ્થિતિને મોડેલ/સમીકરણમાં રૂપાંતર", "19 સરળથી અઘરા ક્રમમાં પ્રશ્નો", "20 સ્વ/સાથી-મૂલ્યાંકનની તક", "21 નાના ટેસ્ટ/ક્વિઝ (formative check)", "22 ખ્યાલ આધારિત પ્રશ્નો", "23 ઉપયોજન આધારિત પ્રશ્નો"], "vars": ["AS1", "AS2", "AS2T", "AS3", "AS4", "AS5", "AS6", "AS7", "AS8", "AS9", "AS10", "AS11", "AS12", "AS13", "AS14", "AS15", "AS16", "AS17", "AS18", "AS19", "AS20", "AS21", "AS22", "AS23"]}, {"k": "multi", "v": "D1", "t": "(1) શિક્ષકના પ્રતિભાવથી શું સુધારવામાં મદદ મળે?", "o": ["ભૂલો સમજવામાં", "સાચી રીતથી જવાબ લખતા શીખું", "વધુ પ્રેક્ટિસની સમજ", "આત્મવિશ્વાસ વધે", "સમય વ્યવસ્થાપન શીખું", "વિષયમાં નબળાઈ ખબર પડે", "આગામી પરીક્ષાની તૈયારી સારી", "શિક્ષક ફરી સમજાવે"], "other": true}, {"k": "multi", "v": "D2", "t": "(2) કયા પ્રકારનું મૂલ્યાંકન વધુ સારું લાગે?", "o": ["લેખિત પરીક્ષા", "પ્રવૃત્તિ આધારિત", "પ્રોજેક્ટ આધારિત"]}, {"k": "multi", "v": "D3", "t": "(3) ડર ઓછો થાય અને વધુ શીખવા મળે તે માટે બદલાવ", "o": ["સરળ અને સમજણ આધારિત પ્રશ્નો", "વધુ પ્રવૃત્તિ આધારિત મૂલ્યાંકન", "પ્રોજેક્ટ આધારિત મૂલ્યાંકન વધારવું", "પરીક્ષા પહેલાં પુનરાવર્તન", "વધુ સમય", "શિક્ષક પ્રોત્સાહન આપે", "નાના નાના ટેસ્ટ", "ગુણ કરતાં સમજ પર ભાર", "મિત્રો સાથે ચર્ચાની તક"], "other": true}]}], "F4": [{"name": "સામાન્ય માહિતી", "qs": [{"k": "text", "v": "NAME", "t": "(1) વિદ્યાર્થીનું નામ", "short": true}, {"k": "text", "v": "SCHOOL", "t": "(2) શાળાનું નામ", "short": true}, {"k": "text", "v": "DIST", "t": "(3) જિલ્લો", "short": true}, {"k": "text", "v": "ROLL", "t": "(4) રોલ નંબર", "short": true}, {"k": "single", "v": "GENDER", "t": "(5) જાતિ", "o": ["કુમાર", "કન્યા"]}]}, {"name": "હેતુ 4 · ગણિતીકરણ સિદ્ધિ કસોટી (40 ગુણ)", "qs": [{"k": "table", "v": "Q1_Q12", "t": "વિભાગ A: બહુવિકલ્પ પ્રશ્નો 1–12 — વિદ્યાર્થીએ પસંદ કરેલ વિકલ્પ", "o": ["A", "B", "C", "D"], "items": ["Q1 વિધાન-કારણ (સંમેય બાદબાકી)", "Q2 બિયારણ-ખાતર ખર્ચ", "Q3 સંમેય સંખ્યાના ગુણધર્મ", "Q4 3x+5=2x−3 નો ઉકેલ", "Q5 બંને પદમાંથી 5 બાદ", "Q6 સમીકરણ સ્વરૂપ", "Q7 સમાંતરબાજુ ચતુષ્કોણના ખૂણા", "Q8 વિકર્ણો સમાન-કાટખૂણે", "Q9 વિધાન-કારણ (ચોરસ વિકર્ણ)", "Q10 લીલો દડો સંભાવના", "Q11 પાઈચાર્ટ 25% ખૂણો", "Q12 40 માંથી 25 અપૂર્ણાંક"], "vals": ["A", "B", "C", "D"], "vars": ["Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q8", "Q9", "Q10", "Q11", "Q12"]}, {"k": "table", "v": "Q13_Q19", "t": "વિભાગ B: પ્રશ્ન 13–19 — મળેલા ગુણ (મહત્તમ 2)", "o": ["0", "½", "1", "1½", "2"], "items": ["Q13 8÷4 = 4÷8 ?", "Q14 ખર્ચ બે રીતે", "Q15 પિતા-પુત્રી ઉંમર સમીકરણ", "Q16 કિરણની ભૂલ", "Q17 ∠Q અને ગુણધર્મ", "Q18 ચોરસ/લંબચોરસ/સમબાજુ ✓✗", "Q19 સંભાવના અને સરવાળો 1"], "vals": [0.0, 0.5, 1.0, 1.5, 2.0], "vars": ["Q13", "Q14", "Q15", "Q16", "Q17", "Q18", "Q19"]}, {"k": "table", "v": "Q20_Q21", "t": "વિભાગ C: પ્રશ્ન 20–21 — મળેલા ગુણ (મહત્તમ 4)", "o": ["0", "½", "1", "1½", "2", "2½", "3", "3½", "4"], "items": ["Q20 બેંક ખાતું 6 મહિના", "Q21 ખુરશી ખર્ચ સમીકરણ"], "vals": [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0], "vars": ["Q20", "Q21"]}, {"k": "table", "v": "Q22_Q23", "t": "વિભાગ C: પ્રશ્ન 22–23 — મળેલા ગુણ (મહત્તમ 3)", "o": ["0", "½", "1", "1½", "2", "2½", "3"], "items": ["Q22 વિકર્ણો દ્વિભાજિત → સમાંતરબાજુ?", "Q23 લંબ આલેખ (ફળ)"], "vals": [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0], "vars": ["Q22", "Q23"]}]}], "F6": [{"name": "સામાન્ય માહિતી", "qs": [{"k": "text", "v": "NAME", "t": "(1) વિદ્યાર્થીનું નામ", "short": true}, {"k": "single", "v": "SCH_TYPE", "t": "(2) શાળાનો પ્રકાર", "o": ["સરકારી", "અનુદાનિત", "સ્વનિર્ભર"]}, {"k": "text", "v": "SCHOOL", "t": "(3) શાળાનું નામ", "short": true}, {"k": "text", "v": "ROLL", "t": "(4) રોલ નંબર", "short": true}, {"k": "text", "v": "DIST", "t": "(5) જિલ્લો", "short": true}, {"k": "single", "v": "GENDER", "t": "(6) જાતિ", "o": ["કુમાર", "કન્યા"]}]}, {"name": "હેતુ 6 · ગણિત ચિંતાતુરતા માપદંડ", "qs": [{"k": "table", "v": "AX1_AX21", "t": "ગણિત વિષયક ચિંતાતુરતા (21 વિધાન)", "o": ["સંપૂર્ણ સહમત", "સહમત", "તટસ્થ", "અસહમત", "સંપૂર્ણ અસહમત"], "items": ["તાસ શરૂ થાય તે પહેલાં ચિંતા", "નવું પ્રકરણ સમજવામાં ચિંતા", "ગૃહકાર્ય તપાસે ત્યારે આત્મવિશ્વાસ નથી", "ગૃહકાર્ય તપાસે ત્યારે ગભરામણ", "મૌખિક પ્રશ્ન પૂછે ત્યારે ગભરામણ", "(+) નવો મુદ્દો સમજાવે ત્યારે હળવાશ", "મૂંઝવણ રજૂ કરવામાં સંકોચ", "પ્રશ્નો ઉકેલવાનું શરૂ કરવાથી ડરું", "(+) ગણિત શીખવામાં આનંદ", "મુશ્કેલ પ્રશ્નો જોતા ગભરામણ", "વિચારીને જ તણાવ", "(+) અઘરા દાખલા ઉકેલવામાં આનંદ", "ગણિત વિશે વિચારતાં ચિંતા", "ચિંતાને કારણે પ્રશ્નો સમજવામાં મુશ્કેલી", "પરીક્ષા નજીક આવે ત્યારે ચિંતા વધે", "દાખલા ખોટા પડવાનો ડર", "પરીક્ષાની આગલી રાત્રે ઊંઘમાં તકલીફ", "(+) પરીક્ષા દરમિયાન શાંત રહું", "ધબકારા વધે / હાથ ધ્રૂજે", "પ્રશ્નપત્ર હાથમાં આવતાં ચિંતા", "(+) પરિણામ પછી પણ સ્વસ્થ રહું"], "vars": ["AX1", "AX2", "AX3", "AX4", "AX5", "AX6", "AX7", "AX8", "AX9", "AX10", "AX11", "AX12", "AX13", "AX14", "AX15", "AX16", "AX17", "AX18", "AX19", "AX20", "AX21"]}]}], "SECTIONS": [{"id": "info", "obj": "", "title": "સામાન્ય માહિતી", "intro": []}, {"id": "A", "obj": "હેતુ 2", "title": "વિભાગ - A", "intro": [], "qs": [{"k": "table", "head": "શિક્ષક વર્ગખંડમાં ગણિત કઈ રીતે ભણાવે છે?", "items": [{"v": "O2_A01", "no": "1", "gu": "શિક્ષક પ્રકરણની શરૂઆત પૂર્વજ્ઞાન આધારિત પ્રશ્નો દ્વારા કરે છે.", "en": "Starts chapter with prior-knowledge questions", "c": "A_TEACH", "leg": "SA1"}, {"v": "O2_A02", "no": "2", "gu": "શિક્ષક બ્લેકબોર્ડ દ્વારા સમજાવે છે.", "en": "Explains using blackboard", "c": "", "leg": "SA2"}, {"v": "O2_A03", "no": "3", "gu": "શિક્ષક વ્હાઇટબોર્ડ દ્વારા સમજાવે છે.", "en": "Explains using whiteboard", "c": "", "leg": "SA3"}, {"v": "O2_A04", "no": "4", "gu": "શિક્ષક ચાર્ટનો ઉપયોગ કરે છે.", "en": "Uses charts", "c": "A_TEACH", "leg": "SA4"}, {"v": "O2_A05", "no": "5", "gu": "શિક્ષક ગાણિતિક મોડેલનો ઉપયોગ કરે છે.", "en": "Uses mathematical models", "c": "A_TEACH", "leg": "SA5"}, {"v": "O2_A06", "no": "6", "gu": "શિક્ષક જૂથમાં કામ કરવાની તક આપે છે.", "en": "Gives group-work opportunity", "c": "A_TEACH", "leg": "SA6"}, {"v": "O2_A07", "no": "7", "gu": "શિક્ષક વ્યક્તિગત વિદ્યાર્થીને પોતાની ઉકેલવાની રીત સમજાવવા પ્રોત્સાહિત કરે છે.", "en": "Encourages explaining own solution method", "c": "A_TEACH", "leg": "SA7"}, {"v": "O2_A08", "no": "8", "gu": "શિક્ષક પોતે પ્રશ્નો ઉકેલવાની એકથી વધુ ઉકેલ રીતો (વૈકલ્પિક રીતો) બતાવે છે.", "en": "Shows more than one solution method", "c": "A_TEACH", "leg": "SA8"}, {"v": "O2_A09", "no": "9", "gu": "શિક્ષક પ્રવૃત્તિ દ્વારા શીખવાડે છે.", "en": "Teaches through activity", "c": "A_TEACH", "leg": "SA9"}, {"v": "O2_A10", "no": "10", "gu": "શિક્ષક દરેક વિદ્યાર્થીને (ધીમા શીખતા વિદ્યાર્થીઓ સહિત) સમાન તક આપે છે.", "en": "Equal opportunity to every student incl. slow learners", "c": "A_TEACH", "leg": "SA10"}, {"v": "O2_A11", "no": "11", "gu": "શિક્ષક વિદ્યાર્થીઓને પોતાની ભાષામાં સમજાવવાની તક આપે છે.", "en": "Lets students explain in own language", "c": "A_TEACH", "leg": "SA11"}, {"v": "O2_A12", "no": "12", "gu": "શિક્ષક ગણિતમાં પ્રોજેક્ટ દ્વારા સમજાવે છે.", "en": "Explains through projects", "c": "A_TEACH", "leg": "SA12"}, {"v": "O2_A13", "no": "13", "gu": "શિક્ષક ટેકનોલોજી (ગણિતની ઍપ્લિકેશન (એપ))નો ઉપયોગ કરે છે.", "en": "Uses technology (maths app)", "c": "A_TEACH", "leg": "SA13"}, {"v": "O2_A14", "no": "14", "gu": "શિક્ષક \"શા માટે?\" અને \"કેવી રીતે?\" જેવા પ્રશ્નો દ્વારા વિચારવા પ્રેરિત કરે છે.", "en": "Prompts thinking with why/how questions", "c": "A_TEACH", "leg": "SA14"}, {"v": "O2_A15", "no": "15", "gu": "શિક્ષક વર્ગમાં જુદા-જુદા વિદ્યાર્થીઓએ સૂચવેલા ઉકેલોની સરખામણી કરાવીને ચર્ચા કરાવે છે.", "en": "Compares and discusses students' solutions", "c": "A_TEACH", "leg": "SA15"}, {"v": "O2_A16", "no": "16", "gu": "શિક્ષક વાસ્તવિક જીવનની પરિસ્થિતિઓને ગણિત સાથે જોડીને સમજાવે છે.", "en": "Links real-life situations with maths", "c": "A_TEACH", "leg": "SA16"}, {"v": "O2_A17", "no": "17", "gu": "શિક્ષક દૃશ્ય રજૂઆત (ચિત્ર/આલેખ/કોષ્ટક) દ્વારા ગાણિતિક વિચારો સમજાવે છે.", "en": "Explains ideas through visual representation", "c": "A_TEACH", "leg": "SA17"}, {"v": "O2_A18", "no": "18", "gu": "શિક્ષક નવો ખ્યાલ શીખવતી વખતે વિદ્યાર્થીઓ જાતે વિચાર (અન્વેષણ) કરીને શીખે તેવી તક આપે છે.", "en": "Lets students explore new concept themselves", "c": "A_TEACH", "leg": "SA18"}]}]}, {"id": "B", "obj": "હેતુ 2", "title": "(B) વિદ્યાર્થીની ગાણિતિક અનુભૂતિ અને વિચારશક્તિ", "intro": ["નીચે આપેલાં વિધાનો ગણિત પ્રત્યેની તમારી લાગણી અને તમારી પોતાની વિચારવાની/ઉકેલવાની રીત સાથે સંબંધિત છે. તમારા પોતાના અનુભવ મુજબ યોગ્ય વિકલ્પ પસંદ કરો."], "qs": [{"k": "table", "head": "(B-1) ગણિત પ્રત્યેનું વલણ અને આત્મવિશ્વાસ", "items": [{"v": "O2_B1_01", "no": "1", "gu": "મને ગણિત ભણવામાં રસ પડે છે.", "en": "Interested in learning maths", "c": "B1_ATT", "leg": "SB1_1"}, {"v": "O2_B1_02", "no": "2", "gu": "હું ગણિતમાં આત્મવિશ્વાસ અનુભવું છું.", "en": "Feels confident in maths", "c": "B1_ATT", "leg": "SB1_2"}, {"v": "O2_B1_03", "no": "3", "gu": "મને વર્ગ દરમિયાન પ્રશ્ન પૂછવામાં સંકોચ થતો નથી.", "en": "Not hesitant to ask questions in class", "c": "B1_ATT", "leg": "SB1_3"}, {"v": "O2_B1_04", "no": "4", "gu": "હું ભૂલ કરું ત્યારે મને ડર લાગતો નથી.", "en": "Not afraid when making mistakes", "c": "B1_ATT", "leg": "SB1_4"}, {"v": "O2_B1_05", "no": "5", "gu": "મને વર્ગમાં પ્રશ્ન પૂછવા માટે પૂરતો સમય મળે છે.", "en": "Gets enough time to ask questions", "c": "B1_ATT", "leg": "SB1_5"}, {"v": "O2_B1_06", "no": "6", "gu": "હું મારા સહપાઠીઓ સાથે ચર્ચા કરીને શીખું છું.", "en": "Learns by discussing with classmates", "c": "B1_ATT", "leg": "SB1_6"}]}, {"k": "table", "head": "(B-2) ગાણિતિક વિચારશક્તિ (Mathematical Thinking)", "items": [{"v": "O2_B2_01", "no": "1", "gu": "દાખલો ઉકેલતા પહેલાં હું વિચારું છું કે કઈ રીત સૌથી યોગ્ય રહેશે.", "en": "Thinks about best method before solving", "c": "B2_THINK", "leg": "SB2_1"}, {"v": "O2_B2_02", "no": "2", "gu": "હું ગણિતના ખ્યાલોનો રોજિંદા જીવનમાં ઉપયોગ કરી શકું છું.", "en": "Can use maths concepts in daily life", "c": "B2_THINK", "leg": "SB2_2"}, {"v": "O2_B2_03", "no": "3", "gu": "હું પ્રશ્નો ઉકેલવા માટે નવી રીત શોધવાનો પ્રયાસ કરું છું.", "en": "Tries new ways to solve problems", "c": "B2_THINK", "leg": "SB2_3"}, {"v": "O2_B2_04", "no": "4", "gu": "હું મારા જવાબ અને ઉકેલ-પદ્ધતિ માટે કારણ (તર્ક) આપી શકું છું કે તે કેમ સાચું છે.", "en": "Can justify answer and method", "c": "B2_THINK", "leg": "SB2_4"}, {"v": "O2_B2_05", "no": "5", "gu": "ભૂલ થયા પછી હું સમજવાનો પ્રયત્ન કરું છું કે કેમ ભૂલ થઈ.", "en": "Tries to understand why a mistake happened", "c": "B2_THINK", "leg": "SB2_5"}, {"v": "O2_B2_06", "no": "6", "gu": "હું મારા જવાબને ઉદાહરણ અથવા ચિત્ર દ્વારા સમર્થન આપી શકું છું.", "en": "Supports answer with example or picture", "c": "B2_THINK", "leg": "SB2_6"}, {"v": "O2_B2_07", "no": "7", "gu": "હું એક જ પ્રશ્નને અલગ-અલગ રીતોથી ઉકેલી શકું છું.", "en": "Can solve one problem in different ways", "c": "B2_THINK", "leg": "SB2_7"}, {"v": "O2_B2_08", "no": "8", "gu": "હું વાસ્તવિક જીવનની સમસ્યાને ગણિત સાથે જોડી શકું છું.", "en": "Connects real-life problems with maths", "c": "B2_THINK", "leg": "SB2_8"}, {"v": "O2_B2_09", "no": "9", "gu": "હું રોજિંદા જીવનની પરિસ્થિતિને ગાણિતિક સૂત્ર અથવા મોડેલમાં ફેરવી શકું છું.", "en": "Converts daily situations into formula/model", "c": "B2_THINK", "leg": "SB2_9"}, {"v": "O2_B2_10", "no": "10", "gu": "હું દૃશ્ય રજૂઆત (ચિત્ર/આલેખ/કોષ્ટક) દ્વારા મારો જવાબ સમજાવી શકું છું.", "en": "Explains answer through visual representation", "c": "B2_THINK", "leg": "SB2_10"}, {"v": "O2_B2_11", "no": "11", "gu": "હું દૃશ્ય રજૂઆત (ચિત્ર/આલેખ/કોષ્ટક)માં આપેલી માહિતીનું અર્થઘટન કરી શકું છું.", "en": "Interprets information in visual representation", "c": "B2_THINK", "leg": "SB2_11"}, {"v": "O2_B2_12", "no": "12", "gu": "હું મારા ગાણિતિક વિચારો અન્ય વિદ્યાર્થીઓને સ્પષ્ટ રીતે રજૂ કરી શકું છું.", "en": "Presents mathematical ideas clearly to others", "c": "B2_THINK", "leg": "SB2_12"}, {"v": "O2_B2_13", "no": "13", "gu": "અઘરો દાખલો આવે તો પણ હું વારંવાર પ્રયત્ન કરું છું.", "en": "Keeps trying on difficult problems", "c": "B2_THINK", "leg": "SB2_13"}]}]}, {"id": "C", "obj": "હેતુ 2", "title": "(C) ગણિત શીખવાની પસંદગી (Preference)", "intro": ["નીચેના પ્રશ્નોમાં તમને સૌથી વધુ લાગુ પડતો વિકલ્પ પસંદ કરો. જ્યાં એકથી વધુ પસંદગીની છૂટ આપી હોય ત્યાં જ એકથી વધુ વિકલ્પ પસંદ કરો."], "qs": [{"k": "choice", "v": "O2_C1", "no": "(1)", "q": "(1) નીચેનામાંથી કઈ રીતથી તમને ગણિત વધુ સારી રીતે સમજાય છે? (એકથી વધુ પસંદ કરી શકો છો)", "sub": null, "en": "C1 way maths is understood better", "opts": ["પ્રવૃત્તિ દ્વારા", "જૂથ-ચર્ચા દ્વારા", "ઉદાહરણો દ્વારા", "ટેકનોલોજી (વિડિયો/વ્હાઇટબોર્ડ) દ્વારા"], "opts_en": ["Through activity", "Through group discussion", "Through examples", "Through technology (video/whiteboard)"], "oth": null, "raw": ["O2_C1_1", "O2_C1_2", "O2_C1_3", "O2_C1_4"], "clean": "multi", "leg": "C1"}, {"k": "choice", "v": "O2_C2", "no": "(2)", "q": "(2) સૌથી વધુ ગમતી રીત પસંદ કરો (એક જ)", "sub": null, "en": "C2 most liked way (one only)", "opts": ["પ્રવૃત્તિ", "જૂથ ચર્ચા", "ઉદાહરણ", "ટેકનોલોજી"], "opts_en": ["Activity", "Group discussion", "Example", "Technology"], "oth": null, "raw": ["O2_C2_R1", "O2_C2_R2", "O2_C2_R3", "O2_C2_R4"], "clean": "single", "leg": "C2"}, {"k": "rank", "v": "O2_C3", "no": "(3)", "q": "(3) કૃપા કરીને ક્રમ આપો (1 = સૌથી વધુ ગમે 4 = સૌથી ઓછું ગમે):", "items": ["પ્રવૃત્તિ આધારિત", "જૂથ ચર્ચા", "ઉદાહરણ", "ટેકનોલોજી"], "en": "C3 rank", "items_en": ["Activity-based", "Group discussion", "Example", "Technology"], "raw": ["O2_C3_1", "O2_C3_2", "O2_C3_3", "O2_C3_4"], "leg": "C3"}, {"k": "choice", "v": "O2_C4", "no": "(4)", "q": "(4) ગણિતનો વર્ગ વધુ સારો અને રસપ્રદ બને તે માટે તમે શું બદલાવ ઇચ્છો છો?", "sub": null, "en": "C4 desired change in maths class", "opts": ["વધુ પ્રવૃત્તિ આધારિત શિક્ષણ થાય", "વ્હાઇટબોર્ડ/વિડિયો દ્વારા સમજાવવામાં આવે", "જૂથમાં કામ કરવાની વધુ તક મળે", "રોજિંદા જીવનના ઉદાહરણો વધુ આપવામાં આવે", "ગણિતના મોડેલ અને ચાર્ટનો ઉપયોગ થાય", "રમતો દ્વારા ગણિત શીખવવામાં આવે", "પ્રશ્ન પૂછવાની વધુ તક મળે", "ગૃહકાર્ય ઓછું આપવામાં આવે", "શિક્ષક ધીમે અને સરળ ભાષામાં સમજાવે", "અન્ય"], "opts_en": ["More activity-based teaching", "Explain by whiteboard/video", "More group-work opportunity", "More daily-life examples", "Use maths models and charts", "Teach maths through games", "More chance to ask questions", "Less homework", "Teacher explains slowly in simple language", "Other"], "oth": "O2_C4_OTH", "raw": ["O2_C4_R01", "O2_C4_R02", "O2_C4_R03", "O2_C4_R04", "O2_C4_R05", "O2_C4_R06", "O2_C4_R07", "O2_C4_R08", "O2_C4_R09", "O2_C4_R10"], "clean": "single", "leg": "C4"}, {"k": "choice", "v": "O2_C5", "no": "(5)", "q": "(5) જ્યારે તમને ગણિતનો દાખલો ઉકેલવામાં મુશ્કેલી પડે ત્યારે તમે શું કરો છો?", "sub": null, "en": "C5 action when stuck", "opts": ["ફરી પ્રયત્ન કરું છું", "મિત્રને પૂછું છું", "શિક્ષકને પૂછું છું", "છોડી દઉં છું"], "opts_en": ["Try again", "Ask a friend", "Ask the teacher", "Give up"], "oth": null, "raw": ["O2_C5_R1", "O2_C5_R2", "O2_C5_R3", "O2_C5_R4"], "clean": "single", "leg": "C5"}, {"k": "choice", "v": "O2_C6", "no": "(6)", "q": "(6) ગણિત ભણતી વખતે તમને સૌથી વધુ શું મુશ્કેલ લાગે છે? શા માટે?", "sub": "શું મુશ્કેલ લાગે છે?", "en": "C6 most difficult in maths", "opts": ["લાંબા દાખલા ઉકેલવા", "સૂત્રો યાદ રાખવા", "ભાગાકાર", "દશાંશ ગણિત", "ભૂમિતિ", "બીજગણિત", "આંકડાશાસ્ત્ર", "ઝડપથી જવાબ આપવો", "પરીક્ષામાં સમય પૂરતો ન પડવો", "અંગ્રેજી શબ્દો સમજવામાં મુશ્કેલી", "અન્ય"], "opts_en": ["Solving long problems", "Remembering formulas", "Division", "Decimals", "Geometry", "Algebra", "Statistics", "Answering quickly", "Not enough time in exam", "Understanding English words", "Other"], "oth": "O2_C6_OTH", "raw": ["O2_C6_R01", "O2_C6_R02", "O2_C6_R03", "O2_C6_R04", "O2_C6_R05", "O2_C6_R06", "O2_C6_R07", "O2_C6_R08", "O2_C6_R09", "O2_C6_R10", "O2_C6_R11"], "clean": "single", "leg": "C6"}, {"k": "choice", "v": "O2_C6W", "no": "(6)", "q": "", "sub": "શા માટે મુશ્કેલ લાગે છે?", "en": "C6 reason for difficulty", "opts": ["યોગ્ય રીતે સમજાયું નથી", "વધુ પ્રેક્ટિસ નથી મળતી", "ડર લાગે છે", "ઝડપથી શીખવવામાં આવે છે", "ધ્યાન કેન્દ્રિત કરવામાં મુશ્કેલી પડે છે", "અગાઉનો પાયો (આધાર) નબળો છે", "ઉદાહરણ/દાખલા કઠિન લાગે છે", "અન્ય"], "opts_en": ["Not understood properly", "Not enough practice", "Feel afraid", "Taught too fast", "Difficulty concentrating", "Weak prior foundation", "Examples/problems seem hard", "Other"], "oth": "O2_C6W_OTH", "raw": ["O2_C6W_R1", "O2_C6W_R2", "O2_C6W_R3", "O2_C6W_R4", "O2_C6W_R5", "O2_C6W_R6", "O2_C6W_R7", "O2_C6W_R8"], "clean": "single", "leg": "C6R"}, {"k": "choice", "v": "O2_C7", "no": "(7)", "q": "(7) ગણિત વધુ સારી રીતે સમજવા માટે નીચેનામાંથી કઈ બાબત સૌથી વધુ મદદરૂપ થાય છે?", "sub": null, "en": "C7 most helpful for understanding", "opts": ["કારણ સમજાવતી ચર્ચા", "વાસ્તવિક જીવનના ઉદાહરણો", "ચિત્ર/આલેખ દ્વારા સમજ", "વિવિધ ઉકેલોની તુલના", "પ્રવૃત્તિ આધારિત શિક્ષણ", "ટેકનોલોજીનો ઉપયોગ"], "opts_en": ["Discussion explaining reasons", "Real-life examples", "Understanding through pictures/graphs", "Comparing different solutions", "Activity-based teaching", "Use of technology"], "oth": null, "raw": ["O2_C7_R1", "O2_C7_R2", "O2_C7_R3", "O2_C7_R4", "O2_C7_R5", "O2_C7_R6"], "clean": "single", "leg": "C7"}]}, {"id": "O3", "obj": "હેતુ 3", "title": "ધોરણ 8 ના વિદ્યાર્થીઓ માટે ગણિત શિક્ષણમાં મૂલ્યાંકન પ્રક્રિયા અંગે અનુસૂચિ", "intro": ["નીચે આપેલાં વિધાનો તમારા વર્ગમાં લેવાતી કસોટી, પરીક્ષા અને અન્ય મૂલ્યાંકન સંબંધિત તમારા અનુભવ સાથે સંબંધિત છે. કૃપા કરીને યોગ્ય વિકલ્પ પસંદ કરો."], "qs": [{"k": "table", "head": "", "items": [{"v": "O3_01", "no": "1", "gu": "શિક્ષક પ્રકરણના અંતે કસોટી લે છે.", "en": "Teacher tests at end of chapter", "c": "", "leg": "AS1"}, {"v": "O3_02", "no": "2", "gu": "માસિક કસોટી લેવાય છે.", "en": "Monthly test held", "c": "", "leg": "AS2"}, {"v": "O3_02T", "no": "(ક્રમ વગર)", "gu": "ત્રિમાસિક કસોટી લેવાય છે.", "en": "Quarterly test held (unnumbered row in PDF)", "c": "", "leg": "AS2T"}, {"v": "O3_03", "no": "3", "gu": "સત્રાંત વાર્ષિક પરીક્ષા લેવાય છે.", "en": "Term-end/annual exam held", "c": "", "leg": "AS3"}, {"v": "O3_04", "no": "4", "gu": "પરીક્ષામાં વિચાર કરીને જવાબ આપવા પડે તેવા પ્રશ્નો હોય છે.", "en": "Exam has questions requiring thinking", "c": "O3_FORM", "leg": "AS4"}, {"v": "O3_05", "no": "5", "gu": "શિક્ષક મને પરીક્ષા પછી મારા જવાબો અંગે સુધારાત્મક (Constructive) પ્રતિભાવ આપે છે.", "en": "Teacher gives constructive feedback after exam", "c": "O3_FORM", "leg": "AS5"}, {"v": "O3_06", "no": "6", "gu": "મને જવાબ સુધારવાની બીજી તક મળે છે.", "en": "Gets second chance to improve answers", "c": "O3_FORM", "leg": "AS6"}, {"v": "O3_07", "no": "7", "gu": "મૂલ્યાંકન દરમિયાન મને ડર લાગતો નથી.", "en": "Not afraid during assessment", "c": "O3_FORM", "leg": "AS7"}, {"v": "O3_08", "no": "8", "gu": "મૂલ્યાંકનથી મને મારી ભૂલો ઓળખવામાં મદદ મળે છે.", "en": "Assessment helps identify mistakes", "c": "O3_FORM", "leg": "AS8"}, {"v": "O3_09", "no": "9", "gu": "મૂલ્યાંકનથી મને મારી ભૂલો સુધારવામાં મદદ મળે છે.", "en": "Assessment helps correct mistakes", "c": "O3_FORM", "leg": "AS9"}, {"v": "O3_10", "no": "10", "gu": "મૂલ્યાંકન મને મારી પ્રગતિ સમજવામાં મદદ કરે છે.", "en": "Assessment helps understand progress", "c": "O3_FORM", "leg": "AS10"}, {"v": "O3_11", "no": "11", "gu": "પ્રવૃત્તિ/પ્રોજેક્ટ આધારિત મૂલ્યાંકન થાય છે.", "en": "Activity/project-based assessment", "c": "O3_FORM", "leg": "AS11"}, {"v": "O3_12", "no": "12", "gu": "પરીક્ષામાં જવાબ પાછળનું કારણ (શા માટે ?) સ્પષ્ટ કરવાના પ્રશ્નો પુછાય છે.", "en": "Questions asking reason (why)", "c": "O3_FORM", "leg": "AS12"}, {"v": "O3_13", "no": "13", "gu": "પરીક્ષામાં દૃશ્ય રજૂઆત (ચિત્ર/આલેખ)નું અર્થઘટન કરવાના પ્રશ્નો પૂછવામાં આવે છે.", "en": "Questions interpreting visual representation", "c": "O3_FORM", "leg": "AS13"}, {"v": "O3_14", "no": "14", "gu": "પરીક્ષામાં વાસ્તવિક જીવન આધારિત પ્રશ્નો પૂછવામાં આવે છે.", "en": "Real-life-based questions", "c": "O3_FORM", "leg": "AS14"}, {"v": "O3_15", "no": "15", "gu": "પરીક્ષામાં એક જ પ્રશ્નના એકથી વધુ યોગ્ય ઉકેલો સ્વીકારવામાં આવે છે.", "en": "More than one correct solution accepted", "c": "O3_FORM", "leg": "AS15"}, {"v": "O3_16", "no": "16", "gu": "ગુણ આપતી વખતે માત્ર અંતિમ જવાબ નહીં, પરંતુ ઉકેલ પાછળનું તર્ક (reasoning) પણ ધ્યાનમાં લેવાય છે.", "en": "Reasoning considered in marking", "c": "O3_FORM", "leg": "AS16"}, {"v": "O3_17", "no": "17", "gu": "પરીક્ષા/મૂલ્યાંકનમાં મને મારી ઉકેલ-પદ્ધતિ મૌખિક અથવા લેખિત રીતે સમજાવવાની તક મળે છે.", "en": "Chance to explain solution orally/in writing", "c": "O3_FORM", "leg": "AS17"}, {"v": "O3_18", "no": "18", "gu": "પરીક્ષામાં વાસ્તવિક પરિસ્થિતિને ગાણિતિક મોડેલ/સમીકરણમાં રૂપાંતરિત કરવાના પ્રશ્નો પુછાય છે.", "en": "Questions converting real situation into model/equation", "c": "O3_FORM", "leg": "AS18"}, {"v": "O3_19", "no": "19", "gu": "પરીક્ષામાં સરળથી અઘરા ક્રમમાં (વધતી કઠિનતા મુજબ) પ્રશ્નો પુછાય છે.", "en": "Questions ordered easy to difficult", "c": "O3_FORM", "leg": "AS19"}, {"v": "O3_20", "no": "20", "gu": "મને મારા પોતાના અથવા મારા સહપાઠીના જવાબનું મૂલ્યાંકન કરવાની તક મળે છે. (સ્વ/સાથી-મૂલ્યાંકન)", "en": "Self/peer assessment opportunity", "c": "O3_FORM", "leg": "AS20"}, {"v": "O3_21", "no": "21", "gu": "પ્રકરણ દરમિયાન નાના-નાના ટેસ્ટ/ક્વિઝ (formative check) નિયમિત લેવાય છે.", "en": "Small tests/quizzes regularly (formative check)", "c": "O3_FORM", "leg": "AS21"}, {"v": "O3_22", "no": "22", "gu": "પરીક્ષામાં ખ્યાલ આધારિત (concept-based) પ્રશ્નો પૂછાય છે, માત્ર ગોખેલા સૂત્રો પર આધારિત નહીં.", "en": "Concept-based questions, not rote formulas", "c": "O3_FORM", "leg": "AS22"}, {"v": "O3_23", "no": "23", "gu": "પરીક્ષામાં રોજિંદા જીવનમાં ગણિતના ઉપયોગ સાથે સંબંધિત (application-based) પ્રશ્નો પૂછાય છે.", "en": "Application-based questions", "c": "O3_FORM", "leg": "AS23"}]}]}, {"id": "D", "obj": "હેતુ 3", "title": "હેતુ 3 — પ્રશ્ન (1)–(3)", "intro": [], "qs": [{"k": "choice", "v": "O3_D1", "no": "(1)", "q": "(1) કસોટી/મૂલ્યાંકન પછી શિક્ષકના સૂચનો/પ્રતિભાવથી તમને શું સુધારવામાં સૌથી વધુ મદદ મળે છે?", "sub": null, "en": "D1 most helpful from teacher feedback", "opts": ["ભૂલો સમજવામાં મદદ મળે છે", "સાચી રીતથી જવાબ લખતા શીખું છું", "વધુ પ્રેક્ટિસ કરવાની સમજ મળે છે", "આત્મવિશ્વાસ વધે છે", "સમય વ્યવસ્થાપન શીખું છું", "ક્યાં વિષયમાં નબળાઈ છે તે ખબર પડે છે", "આગામી પરીક્ષા માટે તૈયારી સારી થાય છે", "શિક્ષક ફરી સમજાવે છે", "અન્ય"], "opts_en": ["Helps understand mistakes", "Learn to write answers correctly", "Understand need for more practice", "Confidence increases", "Learn time management", "Know weak areas", "Better preparation for next exam", "Teacher explains again", "Other"], "oth": "O3_D1_OTH", "raw": ["O3_D1_R1", "O3_D1_R2", "O3_D1_R3", "O3_D1_R4", "O3_D1_R5", "O3_D1_R6", "O3_D1_R7", "O3_D1_R8", "O3_D1_R9"], "clean": "single", "leg": "D1"}, {"k": "choice", "v": "O3_D2", "no": "(2)", "q": "(2) તમને કયા પ્રકારનું મૂલ્યાંકન વધુ સારું લાગે છે?", "sub": null, "en": "D2 preferred type of assessment", "opts": ["લેખિત પરીક્ષા", "પ્રવૃત્તિ આધારિત", "પ્રોજેક્ટ આધારિત"], "opts_en": ["Written exam", "Activity-based", "Project-based"], "oth": null, "raw": ["O3_D2_R1", "O3_D2_R2", "O3_D2_R3"], "clean": "single", "leg": "D2"}, {"k": "choice", "v": "O3_D3", "no": "(3)", "q": "(3) મૂલ્યાંકન દરમિયાન તમારો ડર ઓછો થાય અને વધુ શીખવા મળે તે માટે શું બદલાવ જોઈએ?", "sub": null, "en": "D3 change to reduce fear and learn more", "opts": ["સરળ અને સમજણ આધારિત પ્રશ્નો પૂછવામાં આવે", "વધુ પ્રવૃત્તિ આધારિત મૂલ્યાંકન થાય", "પ્રોજેક્ટ આધારિત મૂલ્યાંકન વધારવું", "પરીક્ષા પહેલા પુનરાવર્તન કરાવવું", "વધુ સમય આપવામાં આવે", "શિક્ષક પ્રોત્સાહન આપે", "નાના નાના ટેસ્ટ લેવાય", "ગુણ કરતાં સમજ પર વધુ ભાર મૂકવો", "મિત્રો સાથે ચર્ચા કરવાની તક મળે", "અન્ય"], "opts_en": ["Simple understanding-based questions", "More activity-based assessment", "Increase project-based assessment", "Revision before exam", "More time", "Teacher encourages", "Small tests", "Emphasis on understanding over marks", "Chance to discuss with friends", "Other"], "oth": "O3_D3_OTH", "raw": ["O3_D3_R01", "O3_D3_R02", "O3_D3_R03", "O3_D3_R04", "O3_D3_R05", "O3_D3_R06", "O3_D3_R07", "O3_D3_R08", "O3_D3_R09", "O3_D3_R10"], "clean": "single", "leg": "D3"}]}], "CONSTRUCTS": [{"id": "A_TEACH", "gu": "વર્ગખંડ અધ્યાપન પ્રથા", "en": "Classroom teaching practice (16 items)"}, {"id": "B1_ATT", "gu": "ગણિત પ્રત્યે વલણ અને આત્મવિશ્વાસ", "en": "Attitude and confidence (B-1)"}, {"id": "B2_THINK", "gu": "ગાણિતિક વિચારશક્તિ", "en": "Mathematical thinking (B-2)"}, {"id": "O3_FORM", "gu": "રચનાત્મક/સક્ષમતા આધારિત મૂલ્યાંકન અનુભવ", "en": "Formative/competency-based assessment experience (20 items)"}]};
+const AX_ITEMS = ["ગણિતનો તાસ શરૂ થાય તે પહેલાં મને ચિંતા થાય છે.", "ગણિતનું નવું પ્રકરણ સમજવામાં મને ચિંતા થાય છે.", "શિક્ષક ગણિતનું ગૃહકાર્ય તપાસે ત્યારે હું આત્મવિશ્વાસ અનુભવતો નથી.", "શિક્ષક જ્યારે ગણિતનું ગૃહકાર્ય તપાસે ત્યારે મને ગભરામણ થાય છે.", "વર્ગમાં શિક્ષક મને મૌખિક રીતે ગણિતનો પ્રશ્ન પૂછે ત્યારે મને ગભરામણ થાય છે.", "શિક્ષક ગણિતનો નવો મુદ્દો સમજાવે ત્યારે મને હળવાશ અનુભવાય છે.", "ગણિતના તાસમાં મારી મૂંઝવણ રજૂ કરવામાં મને સંકોચ થાય છે.", "હું ગણિતના પ્રશ્નો ઉકેલવાનું શરૂ કરવાથી ડરું છું.", "ગણિત શીખવામાં મને આનંદ આવે છે.", "ગણિતના મુશ્કેલ પ્રશ્નો જોતા જ મને ગભરામણ થાય છે.", "ગણિત વિષય વિશે વિચારીને જ મારા મનમાં તણાવ ઊભો થાય છે.", "ગણિતના અધૂરા દાખલા ઉકેલવાનો પ્રયત્ન કરવામાં મને આનંદ આવે છે.", "ગણિત વિશે વિચારતાં મને ચિંતા થાય છે.", "ચિંતાના કારણે ગણિતના પ્રશ્નો સમજવામાં મને મુશ્કેલી પડે છે.", "ગણિતની પરીક્ષા નજીક આવે ત્યારે મારી ચિંતા વધતી જાય છે.", "મને ગણિતની પરીક્ષામાં દાખલા ખોટા પડવાનો ડર લાગે છે.", "ગણિતની પરીક્ષાની આગલી રાત્રે ચિંતાના કારણે મને ઊંઘ આવવામાં તકલીફ પડે છે.", "હું ગણિતની પરીક્ષા દરમિયાન સામાન્ય રીતે શાંત રહું છું.", "ગણિતની પરીક્ષા વખતે મારા હૃદયના ધબકારા વધી જાય છે અથવા હાથ ધ્રૂજે છે.", "ગણિતની પરીક્ષાનું પ્રશ્નપત્ર હાથમાં આવતાં જ મને ચિંતા થાય છે.", "પરીક્ષાનું પરિણામ આવ્યા પછી પણ હું સ્વસ્થ રહી શકું છું."];
+const AX_POS = [6, 9, 12, 18, 21];               // positively worded → reverse-scored (higher = more anxiety), same as anxiety.html
+const AC_MAX = q => q <= 12 ? 1 : q <= 19 ? 2 : q <= 21 ? 4 : 3;   // 40 marks
+const AC_COMP = {C2:[11, 18, 23], C3:[1, 9, 13, 16, 17, 22], C4:[2, 6, 12, 14, 15, 20, 21], C7:[3, 4, 5, 7, 8, 10, 19]};
+const AC_COMP_GU = {C2:"C2 પ્રતિનિધિત્વ", C3:"C3 તર્ક અને સમર્થન", C4:"C4 પ્રતિમાન-રચના / ઉપયોગ", C7:"C7 સંકલ્પના અને કાર્યરીતિ"};
+const SC3 = {"નિયમિત રીતે":3, "નિયમિત":3, "ક્યારેક":2, "ક્યારેય નહીં":1};
+const SC5 = {"સંપૂર્ણ સહમત":5, "સહમત":4, "તટસ્થ":3, "અસહમત":2, "સંપૂર્ણ અસહમત":1};
+const STYPE = [[1, "સરકારી"], [2, "અનુદાનિત"], [3, "સ્વનિર્ભર"]];
+const GENDER = [[1, "કુમાર"], [2, "કન્યા"]];
+const $ = s => document.querySelector(s);
+function h(tag, attrs, ...kids){ const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs || {})) { if (v == null || v === false) continue; if (k.startsWith("on")) e[k] = v; else if (k === "html") e.innerHTML = v; else e.setAttribute(k, v === true ? "" : v); }
+  for (const k of kids.flat()) if (k != null && k !== false) e.append(k instanceof Node ? k : String(k)); return e; }
+const fmt = (x, d = 2) => x == null || !isFinite(x) ? "—" : Number(x).toFixed(d);
+const fp = p => p == null || !isFinite(p) ? "—" : p < .001 ? "< .001" : p.toFixed(3).replace(/^0/, "");
+const pct = (a, b) => b ? (a / b * 100).toFixed(1) : "0.0";
+function say(t, kind){ const m = $("#msg"); if (!m) return; m.textContent = t; m.className = "msg " + (kind || ""); m.hidden = !t; }
+
+/* ============================ statistics ============================ */
+const mean = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null;
+const vari = a => { if (a.length < 2) return null; const m = mean(a); return a.reduce((s, x) => s + (x - m) ** 2, 0) / (a.length - 1); };
+const sd = a => { const v = vari(a); return v == null ? null : Math.sqrt(v); };
+const median = a => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y), n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
+function lgamma(x){ const g = 7, c = [0.99999999999980993, 676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059, 12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+  if (x < .5) return Math.log(Math.PI / Math.sin(Math.PI * x)) - lgamma(1 - x); x -= 1; let a = c[0]; const t = x + g + .5; for (let i = 1; i < 9; i++) a += c[i] / (x + i); return .5 * Math.log(2 * Math.PI) + (x + .5) * Math.log(t) - t + Math.log(a); }
+function betacf(a, b, x){ let qab = a + b, qap = a + 1, qam = a - 1, c = 1, d = 1 - qab * x / qap; if (Math.abs(d) < 1e-300) d = 1e-300; d = 1 / d; let hh = d;
+  for (let m = 1; m <= 300; m++) { const m2 = 2 * m; let aa = m * (b - m) * x / ((qam + m2) * (a + m2)); d = 1 + aa * d; if (Math.abs(d) < 1e-300) d = 1e-300; c = 1 + aa / c; if (Math.abs(c) < 1e-300) c = 1e-300; d = 1 / d; hh *= d * c;
+    aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2)); d = 1 + aa * d; if (Math.abs(d) < 1e-300) d = 1e-300; c = 1 + aa / c; if (Math.abs(c) < 1e-300) c = 1e-300; d = 1 / d; const del = d * c; hh *= del; if (Math.abs(del - 1) < 1e-12) break; }
+  return hh; }
+function ibeta(x, a, b){ if (x <= 0) return 0; if (x >= 1) return 1; const bt = Math.exp(lgamma(a + b) - lgamma(a) - lgamma(b) + a * Math.log(x) + b * Math.log(1 - x));
+  return x < (a + 1) / (a + b + 2) ? bt * betacf(a, b, x) / a : 1 - bt * betacf(b, a, 1 - x) / b; }
+const pT = (t, df) => ibeta(df / (df + t * t), df / 2, .5);                 // two-tailed p for t
+const pF = (F, d1, d2) => F <= 0 ? 1 : ibeta(d2 / (d2 + d1 * F), d2 / 2, d1 / 2);   // upper-tail p for F
+function welchT(a, b){
+  if (a.length < 2 || b.length < 2) return null;
+  const m1 = mean(a), m2 = mean(b), v1 = vari(a), v2 = vari(b), n1 = a.length, n2 = b.length, se = Math.sqrt(v1 / n1 + v2 / n2);
+  if (!se) return null; const t = (m1 - m2) / se, df = (v1 / n1 + v2 / n2) ** 2 / ((v1 / n1) ** 2 / (n1 - 1) + (v2 / n2) ** 2 / (n2 - 1));
+  const sp = Math.sqrt(((n1 - 1) * v1 + (n2 - 1) * v2) / (n1 + n2 - 2)); const d = (m1 - m2) / sp, g = d * (1 - 3 / (4 * (n1 + n2) - 9));
+  return {t, df, p:pT(t, df), d, g};
+}
+function welchAnova(groups){
+  const G = groups.filter(x => x.length >= 2); if (G.length < 2) return null;
+  const k = G.length, n = G.map(x => x.length), m = G.map(mean), v = G.map(vari); if (v.some(x => !x)) return null;
+  const w = n.map((ni, i) => ni / v[i]), W = w.reduce((a, b) => a + b, 0), mw = w.reduce((s, wi, i) => s + wi * m[i], 0) / W;
+  const A = w.reduce((s, wi, i) => s + wi * (m[i] - mw) ** 2, 0) / (k - 1);
+  const lam = w.reduce((s, wi, i) => s + (1 - wi / W) ** 2 / (n[i] - 1), 0);
+  const B = 1 + 2 * (k - 2) / (k * k - 1) * lam, F = A / B, df1 = k - 1, df2 = (k * k - 1) / (3 * lam);
+  const all = G.flat(), gm = mean(all), sst = all.reduce((s, x) => s + (x - gm) ** 2, 0), ssb = G.reduce((s, x, i) => s + x.length * (m[i] - gm) ** 2, 0);
+  return {F, df1, df2, p:pF(F, df1, df2), eta2:sst ? ssb / sst : null, k};
+}
+function alpha(rows){   // rows: complete cases only
+  const k = rows[0] ? rows[0].length : 0; if (rows.length < 3 || k < 2) return {a:null, n:rows.length};
+  const iv = Array.from({length:k}, (_, j) => vari(rows.map(r => r[j]))), tv = vari(rows.map(r => r.reduce((a, b) => a + b, 0)));
+  return {a:tv ? k / (k - 1) * (1 - iv.reduce((a, b) => a + b, 0) / tv) : null, n:rows.length};
+}
+const level3 = m => m == null ? "—" : m <= 1.66 ? "નીચું" : m <= 2.33 ? "મધ્યમ" : "ઊંચું";
+const level5 = m => m == null ? "—" : m <= 2.33 ? "નીચું" : m <= 3.66 ? "મધ્યમ" : "ઊંચું";
+const levelP = p => p == null ? "—" : p < 100 / 3 ? "નીચું" : p < 200 / 3 ? "મધ્યમ" : "ઊંચું";
+
+/* ============================ reading Google Sheet / CSV / XLSX ============================ */
+function parseCsv(text){
+  const rows = []; let row = [], f = "", q = false; text = text.replace(/^﻿/, "");
+  for (let i = 0; i < text.length; i++) { const c = text[i];
+    if (q) { if (c === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; }
+    else if (c === '"') q = true; else if (c === ",") { row.push(f); f = ""; } else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(f); rows.push(row); row = []; f = ""; } else f += c; }
+  if (f || row.length) { row.push(f); rows.push(row); }
+  return rows.filter(r => r.some(x => String(x).trim() !== ""));
+}
+async function unzipAll(buf){
+  const u = new Uint8Array(buf), dv = new DataView(buf); let e = u.length - 22; while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--; if (e < 0) throw new Error("zip ફાઇલ નથી");
+  let p = dv.getUint32(e + 16, true); const n = dv.getUint16(e + 10, true), dec = new TextDecoder(), out = {};
+  for (let i = 0; i < n; i++) { const meth = dv.getUint16(p + 10, true), csz = dv.getUint32(p + 20, true), fl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), off = dv.getUint32(p + 42, true);
+    const fn = dec.decode(u.subarray(p + 46, p + 46 + fl)); const lf = dv.getUint16(off + 26, true), lx = dv.getUint16(off + 28, true); const data = u.subarray(off + 30 + lf + lx, off + 30 + lf + lx + csz);
+    if (/\.xml$/.test(fn)) out[fn] = meth === 0 ? dec.decode(data) : dec.decode(await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer());
+    p += 46 + fl + xl + cl; }
+  return out;
+}
+async function parseXlsx(buf){
+  const z = await unzipAll(buf), X = s => new DOMParser().parseFromString(s, "application/xml");
+  const ss = z["xl/sharedStrings.xml"] ? [...X(z["xl/sharedStrings.xml"]).getElementsByTagName("si")].map(si => [...si.getElementsByTagName("t")].map(t => t.textContent).join("")) : [];
+  const sheetName = Object.keys(z).filter(k => /^xl\/worksheets\/sheet\d+\.xml$/.test(k)).sort()[0]; if (!sheetName) throw new Error("શીટ મળી નહીં");
+  const col = ref => { let n = 0; for (const ch of ref.replace(/\d+/g, "")) n = n * 26 + ch.charCodeAt(0) - 64; return n - 1; };
+  const rows = [];
+  for (const r of X(z[sheetName]).getElementsByTagName("row")) { const row = [];
+    for (const c of r.getElementsByTagName("c")) { const t = c.getAttribute("t"), v = c.getElementsByTagName("v")[0], is = c.getElementsByTagName("is")[0];
+      row[col(c.getAttribute("r"))] = t === "s" ? ss[+v.textContent] : t === "inlineStr" ? (is ? is.textContent : "") : v ? v.textContent : ""; }
+    rows.push(Array.from(row, x => x == null ? "" : x)); }
+  return rows.filter(r => r.some(x => String(x).trim() !== ""));
+}
+function sheetUrls(link){
+  const id = (link.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/) || [])[1]; if (!id) return null;
+  const gid = (link.match(/[#&?]gid=(\d+)/) || [])[1] || "0";
+  return [`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&headers=1&gid=${gid}`, `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${gid}`];
+}
+async function fetchSheet(link){
+  if (/output=csv|format=csv|tqx=out:csv/.test(link)) { const r = await fetch(link); if (!r.ok) throw new Error("HTTP " + r.status); return parseCsv(await r.text()); }
+  const urls = sheetUrls(link); if (!urls) throw new Error("Google Sheet ની લિંક ઓળખાઈ નહીં");
+  let last; for (const u of urls) { try { const r = await fetch(u); if (!r.ok) throw new Error("HTTP " + r.status); const t = await r.text(); if (/^\s*<!DOCTYPE|<html/i.test(t)) throw new Error("શીટ જાહેર નથી"); return parseCsv(t); } catch (e) { last = e; } }
+  throw new Error((last && last.message) || "લોડ ન થયું");
+}
+
+/* ============================ mapping sheet columns → records ============================ */
+const half = s => { s = String(s || "").trim(); if (!s) return null; const m = s.match(/^(\d*)\s*½$/); if (m) return (+m[1] || 0) + .5; const n = parseFloat(s.replace(",", ".")); return isFinite(n) ? n : null; };
+const norm = s => String(s || "").replace(/\s+/g, " ").trim();
+function columns(head){
+  // "CODE | title" or "CODE | title [row text]"
+  return head.map((x, j) => { const s = norm(x); const code = s.includes(" | ") ? s.split(" | ")[0].trim() : s; const m = s.match(/\[([^\]]*)\]\s*$/); return {j, raw:s, code, row:m ? norm(m[1]) : null}; });
+}
+function rowIndexer(cols, code, items){
+  const cs = cols.filter(c => c.code === code); if (!cs.length) return null;
+  return cs.map((c, k) => { let i = items.findIndex(t => norm(t) === c.row); if (i < 0) i = items.findIndex(t => c.row && (norm(t).startsWith(c.row) || c.row.startsWith(norm(t)))); return {j:c.j, i:i < 0 ? k : i}; });
+}
+function pickOptions(cell, opts){
+  let rest = norm(cell); if (!rest) return null; const sel = opts.map(o => { const on = rest.includes(norm(o)); if (on) rest = rest.replace(norm(o), ""); return on ? 1 : 0; });
+  const other = rest.replace(/^[,\s]+|[,\s]+$/g, "").replace(/(,\s*)+/g, ", "); return {sel, other};
+}
+function sidOf(v){ const s = norm(v).toUpperCase().replace(/\s/g, ""); return s || null; }
+function genderOf(v){ const s = norm(v); return s.includes("કુમાર") || /^(1|m|male|boy)$/i.test(s) ? 1 : s.includes("કન્યા") || /^(2|f|female|girl)$/i.test(s) ? 2 : null; }
+function stypeOf(v){ const s = norm(v); return s.includes("સરકારી") || /^(1|gov)/i.test(s) ? 1 : s.includes("અનુદાન") || /^(2|grant|gia)/i.test(s) ? 2 : s.includes("સ્વનિર્ભર") || s.includes("ખાનગી") || /^(3|self|pri)/i.test(s) ? 3 : null; }
+const specQs = spec => spec.flatMap(s => s.qs);
+function mapRows(rows, kind){
+  if (rows.length < 2) throw new Error("શીટમાં ડેટા નથી");
+  const cols = columns(rows[0]), get = code => (cols.find(c => c.code === code && !c.row) || {}).j;
+  const jSID = cols.find(c => c.code === "SID" || /વિદ્યાર્થી ID|student id/i.test(c.raw));
+  if (!jSID) throw new Error("SID કૉલમ મળી નહીં — Google Form ના પ્રથમ પ્રશ્ન 'SID | …' વાળી શીટ પસંદ કરો");
+  const spec = kind === "23" ? DEFS.F23 : kind === "4" ? DEFS.F4 : DEFS.F6, qs = specQs(spec);
+  const tables = qs.filter(q => q.k === "table").map(q => ({q, ix:rowIndexer(cols, q.v, q.items)}));
+  const found = tables.filter(t => t.ix).length; if (!found) throw new Error("આ શીટ " + (kind === "23" ? "હેતુ 2–3" : kind === "4" ? "હેતુ 4" : "હેતુ 6") + " ની નથી લાગતી (કોષ્ટક-કૉલમ મળ્યા નહીં)");
+  const recs = new Map(); let dup = 0;
+  for (const r of rows.slice(1)) {
+    const sid = sidOf(r[jSID.j]); if (!sid) continue; if (recs.has(sid)) dup++;
+    const o = {SID:sid, SCH:sid.split("-")[0], GENDER:genderOf(r[get("GENDER")]), STYPE:stypeOf(r[get("SCH_TYPE")]), DIST:norm(r[get("DIST")]), SCHOOL:norm(r[get("SCHOOL")]), v:{}};
+    for (const {q, ix} of tables) { if (!ix) continue;
+      for (const {j, i} of ix) { const cell = norm(r[j]); let val = null;
+        if (kind === "23") val = q.v.startsWith("C3") ? (cell ? +cell : null) : (SC3[cell] ?? null);
+        else if (kind === "6") val = SC5[cell] ?? null;
+        else { const qn = +((q.items[i] || "").match(/^Q(\d+)/) || [])[1]; if (!qn) continue; o.v["Q" + qn] = qn <= 12 ? (cell ? cell.toUpperCase() : null) : half(cell); continue; }
+        o.v[q.v + "#" + i] = val; } }
+    if (kind === "23") for (const q of qs.filter(q => q.k === "multi" || q.k === "single")) { const j = get(q.v); if (j == null) continue; o.v[q.v] = pickOptions(r[j], q.o); }
+    recs.set(sid, o);
+  }
+  return {recs, dup, n:recs.size, cols:cols.length};
+}
+
+/* ============================ scoring ============================ */
+// Objective 2–3: app constructs, mapped from the form tables by row order
+const T23 = {SA1_SA18:["A", 0], SB1_1_SB1_6:["B", 0], SB2_1_SB2_13:["B", 1], AS1_AS23:["O3", 0]};
+function appItems(code){ const [sec, k] = T23[code]; const S = DEFS.SECTIONS.find(s => s.id === sec); return S.qs.filter(q => q.k === "table")[k].items; }
+const CONS = DEFS.CONSTRUCTS.map(c => ({...c, items:Object.keys(T23).flatMap(code => appItems(code).map((it, i) => it.c === c.id ? code + "#" + i : null)).filter(Boolean)}));
+function score23(o){ const s = {}; for (const c of CONS) { const xs = c.items.map(k => o.v[k]).filter(x => x >= 1 && x <= 3); s[c.id] = xs.length >= .8 * c.items.length ? mean(xs) : null; } return s; }
+function score4(o, key){
+  const m = {}; let n = 0;
+  for (let q = 1; q <= 23; q++) { const v = o.v["Q" + q]; if (q <= 12) { m[q] = v == null || !key[q - 1] ? null : v === key[q - 1] ? 1 : 0; } else m[q] = v == null ? null : Math.min(v, AC_MAX(q)); if (m[q] != null) n++; }
+  const total = n === 23 ? Object.values(m).reduce((a, b) => a + b, 0) : null;
+  const comp = {}; for (const [c, qq] of Object.entries(AC_COMP)) { const mx = qq.reduce((a, q) => a + AC_MAX(q), 0); comp[c] = qq.every(q => m[q] != null) ? qq.reduce((a, q) => a + m[q], 0) / mx * 100 : null; }
+  return {m, n, total, pct:total == null ? null : total / 40 * 100, comp};
+}
+function score6(o){ const sc = AX_ITEMS.map((_, i) => { const v = o.v["AX1_AX21#" + i]; return v >= 1 && v <= 5 ? (AX_POS.includes(i + 1) ? 6 - v : v) : null; });
+  const got = sc.filter(x => x != null); return {sc, n:got.length, mean:got.length >= Math.ceil(.8 * 21) ? mean(got) : null, total:got.length === 21 ? got.reduce((a, b) => a + b, 0) : null}; }
+
+/* ============================ state & UI ============================ */
+const ST = {src:{"23":null, "4":null, "6":null}, key:(localStorage.getItem("cr_mcq_key") || ""), tab:"sum", res:null};
+const SRC = [["23", "હેતુ 2–3: વિદ્યાર્થી અનુસૂચિ (અધ્યયન અનુભવો અને મૂલ્યાંકન)"], ["4", "હેતુ 4: ગણિતીકરણ સિદ્ધિ કસોટી"], ["6", "હેતુ 6: ગણિત વિષયક ચિંતાતુરતા માપદંડ"]];
+function srcCard(kind, label){
+  const saved = localStorage.getItem("cr_sheet_" + kind) || "";
+  const link = h("input", {type:"url", placeholder:"Google Sheet લિંક (Responses શીટ) — અથવા નીચે CSV/Excel ફાઇલ", value:saved});
+  const st = h("div", {class:"note"}, ST.src[kind] ? `✓ ${ST.src[kind].n} વિદ્યાર્થી` : "હજુ લોડ નથી");
+  const done = (res, from) => { ST.src[kind] = res; st.textContent = `✓ ${from}: ${res.n} વિદ્યાર્થી (${res.cols} કૉલમ)${res.dup ? ` · ${res.dup} ડુપ્લિકેટ SID — છેલ્લી એન્ટ્રી રાખી` : ""}`; st.style.color = "var(--ok)"; };
+  const fail = e => { st.textContent = "⚠ " + (e.message || e); st.style.color = "var(--bad)"; };
+  const file = h("input", {type:"file", accept:".csv,.xlsx,text/csv", onchange:async e => { const f = e.target.files[0]; if (!f) return;
+    try { const buf = await f.arrayBuffer(); const rows = /\.xlsx$/i.test(f.name) ? await parseXlsx(buf) : parseCsv(new TextDecoder().decode(buf)); done(mapRows(rows, kind), f.name); } catch (er) { fail(er); } e.target.value = ""; }});
+  return h("div", {class:"src"}, h("b", {}, label), link,
+    h("div", {class:"chips"}, h("button", {class:"btn", type:"button", onclick:async () => { const u = link.value.trim(); if (!u) return fail(new Error("લિંક પેસ્ટ કરો"));
+      localStorage.setItem("cr_sheet_" + kind, u); st.textContent = "⏳ લોડ થાય છે…"; st.style.color = "";
+      try { done(mapRows(await fetchSheet(u), kind), "Google Sheet"); } catch (er) { fail(new Error(er.message + " — શીટને 'Anyone with the link: Viewer' કરો અથવા File → Download → CSV કરી ફાઇલ પસંદ કરો")); } }}, "🔗 શીટમાંથી લોડ કરો"),
+      h("span", {class:"note"}, "અથવા ફાઇલ (.csv / .xlsx):"), file), st);
+}
+function draw(){
+  const m = $("#main"); m.textContent = "";
+  const key = h("input", {type:"text", value:ST.key, maxlength:"40", placeholder:"દા.ત. BCADABDCBACD (પ્રશ્ન 1 થી 12 ના સાચા વિકલ્પ)", oninput:e => { ST.key = e.target.value.toUpperCase().replace(/[^ABCD]/g, ""); localStorage.setItem("cr_mcq_key", ST.key); keyInfo.textContent = `${ST.key.length}/12 અક્ષર`; }});
+  const keyInfo = h("span", {class:"note"}, `${ST.key.length}/12 અક્ષર`);
+  m.append(h("div", {class:"card"}, h("h2", {}, "1. Google Sheet / ફાઇલ પસંદ કરો"),
+    h("p", {class:"note"}, "Google Form ની Responses શીટ ખોલો → Share → General access: 'Anyone with the link' (Viewer) → લિંક કોપી કરી અહીં પેસ્ટ કરો. અથવા શીટમાં File → Download → CSV/Excel કરી ફાઇલ પસંદ કરો. બધું વિશ્લેષણ તમારા ફોન/કમ્પ્યૂટરમાં જ થાય છે; ડેટા ક્યાંય અપલોડ થતો નથી."),
+    ...SRC.map(([k, l]) => srcCard(k, l)),
+    h("div", {class:"src"}, h("b", {}, "હેતુ 4: બહુવિકલ્પ પ્રશ્ન 1–12 ની ઉત્તરચાવી (A/B/C/D)"), key, keyInfo,
+      h("p", {class:"note"}, "Google Form માં વિદ્યાર્થીએ પસંદ કરેલો વિકલ્પ (A–D) નોંધાયો છે; ગુણ આપવા માટે સાચા વિકલ્પોની ચાવી જરૂરી છે. ચાવી ફોનમાં સચવાઈ રહેશે.")),
+    h("div", {class:"chips"}, h("button", {class:"btn primary", type:"button", onclick:run}, "▶ વિશ્લેષણ કરો")), h("div", {id:"msg", class:"msg", hidden:true})));
+  if (ST.res) m.append(results());
+}
+function run(){
+  if (!ST.src["23"] && !ST.src["4"] && !ST.src["6"]) return say("પહેલાં ઓછામાં ઓછી એક શીટ લોડ કરો.", "warn");
+  const key = ST.key.split(""); if (ST.src["4"] && key.length !== 12) say("ઉત્તરચાવી 12 અક્ષરની નથી — પ્રશ્ન 1–12 ગણાશે નહીં, તેથી કુલ ગુણ નહીં બને.", "warn");
+  // merge by SID; school type & gender fall back to other sheets / same school
+  const all = new Map(); const add = (k, rec) => { const o = all.get(rec.SID) || {SID:rec.SID, SCH:rec.SCH}; o["r" + k] = rec;
+    for (const f of ["GENDER", "STYPE", "DIST", "SCHOOL"]) if (o[f] == null || o[f] === "") o[f] = rec[f]; all.set(rec.SID, o); };
+  for (const k of ["23", "6", "4"]) if (ST.src[k]) for (const rec of ST.src[k].recs.values()) add(k, rec);
+  const schType = new Map(); for (const o of all.values()) if (o.STYPE) schType.set(o.SCH, o.STYPE);
+  for (const o of all.values()) { if (!o.STYPE) o.STYPE = schType.get(o.SCH) || null;
+    if (o.r23) o.s23 = score23(o.r23); if (o.r4) o.s4 = score4(o.r4, key.length === 12 ? key : []); if (o.r6) o.s6 = score6(o.r6); }
+  ST.res = {D:[...all.values()]}; ST.tab = "sum"; draw(); say(`✓ ${all.size} વિદ્યાર્થીનું વિશ્લેષણ તૈયાર.`, "ok");
+}
+
+/* ============================ result tables (shared by screen and Word) ============================ */
+function desc(xs){ return {n:xs.length, m:mean(xs), sd:sd(xs), md:median(xs), min:xs.length ? Math.min(...xs) : null, max:xs.length ? Math.max(...xs) : null}; }
+function groupRows(D, val, dec = 2){
+  const rows = []; const by = (lab, f, keys) => keys.forEach(([k, l]) => { const xs = D.filter(o => f(o) === k).map(val).filter(x => x != null); const s = desc(xs); rows.push([lab, l, s.n, fmt(s.m, dec), fmt(s.sd, dec)]); });
+  by("જાતિ", o => o.GENDER, GENDER); by("શાળાનો પ્રકાર", o => o.STYPE, STYPE); return rows;
+}
+function hypo(D, val, label, hg, ht){
+  const g = GENDER.map(([k]) => D.filter(o => o.GENDER === k).map(val).filter(x => x != null)), wt = welchT(g[0], g[1]);
+  const t = STYPE.map(([k]) => D.filter(o => o.STYPE === k).map(val).filter(x => x != null)), wa = welchAnova(t);
+  const dec = p => p == null ? "—" : p < .05 ? "અસ્વીકાર (p < .05: સાર્થક તફાવત)" : "સ્વીકાર (p ≥ .05: સાર્થક તફાવત નથી)";
+  return [
+    [hg, `${label}: કુમાર–કન્યા`, `કુમાર ${fmt(mean(g[0]))} (n=${g[0].length}), કન્યા ${fmt(mean(g[1]))} (n=${g[1].length})`, wt ? `Welch t(${fmt(wt.df, 1)}) = ${fmt(wt.t, 3)}` : "—", wt ? fp(wt.p) : "—", wt ? `Hedges g = ${fmt(wt.g, 2)}` : "—", wt ? dec(wt.p) : "પૂરતો ડેટા નથી"],
+    [ht, `${label}: સરકારી–અનુદાનિત–સ્વનિર્ભર`, STYPE.map(([k, l], i) => `${l} ${fmt(mean(t[i]))} (n=${t[i].length})`).join(", "), wa ? `Welch F(${wa.df1}, ${fmt(wa.df2, 1)}) = ${fmt(wa.F, 3)}` : "—", wa ? fp(wa.p) : "—", wa ? `η² = ${fmt(wa.eta2, 3)}` : "—", wa ? dec(wa.p) : "પૂરતો ડેટા નથી"]];
+}
+function sections(){
+  const D = ST.res.D, S = [];   // each section: {id, title, blocks:[{h, head, rows, note}]}
+  const D23 = D.filter(o => o.s23), D4 = D.filter(o => o.s4), D6 = D.filter(o => o.s6);
+  const H = ["ક્રમ", "ઉત્કલ્પના", "જૂથ-મધ્યક", "કસોટી", "p", "અસર-માપ", "નિર્ણય (શૂન્ય ઉત્કલ્પના)"];
+  // summary
+  const cnt = (f, keys, DD) => keys.map(([k, l]) => [l, DD.filter(o => f(o) === k).length]);
+  S.push({id:"sum", title:"સારાંશ", blocks:[
+    {h:"નમૂનાનું વિતરણ", head:["જૂથ", "હેતુ 2–3", "હેતુ 4", "હેતુ 6"], rows:[["કુલ વિદ્યાર્થી", D23.length, D4.length, D6.length],
+      ...GENDER.map(([k, l]) => [l, ...[D23, D4, D6].map(DD => DD.filter(o => o.GENDER === k).length)]),
+      ...STYPE.map(([k, l]) => [l, ...[D23, D4, D6].map(DD => DD.filter(o => o.STYPE === k).length)]),
+      ["જાતિ / પ્રકાર ખાલી", ...[D23, D4, D6].map(DD => DD.filter(o => !o.GENDER || !o.STYPE).length)],
+      ["શાળાઓ (SID કોડ)", ...[D23, D4, D6].map(DD => new Set(DD.map(o => o.SCH)).size)]],
+     note:"SID ના પ્રથમ ભાગ (દા.ત. S05) પરથી શાળા ઓળખાય છે. શાળાનો પ્રકાર હેતુ 4 ની શીટમાં નથી, તેથી એ જ SID / એ જ શાળાના બીજા પેપર પરથી લેવાયો છે."},
+    {h:"ઉત્કલ્પના-ચકાસણી (પ્રકરણ 1: H01–H04)", head:H, rows:[
+      ...(D4.length ? hypo(D4, o => o.s4.total, "ગણિતની શૈક્ષણિક સિદ્ધિ (કુલ 40)", "H01", "H02") : []),
+      ...(D6.length ? hypo(D6, o => o.s6.mean, "ગણિત પ્રત્યેની ચિંતા (MAS મધ્યક 1–5)", "H03", "H04") : [])],
+     note:"Welch t અને Welch વિચરણ-પૃથક્કરણ (ANOVA) જૂથોનાં વિચરણ સમાન ન હોય ત્યારે પણ યોગ્ય છે; દ્વિપુચ્છ, 0.05 સાર્થકતા-કક્ષા. વિદ્યાર્થીઓ શાળા-ઝૂમખાંમાં હોવાથી અંતિમ અહેવાલ પહેલાં બહુસ્તરીય પ્રતિમાન-વિશ્લેષણ (SPSS/R) થી પુષ્ટિ કરો; Games-Howell post-hoc SPSS માં ચલાવો."}]});
+  if (D23.length) {
+    const con = CONS.map(c => { const xs = D23.map(o => o.s23[c.id]).filter(x => x != null), s = desc(xs); const rows = D23.map(o => c.items.map(k => o.r23.v[k])).filter(r => r.every(x => x >= 1 && x <= 3)); const a = alpha(rows);
+      return [c.gu, c.items.length, s.n, fmt(s.m), fmt(s.sd), level3(s.m), fmt(a.a, 3), a.n]; });
+    const items = code => appItems(code).map((it, i) => { const xs = D23.map(o => o.r23.v[code + "#" + i]).filter(x => x >= 1 && x <= 3), n = xs.length, m = mean(xs);
+      return [it.no, it.gu, n, ...[3, 2, 1].map(k => `${xs.filter(x => x === k).length} (${pct(xs.filter(x => x === k).length, n)}%)`), D23.length - n, fmt(m), fmt(sd(xs)), level3(m)]; });
+    const IH = ["ક્રમ", "વિધાન", "n", "નિયમિત", "ક્યારેક", "ક્યારેય નહીં", "ખાલી", "મધ્યક", "SD", "સ્તર"];
+    const choice = q => { const ans = D23.filter(o => o.r23.v[q.v]); return {h:q.t, head:["વિકલ્પ", "આવૃત્તિ", "%"], rows:q.o.map((op, i) => { const f = ans.filter(o => o.r23.v[q.v].sel[i]).length; return [op, f, pct(f, ans.length)]; })
+      .concat([["અન્ય (લખાણ)", ans.filter(o => o.r23.v[q.v].other).length, pct(ans.filter(o => o.r23.v[q.v].other).length, ans.length)]]), note:`જવાબ આપનાર ${ans.length}; ખાલી ${D23.length - ans.length}. ${q.k === "multi" ? "એકથી વધુ પસંદગી શક્ય — % જવાબ આપનાર પૈકી." : ""}`}; };
+    const q23 = specQs(DEFS.F23); const rank = q23.find(q => q.v.startsWith("C3"));
+    const grpCon = CONS.map(c => { const val = o => o.s23[c.id]; const g = GENDER.map(([k]) => D23.filter(o => o.GENDER === k).map(val).filter(x => x != null)), wt = welchT(g[0], g[1]);
+      const t = STYPE.map(([k]) => D23.filter(o => o.STYPE === k).map(val).filter(x => x != null)), wa = welchAnova(t);
+      return [c.gu, ...g.map(x => `${fmt(mean(x))} (${fmt(sd(x))}) n=${x.length}`), wt ? `t=${fmt(wt.t, 2)}, p ${fp(wt.p)}` : "—", ...t.map(x => `${fmt(mean(x))} n=${x.length}`), wa ? `F=${fmt(wa.F, 2)}, p ${fp(wa.p)}` : "—"]; });
+    S.push({id:"o2", title:"હેતુ 2", blocks:[
+      {h:"રચના ગુણ (1–3), સ્તર અને વિશ્વસનીયતા", head:["રચના", "વિધાન", "n", "મધ્યક", "SD", "સ્તર", "Cronbach α", "α માટે n"], rows:con, note:"રચના ગુણ ત્યારે જ ગણાય જ્યારે ≥ 80% વિધાનના જવાબ હોય. સ્તર: 1.00–1.66 નીચું, 1.67–2.33 મધ્યમ, 2.34–3.00 ઊંચું (મુખ્ય એપ મુજબ)."},
+      {h:"જૂથવાર રચના ગુણ (અન્વેષણાત્મક તુલના)", head:["રચના", "કુમાર", "કન્યા", "Welch t", "સરકારી", "અનુદાનિત", "સ્વનિર્ભર", "Welch F"], rows:grpCon, note:"આ તુલનાઓ માટે પ્રકરણ 1 માં ઉત્કલ્પના નથી; વર્ણનાત્મક-અન્વેષણાત્મક અર્થઘટન કરો."},
+      {h:"વિભાગ A: વર્ગખંડમાં ગણિત અધ્યાપન", head:IH, rows:items("SA1_SA18")},
+      {h:"વિભાગ B-1: વલણ અને આત્મવિશ્વાસ", head:IH, rows:items("SB1_1_SB1_6")},
+      {h:"વિભાગ B-2: ગાણિતિક વિચારશક્તિ", head:IH, rows:items("SB2_1_SB2_13")},
+      ...(rank ? [{h:rank.t, head:["પદ્ધતિ", "n", "સરેરાશ ક્રમ", "ક્રમ 1 (%)"], rows:rank.items.map((it, i) => { const xs = D23.map(o => o.r23.v[rank.v + "#" + i]).filter(x => x >= 1 && x <= 4); return [it, xs.length, fmt(mean(xs)), `${xs.filter(x => x === 1).length} (${pct(xs.filter(x => x === 1).length, xs.length)}%)`]; }), note:"ઓછો સરેરાશ ક્રમ = વધુ ગમે."}] : []),
+      ...q23.filter(q => /^C(?!3)\d/.test(q.v) && (q.k === "multi" || q.k === "single")).map(choice)]});
+    S.push({id:"o3", title:"હેતુ 3", blocks:[{h:"મૂલ્યાંકન પદ્ધતિઓ અને પ્રક્રિયા (વિધાનવાર)", head:IH, rows:items("AS1_AS23")}, ...q23.filter(q => /^D\d/.test(q.v) && (q.k === "multi" || q.k === "single")).map(choice)]});
+  }
+  if (D4.length) {
+    const tot = desc(D4.map(o => o.s4.total).filter(x => x != null)), P = D4.map(o => o.s4.pct).filter(x => x != null);
+    const lv = ["નીચું", "મધ્યમ", "ઊંચું"].map(l => [l, P.filter(p => levelP(p) === l).length, pct(P.filter(p => levelP(p) === l).length, P.length)]);
+    const bands = tot.n ? [["M − 1SD થી નીચે (નિમ્ન)", D4.filter(o => o.s4.total != null && o.s4.total < tot.m - tot.sd).length], ["M ± 1SD (સરેરાશ)", D4.filter(o => o.s4.total != null && Math.abs(o.s4.total - tot.m) <= tot.sd).length], ["M + 1SD થી ઉપર (ઉચ્ચ)", D4.filter(o => o.s4.total != null && o.s4.total > tot.m + tot.sd).length]].map(r => [...r, pct(r[1], tot.n)]) : [];
+    const qrow = q => { const xs = D4.map(o => o.s4.m[q]).filter(x => x != null); return [`પ્ર. ${q}`, AC_MAX(q), xs.length, fmt(mean(xs)), fmt(mean(xs) / AC_MAX(q), 2), Object.entries(AC_COMP).find(([, qq]) => qq.includes(q))?.[0] || ""]; };
+    S.push({id:"o4", title:"હેતુ 4", blocks:[
+      {h:"ગણિતની શૈક્ષણિક સિદ્ધિ: વર્ણનાત્મક આંકડા (કુલ 40 ગુણ)", head:["N (પૂર્ણ)", "મધ્યક", "SD", "મધ્યસ્થ", "ન્યૂનતમ", "મહત્તમ", "મધ્યક %", "સ્તર"], rows:[[tot.n, fmt(tot.m), fmt(tot.sd), fmt(tot.md), fmt(tot.min, 1), fmt(tot.max, 1), fmt(tot.m != null ? tot.m / 40 * 100 : null, 1), levelP(tot.m != null ? tot.m / 40 * 100 : null)]],
+       note:`કુલ ગુણ ત્યારે જ બને જ્યારે 23 પ્રશ્નોના ગુણ હોય${ST.key.length === 12 ? "" : " — ઉત્તરચાવી ન હોવાથી પ્રશ્ન 1–12 ગણાયા નથી"}. અપૂર્ણ: ${D4.length - tot.n}.`},
+      {h:"સિદ્ધિ-સ્તર (ટકાવારી આધારે)", head:["સ્તર", "વિદ્યાર્થી", "%"], rows:lv, note:"0–33.32% નીચું, 33.33–66.65% મધ્યમ, 66.66–100% ઊંચું (સમાન અંતરાલ). જરૂર મુજબ માર્ગદર્શક સાથે ધોરણ નક્કી કરો."},
+      {h:"M ± 1SD મુજબ વિતરણ", head:["જૂથ", "વિદ્યાર્થી", "%"], rows:bands},
+      {h:"જૂથવાર સિદ્ધિ", head:["ચલ", "જૂથ", "n", "મધ્યક", "SD"], rows:groupRows(D4, o => o.s4.total)},
+      {h:"ગણિતીકરણ ઘટકો (કસોટી-ગુણ %)", head:["ઘટક", "પ્રશ્નો", "n", "મધ્યક %", "SD"], rows:Object.entries(AC_COMP).map(([c, qq]) => { const xs = D4.map(o => o.s4.comp[c]).filter(x => x != null); return [AC_COMP_GU[c], qq.join(", "), xs.length, fmt(mean(xs), 1), fmt(sd(xs), 1)]; })},
+      {h:"પ્રશ્નવાર કઠિનતા-આંક (મધ્યક ÷ મહત્તમ)", head:["પ્રશ્ન", "મહત્તમ", "n", "મધ્યક ગુણ", "કઠિનતા-આંક p", "ઘટક"], rows:Array.from({length:23}, (_, i) => qrow(i + 1)), note:"p નજીક 1 = સરળ, નજીક 0 = કઠિન."}]});
+  }
+  if (D6.length) {
+    const ms = desc(D6.map(o => o.s6.mean).filter(x => x != null)); const rows = D6.map(o => o.s6.sc).filter(r => r.every(x => x != null)), a = alpha(rows);
+    const lv = ["નીચું", "મધ્યમ", "ઊંચું"].map(l => { const k = D6.filter(o => level5(o.s6.mean) === l).length; return [l, k, pct(k, ms.n)]; });
+    S.push({id:"o6", title:"હેતુ 6", blocks:[
+      {h:"ગણિત પ્રત્યેની ચિંતા (MAS): વર્ણનાત્મક આંકડા", head:["N", "મધ્યક (1–5)", "SD", "મધ્યસ્થ", "ન્યૂનતમ", "મહત્તમ", "સ્તર", "Cronbach α (n)"], rows:[[ms.n, fmt(ms.m), fmt(ms.sd), fmt(ms.md), fmt(ms.min), fmt(ms.max), level5(ms.m), `${fmt(a.a, 3)} (${a.n})`]],
+       note:"વિધાન 6, 9, 12, 18, 21 હકારાત્મક હોવાથી ઊલટા ગુણાયા (6 − ગુણ); વધુ ગુણ = વધુ ચિંતા. મધ્યક ત્યારે જ ગણાય જ્યારે ≥ 17 વિધાનના જવાબ હોય."},
+      {h:"ચિંતા-સ્તર", head:["સ્તર", "વિદ્યાર્થી", "%"], rows:lv, note:"1.00–2.33 નીચું, 2.34–3.66 મધ્યમ, 3.67–5.00 ઊંચું (સમાન અંતરાલ)."},
+      {h:"જૂથવાર ચિંતા", head:["ચલ", "જૂથ", "n", "મધ્યક", "SD"], rows:groupRows(D6, o => o.s6.mean)},
+      {h:"વિધાનવાર ચિંતા (ઊલટા ગુણ પછી)", head:["ક્રમ", "વિધાન", "n", "મધ્યક", "SD", "સ્તર"], rows:AX_ITEMS.map((t, i) => { const xs = D6.map(o => o.s6.sc[i]).filter(x => x != null); return [i + 1 + (AX_POS.includes(i + 1) ? " (R)" : ""), t, xs.length, fmt(mean(xs)), fmt(sd(xs)), level5(mean(xs))]; })}]});
+  }
+  return S;
+}
+function tableEl(b){ return h("div", {}, h("h3", {}, b.h), h("div", {class:"scroll"}, h("table", {class:"t"}, h("tr", {}, ...b.head.map(x => h("th", {}, x))),
+  ...b.rows.map(r => h("tr", {}, ...r.map(c => { const s = String(c); return h("td", {class:/^[-−]?[\d.,()%<\s=n]+$/.test(s) ? "num" : (/^(અસ્વીકાર|સ્વીકાર)/.test(s) ? "dec " + (s.startsWith("અસ્વીકાર") ? "rej" : "acc") : "")}, s); }))))), b.note ? h("p", {class:"note"}, b.note) : null); }
+function results(){
+  const S = sections(), cur = S.find(s => s.id === ST.tab) || S[0];
+  const wrap = h("div", {class:"card", id:"res"}, h("h2", {}, "2. પરિણામ"),
+    h("div", {class:"tabs"}, ...S.map(s => h("button", {class:"btn" + (s === cur ? " on" : ""), type:"button", onclick:() => { ST.tab = s.id; const old = $("#res"); old.replaceWith(results()); }}, s.title))),
+    h("div", {class:"chips"}, h("button", {class:"btn", type:"button", onclick:() => download(`Student_Analysis_Report_${today()}.docx`, docx(S))}, "📄 Word અહેવાલ (શ્રુતિ)"),
+      h("button", {class:"btn", type:"button", onclick:() => download(`Student_Clean_Data_${today()}.csv`, new Blob(["﻿" + toCsv(cleanRows())], {type:"text/csv"}))}, "⬇ SPSS/Excel માટે ડેટા (CSV)")));
+  for (const b of cur.blocks) wrap.append(tableEl(b));
+  return wrap;
+}
+
+/* ============================ exports ============================ */
+const today = () => new Date().toISOString().slice(0, 10);
+function download(name, blob){ const a = h("a", {href:URL.createObjectURL(blob), download:name}); document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
+const toCsv = rows => rows.map(r => r.map(x => { const s = x == null ? "" : String(x); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }).join(",")).join("\r\n");
+function cleanRows(){
+  const D = ST.res.D, i23 = Object.keys(T23).flatMap(code => appItems(code).map((it, i) => [it.v, code + "#" + i]));
+  const head = ["SID", "SCHOOL_CODE", "GENDER", "SCH_TYPE", "DIST", ...i23.map(x => x[0]), ...CONS.map(c => c.id), ...Array.from({length:23}, (_, i) => "Q" + (i + 1)), "ACH_TOTAL", "ACH_PCT", ...Object.keys(AC_COMP).map(c => "MZ_" + c),
+    ...AX_ITEMS.map((_, i) => "AXs" + (i + 1)), "MAS_MEAN", "MAS_TOTAL"];
+  return [head, ...D.map(o => [o.SID, o.SCH, o.GENDER ?? "", o.STYPE ?? "", o.DIST || "", ...i23.map(x => o.r23 ? o.r23.v[x[1]] ?? "" : ""), ...CONS.map(c => o.s23 ? fmt(o.s23[c.id], 3).replace("—", "") : ""),
+    ...Array.from({length:23}, (_, i) => o.s4 ? o.s4.m[i + 1] ?? "" : ""), o.s4 ? o.s4.total ?? "" : "", o.s4 ? fmt(o.s4.pct, 2).replace("—", "") : "", ...Object.keys(AC_COMP).map(c => o.s4 ? fmt(o.s4.comp[c], 2).replace("—", "") : ""),
+    ...AX_ITEMS.map((_, i) => o.s6 ? o.s6.sc[i] ?? "" : ""), o.s6 ? fmt(o.s6.mean, 3).replace("—", "") : "", o.s6 ? o.s6.total ?? "" : ""])];
+}
+// minimal .docx (stored zip), Shruti for Gujarati, Times New Roman for English
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const RUN = (t, o = {}) => `<w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Shruti" w:eastAsia="Shruti"/>${o.b ? "<w:b/><w:bCs/>" : ""}${o.i ? "<w:i/><w:iCs/>" : ""}<w:sz w:val="${o.sz || 24}"/><w:szCs w:val="${o.szc || 28}"/><w:lang w:val="en-IN" w:bidi="gu-IN"/></w:rPr><w:t xml:space="preserve">${esc(t)}</w:t></w:r>`;
+const PARA = (t, o = {}) => `<w:p><w:pPr>${o.c ? '<w:jc w:val="center"/>' : ""}<w:spacing w:before="${o.before ?? 0}" w:after="${o.after ?? 120}" w:line="${o.line || 360}" w:lineRule="auto"/>${o.keep ? "<w:keepNext/>" : ""}</w:pPr>${RUN(t, o)}</w:p>`;
+function TABLE(head, rows){
+  const W = 9026, n = head.length, len = head.map((x, j) => Math.min(28, Math.max(8, ...[x, ...rows.map(r => r[j])].map(c => String(c).length)))), tot = len.reduce((a, b) => a + b, 0), ws = len.map(l => Math.floor(W * l / tot)), bd = (t, b) => `<w:tcBorders><w:top w:val="${t ? "single" : "nil"}" w:sz="8" w:color="000000"/><w:bottom w:val="${b ? "single" : "nil"}" w:sz="8" w:color="000000"/><w:left w:val="nil"/><w:right w:val="nil"/></w:tcBorders>`;
+  const cell = (t, b, top, bot, j) => `<w:tc><w:tcPr><w:tcW w:w="${ws[j]}" w:type="dxa"/>${bd(top, bot)}</w:tcPr><w:p><w:pPr><w:spacing w:before="20" w:after="20" w:line="260" w:lineRule="auto"/></w:pPr>${RUN(t, {b, sz:20, szc:22})}</w:p></w:tc>`;
+  return `<w:tbl><w:tblPr><w:tblW w:w="${W}" w:type="dxa"/><w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid>${ws.map(w => `<w:gridCol w:w="${w}"/>`).join("")}</w:tblGrid>` +
+    `<w:tr><w:trPr><w:tblHeader/></w:trPr>${head.map((x, j) => cell(x, true, true, true, j)).join("")}</w:tr>` + rows.map((r, i) => `<w:tr><w:trPr><w:cantSplit/></w:trPr>${r.map((x, j) => cell(String(x), false, false, i === rows.length - 1, j)).join("")}</w:tr>`).join("") + "</w:tbl>";
+}
+function docx(S){
+  let body = PARA("વિદ્યાર્થી ડેટાનું પૃથક્કરણ (Google Sheet આધારિત)", {b:true, c:true, sz:28, szc:36}) + PARA(`હેતુ 2–3, 4 અને 6 · તૈયાર તારીખ: ${today()}`, {c:true, after:240});
+  let tn = 0;
+  for (const s of S) { body += PARA(s.title, {b:true, sz:26, szc:32, before:240, keep:true});
+    for (const b of s.blocks) { tn++; body += PARA(`કોષ્ટક ${tn}`, {b:true, keep:true, before:160, after:0}) + PARA(b.h, {i:true, keep:true}) + TABLE(b.head, b.rows) + (b.note ? PARA("નોંધ. " + b.note, {sz:20, szc:22, line:260}) : PARA("", {after:60})); } }
+  const doc = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+  const files = [["[Content_Types].xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>'],
+    ["_rels/.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'],
+    ["word/document.xml", doc]];
+  return new Blob([zipStore(files)], {type:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
+}
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+const crc32 = b => { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+function zipStore(files){
+  const enc = new TextEncoder(), parts = [], cen = []; let off = 0;
+  for (const [name, txt] of files) { const nb = enc.encode(name), data = enc.encode(txt), c = crc32(data);
+    const lh = new DataView(new ArrayBuffer(30)); lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint32(14, c, true); lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true); lh.setUint16(26, nb.length, true);
+    parts.push(new Uint8Array(lh.buffer), nb, data);
+    const ch = new DataView(new ArrayBuffer(46)); ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint32(16, c, true); ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true); ch.setUint16(28, nb.length, true); ch.setUint32(42, off, true);
+    cen.push(new Uint8Array(ch.buffer), nb); off += 30 + nb.length + data.length; }
+  const cl = cen.reduce((a, b) => a + b.length, 0), end = new DataView(new ArrayBuffer(22)); end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true); end.setUint32(12, cl, true); end.setUint32(16, off, true);
+  return new Blob([...parts, ...cen, new Uint8Array(end.buffer)]);
+}
+draw();
+</script>
+</body>
+</html>

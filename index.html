@@ -1439,6 +1439,7 @@ function viewAnalysis(){
   const m = $("#main"); const D = analysisSet();
   const sel = (id, label, opts, key) => { const s = h("select", {id}, ...opts.map(([v, l]) => h("option", {value:String(v)}, l))); s.value = String(AF[key]); s.onchange = () => { AF[key] = s.value; route(true); }; return h("div", {class:"field"}, h("label", {for:id}, label), s); };
   const ver = h("input", {type:"checkbox", id:"af_ver", checked:AF.ver}); ver.onchange = () => { AF.ver = ver.checked; route(true); };
+  add(m, h("div", {class:"card"}, h("a", {class:"btn primary", href:"sheet-analysis.html", style:"display:inline-flex;text-decoration:none"}, "📊 Google Sheet ડેટાનું વિશ્લેષણ (હેતુ 2–3, 4, 6) →")));
   add(m, h("div", {class:"card"}, h("h2", {}, `વર્ણનાત્મક વિશ્લેષણ (N = ${D.length})`),
     h("div", {class:"filters"}, sel("af_d", "જિલ્લો", [["", "બધા"]].concat(DISTRICTS.map(d => [d.id, d.gu])), "d"), sel("af_t", "પ્રકાર", [["", "બધા"]].concat(STYPES.map(t => [t.n, t.gu])), "t"),
       sel("af_g", "જાતિ", [["", "બધા"], [1, "કુમાર"], [2, "કન્યા"]], "g"), h("label", {class:"note", style:"display:flex;gap:6px;align-items:center"}, ver, "ફક્ત ચકાસાયેલ (લૉક) રેકોર્ડ")),

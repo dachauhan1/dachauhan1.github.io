@@ -85,7 +85,33 @@ table.t th{background:var(--soft)}
 body.ax main{padding-bottom:190px}
 [hidden]{display:none!important}
 </style>
-</head>
+<style data-dk>/* big screens (desktop / LCD / LED): wider layout, larger text and touch targets */
+@media (min-width:1100px){
+  body{font-size:18.5px}
+  .wrap{max-width:min(1440px,94vw)!important;padding:0 24px}
+  .fx{max-width:1080px!important}
+  .pkpad .in{max-width:1080px!important}
+  .center{max-width:540px!important}
+  .dlg{max-width:600px!important}
+  .card{padding:18px 22px}
+  h1{font-size:1.6rem} h2{font-size:1.3rem}
+  nav.tabs a{font-size:1rem;min-height:44px;padding:8px 16px}
+  nav.tabs a.main{font-size:1rem}
+  nav.tabs.open a.tile{flex:1 1 calc(25% - 10px)!important;min-height:64px;font-size:1rem}
+  .homegrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+  .homegrid>.card{margin:0!important}
+  table.t th,table.t td{font-size:.95rem;padding:7px 10px}
+  .btn{min-height:44px;font-size:1rem}
+  input,select,textarea{font-size:1.05rem!important}
+  .pr-ovl .pr-body{max-width:1200px;margin:0 auto;width:100%}
+}
+@media (min-width:1600px){
+  body{font-size:20px}
+  .wrap{max-width:min(1680px,94vw)!important}
+  .homegrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  nav.tabs.open a.tile{flex:1 1 calc(20% - 10px)!important}
+}
+</style></head>
 <body>
 <header class="top"><div class="wrap">
   <div class="bar"><h1>Chauhan Research — ચિંતા માપદંડ<small>હેતુ 6 · 21 વિધાન · 5 = સંપૂર્ણ સહમત … 1 = સંપૂર્ણ અસહમત</small></h1><span id="net" class="pill">…</span></div>
@@ -694,7 +720,10 @@ boot();
 .pp-pan.on{display:flex}.pp-bar{display:flex;gap:4px;padding:4px;background:#111;align-items:center;flex-wrap:wrap}
 .pp-bar button,.pp-bar label{background:#333;color:#fff;border:0;border-radius:8px;padding:6px 10px;font-size:15px;line-height:1.2;cursor:pointer}
 .pp-bar span{color:#ddd;font-size:13px;margin:0 4px}.pp-view{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}.pp-view img{display:block;max-width:none}
-.pp-empty{color:#ccc;padding:16px;font-size:15px}`;
+.pp-empty{color:#ccc;padding:16px;font-size:15px}
+@media (min-width:1100px){html{font-size:17px}.wrap{max-width:min(1240px,94vw)!important}.fx{max-width:1000px!important}.pkpad .in{max-width:1000px!important}.card{padding-left:22px!important;padding-right:22px!important}
+ nav.tabs.open a.tile{flex:1 1 calc(25% - 10px)!important;min-height:66px!important;font-size:1rem!important}.center{max-width:520px!important}.pp-fab{left:calc(50vw - min(620px,47vw) - 52px)!important}}
+@media (min-width:1600px){html{font-size:18.5px}.wrap{max-width:1480px!important}nav.tabs.open a.tile{flex:1 1 calc(20% - 10px)!important}}`;
   document.head.appendChild(st);
   const S = {imgs:[], i:0, z:100, hv:45};
   const pan = document.createElement("div"); pan.className = "pp-pan";

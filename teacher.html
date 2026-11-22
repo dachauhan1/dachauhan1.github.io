@@ -34,6 +34,7 @@ nav.tabs a.main{flex:1 1 0;justify-content:center;min-width:0;padding:6px 6px;fo
 nav.tabs a.main.cur{background:var(--accent);border-color:var(--accent);color:#fff}
 nav.tabs a.mbtn{flex:none;padding:6px 10px}
 nav.tabs .brk{flex-basis:100%;height:0}
+nav.tabs.open span.mhd{flex-basis:100%;display:block;font-weight:800;color:#1f6f54;margin:10px 4px 0;font-size:.95rem;border-bottom:1px solid #d5e3dc;padding-bottom:2px}
 .paperform .qsec{display:block!important}
 .paperform .qsec .pager{display:none}
 .paperform .qsec:last-of-type .pager{display:flex}
@@ -532,6 +533,12 @@ function refreshView(){
 /* ====================== shell & routing ====================== */
 const TABS = [["thesis", "📄 થીસિસ પ્રકરણ 1–5"], ["write", "✍️ થીસિસ લેખન"], ["tools", "🛠 ઉપકરણ રચના"], ["ca", "📚 હેતુ 1 વિષયવસ્તુ વિશ્લેષણ"], ["rate", "📋 તજ્જ્ઞ પત્રક (હેતુ 1)"], ["dash", "ડેશબોર્ડ"], ["list", "શિક્ષક યાદી"], ["form", "ફોર્મ"], ["schools", "શાળા માસ્ટર"], ["qual", "ગુણાત્મક"], ["analysis", "વિશ્લેષણ"],
               ["quality", "ડેટા ગુણવત્તા"], ["codebook", "કોડબુક"], ["admin", "એડમિન"]];
+const MENU = [
+  ["📄 થીસિસ (પ્રકરણ 1–5)", [["thesis", "📄 થીસિસ Word: પ્રકરણ 1–5"], ["write", "✍️ પ્રકરણવાર મુદ્દા / સાહિત્ય સમીક્ષા"], ["tools", "🛠 ઉપકરણ રચના (પ્રકરણ 3)"]], true],
+  ["📚 હેતુ 1: પાઠ્યપુસ્તક વિષયવસ્તુ વિશ્લેષણ", [["cad", "📑 13 પ્રકરણ × 3 Word (સંશોધક · તજ્જ્ઞ · અંતિમ)"], ["ca", "✏️ સંશોધકના ગુણ દાખલ / સુધારો"], ["cares", "📊 પરિણામ · સહમતિ · વિશ્વસનીયતા"], ["rate", "📋 તજ્જ્ઞ શિક્ષક પત્રક"]]],
+  ["👩‍🏫 હેતુ 2–3: શિક્ષક ડેટા", [["dash", "📈 ડેશબોર્ડ"], ["list", "📋 શિક્ષક યાદી"], ["quality", "✔ ડેટા ગુણવત્તા"], ["analysis", "📊 વિશ્લેષણ (Chapter 4)"], ["qual", "💬 ગુણાત્મક જવાબ"], ["codebook", "📖 કોડબુક"], ["schools", "🏫 શાળા માસ્ટર"]]],
+  ["⚙️ સેટિંગ", [["admin", "⚙️ એડમિન"]], true]];
+const MENU_ADMIN = new Set(["thesis", "write", "tools", "ca", "cad", "cares", "admin"]);
 function renderShell(){
   const t = $("#tabs"); t.textContent = ""; t.hidden = false; t.classList.remove("open");
   if (MERGED) {
@@ -539,7 +546,10 @@ function renderShell(){
       h("a", {href:"./anxiety.html", class:"main"}, "😟 હેતુ 6"), h("a", {href:"#form", class:"main cur"}, "👩‍🏫 શિક્ષક"),
       ...(isAdmin() ? [h("a", {href:"#thesis", class:"main", "data-k":"thesis"}, "📄 થીસિસ")] : []),
       h("a", {href:"#", class:"main mbtn", "aria-label":"વધુ વિકલ્પ", onclick:e => { e.preventDefault(); t.classList.toggle("open"); }}, "☰"), h("span", {class:"brk more"}));
-    TABS.forEach(([k, l]) => { if (k === "form" || ((k === "admin" || k === "thesis" || k === "ca" || k === "tools" || k === "write") && !isAdmin())) return; t.append(h("a", {href:"#" + k, "data-k":k, class:"more", onclick:() => t.classList.remove("open")}, l)); });
+    const close = () => t.classList.remove("open");
+    MENU.forEach(([title, items, adm]) => { const its = items.filter(([k]) => isAdmin() || !MENU_ADMIN.has(k)); if (!its.length || (adm && !isAdmin())) return;
+      t.append(h("span", {class:"more mhd"}, title)); its.forEach(([k, l]) => t.append(h("a", {href:"#" + k, "data-k":k, class:"more", onclick:close}, l))); });
+    t.append(h("span", {class:"more mhd"}, ""));
     t.append(h("a", {href:"#", class:"more", onclick:async e => { e.preventDefault(); if (S.form && S.form.dirty && !(await ask("સેવ ન થયેલ ફેરફાર છે. છતાં બહાર નીકળવું છે?"))) return; S.fb.U.signOut(S.fb.auth); }},
       "બહાર (" + (S.user.email || "") + (isAdmin() ? " · એડમિન" : "") + ")"));
     return;
@@ -570,7 +580,7 @@ async function route(soft){
   const m = $("#main"); const keepScroll = soft ? scrollY : 0;
   m.textContent = ""; m.append(h("p", {class:"msg", id:"msg", hidden:true}));
   const R = {dash:viewDash, list:viewList, form:() => viewForm(arg), schools:viewSchools, qual:viewQual, analysis:viewAnalysis, quality:viewQuality, codebook:viewCodebook,
-             admin:() => isAdmin() ? viewAdmin() : viewDash(), thesis:viewThesis, write:() => viewWrite(arg), tools:viewTools, ca:viewCA, rate:() => viewRate(arg), cons:() => viewCons(arg)}[name] || viewDash;
+             admin:() => isAdmin() ? viewAdmin() : viewDash(), thesis:viewThesis, write:() => viewWrite(arg), tools:viewTools, ca:viewCA, cad:viewCAD, cares:viewCARes, rate:() => viewRate(arg), cons:() => viewCons(arg)}[name] || viewDash;
   R();
   if (soft) scrollTo(0, keepScroll);
 }
@@ -1518,7 +1528,11 @@ function cadCard(){
   const btn = (c, v, on) => h("button", {type:"button", class:"btn small" + (on ? "" : " ghost"), "data-c":c, "data-v":v, disabled:!on, onclick:() => caChapterDownload(c, v)}, {R:"📄 સંશોધક", T:"📄 તજ્જ્ઞ શિક્ષક", F:"📄 અંતિમ"}[v]);
   return h("div", {class:"card", id:"cadCard"}, h("h2", {}, "📑 પ્રકરણવાર સંપૂર્ણ વિષયવસ્તુ વિશ્લેષણ (Word, 3 આવૃત્તિ)"),
     h("p", {class:"note"}, "દરેક પ્રકરણ માટે: (1) સંશોધકનું વિશ્લેષણ, (2) તજ્જ્ઞ ગણિત શિક્ષકનું સ્વતંત્ર વિશ્લેષણ, (3) અંતિમ વિશ્લેષણ (સહમતિ-ગુણ + તજ્જ્ઞ ચકાસણી + વિશ્વસનીયતા આંકડા: % સહમતિ, Krippendorff's α + 95% CI, weighted κ, Spearman ρ, Wilcoxon). તમારી Word ડ્રાફ્ટ ફાઇલ (5th Draft ફોર્મેટ) અપલોડ કરો — પુરાવો, અર્થઘટન, જોડાણ, કારણ, ચાર નોંધ, આલોચનાત્મક તારણ અને નિર્ણય-નોંધ ડિજિટલ સેવ થશે."),
-    h("label", {class:"btn primary", for:"cadUp", style:"display:inline-block;margin:6px 0"}, "⬆ સંશોધકની Word ફાઇલો અપલોડ કરો (એક કે 13 એકસાથે)"), inp,
+    h("h3", {}, "પગલું 1: સંશોધકનો ડેટા"), h("label", {class:"btn primary", for:"cadUp", style:"display:inline-block;margin:6px 0"}, "⬆ સંશોધકની Word ફાઇલો અપલોડ કરો (એક કે 13 એકસાથે)"), inp,
+    h("details", {}, h("summary", {class:"note", style:"cursor:pointer"}, "Word વગર (જૂની રીત): બનાવેલા ગુણ/નોંધ ભરો"), h("div", {class:"chips"}, h("button", {class:"btn", type:"button", id:"caSeed", onclick:async () => { try { const n = await caSeedAll(); say(`✓ ${n} પ્રકરણના સંશોધક-ગુણ ભરાયા.`, "ok"); route(true); } catch (er) { say("ભરાયું નહીં: " + (er.code || er.message), "bad"); } }}, "⬇ 13 પ્રકરણના સંશોધક-ગુણ (Word ફાઇલો મુજબ) ભરો"), h("button", {class:"btn", type:"button", id:"caSeedN", onclick:async () => { try { const n = await caSeedNotes(); say(`✓ ${n} પ્રકરણની ઘટકવાર ચાર નોંધ ભરાઈ.`, "ok"); route(true); } catch (er) { say("ભરાયું નહીં: " + (er.code || er.message), "bad"); } }}, "⬇ 13 પ્રકરણની સંશોધક-નોંધ (Word મુજબ) ભરો"))),
+    h("h3", {}, "પગલું 2: તજ્જ્ઞ શિક્ષકોને મોકલો"), h("div", {class:"chips"}, h("button", {class:"btn", type:"button", id:"caPub", onclick:async () => { try { const n = await caPublish(); say(`✓ ${n} પ્રકરણનું વિશ્લેષણ શિક્ષકોની ચકાસણી માટે મોકલાયું (સબમિટ પછી જ દેખાશે).`, "ok"); } catch (er) { say("મોકલાયું નહીં: " + (er.code || er.message) + " — Firebase Rules માં ca_pub ઉમેર્યું છે?", "bad"); } }}, "📤 સંશોધકનું વિશ્લેષણ ચકાસણી માટે મોકલો")),
+    h("p", {class:"note"}, "દરેક શિક્ષકને પોતાના પ્રકરણની લિંક મોકલો: dachauhan1.github.io/teacher.html#rate-1 … #rate-13 (પ્રકરણ-ક્રમાંક મુજબ). શિક્ષક સ્વતંત્ર ગુણ + ચાર નોંધ સબમિટ કરે પછી જ તમારું વિશ્લેષણ તેને ચકાસણી માટે દેખાશે."),
+    h("h3", {}, "પગલું 3: Word ડાઉનલોડ (13 પ્રકરણ × 3 આવૃત્તિ)"),
     h("div", {class:"scroll"}, h("table", {class:"t"}, h("tr", {}, ...["પ્રકરણ", "Word ડેટા", "સંશોધક", "તજ્જ્ઞ શિક્ષક", "અંતિમ"].map(x => h("th", {}, x))),
       ...Array.from({length:13}, (_, i) => { const c = i + 1, a = CA.docs.get(caId("R1", c)), e = caR2(c);
         return h("tr", {}, h("td", {}, `${c} ${(a && a.NAME) || (CA_SEED[c] || [""])[0]}`), h("td", {class:"note"}, a && a.DOCX ? "✓ " + a.DOCX.slice(-34) : "–"),
@@ -1526,6 +1540,21 @@ function cadCard(){
     h("p", {class:"note"}, "'અંતિમ' આવૃત્તિ તજ્જ્ઞ સબમિટ કરે પછી ખૂલે છે; સહમતિ-ગુણ (#cons) સેવ ન થયા હોય તો હાલ સંશોધકના ગુણ વપરાય છે."));
 }
 
+window.__ppShow = () => /^#(form|rate)/.test(location.hash || "#form");
+function obj1Nav(k){
+  return h("div", {class:"chips obj1nav", style:"margin:0 0 10px"}, ...[["ca", "✏️ ગુણ દાખલ / સુધારો"], ["cad", "📑 13 પ્રકરણ × 3 Word"], ["cares", "📊 પરિણામ · સહમતિ · વિશ્વસનીયતા"]]
+    .map(([x, l]) => h("a", {href:"#" + x, class:"btn small" + (x === k ? " primary" : "")}, l)));
+}
+function viewCAD(){
+  const m = $("#main"); if (!isAdmin()) { viewDash(); return; }
+  const box = h("div"); m.append(obj1Nav("cad"), box); box.append(h("p", {class:"note"}, "લોડ થાય છે…"));
+  caLoad(true).then(() => { box.textContent = ""; box.append(cadCard()); }).catch(e => { box.textContent = "લોડ ન થયું: " + (e.code || e.message); });
+}
+function viewCARes(){
+  const m = $("#main"); if (!isAdmin()) { viewDash(); return; }
+  const box = h("div"); m.append(obj1Nav("cares"), box); box.append(h("p", {class:"note"}, "લોડ થાય છે…"));
+  caLoad(true).then(() => { box.textContent = ""; box.append(caResults()); }).catch(e => { box.textContent = "લોડ ન થયું: " + (e.code || e.message); });
+}
 function viewCA(){
   const m = $("#main"); if (!isAdmin()) { viewDash(); return; }
   const box = h("div"); m.append(box);
@@ -1533,7 +1562,7 @@ function viewCA(){
   caLoad().then(draw).catch(e => { box.textContent = ""; box.append(h("p", {class:"msg bad"}, "લોડ ન થયું: " + (e.code || e.message))); });
   function cur(){ return CA.docs.get(caId(CA.rater, CA.ch)) || {CH:CA.ch, RATER:CA.rater, NAME:"", S:{}, E:{}, QR:false}; }
   function draw(){
-    box.textContent = ""; const d = JSON.parse(JSON.stringify(cur())); d.S = d.S || {}; d.E = d.E || {}; d.Q = d.Q || {};
+    box.textContent = ""; box.append(obj1Nav("ca")); const d = JSON.parse(JSON.stringify(cur())); d.S = d.S || {}; d.E = d.E || {}; d.Q = d.Q || {};
     const r1n = n => (CA.docs.get(caId("R1", n)) || {}).NAME || "";
     const chSel = h("select", {id:"caCh", onchange:e => { CA.ch = +e.target.value; draw(); }}, ...Array.from({length:13}, (_, i) => { const n = i + 1, dd = CA.docs.get(caId(CA.rater, n)); const st = dd ? caStats(dd.S || {}).done : 0;
       return h("option", {value:n, selected:n === CA.ch}, `પ્રકરણ ${n}${r1n(n) ? ": " + r1n(n) : ""} (${st}/51)`); }));
@@ -1570,8 +1599,7 @@ function viewCA(){
       h("label", {class:"note", style:"display:flex;gap:8px;align-items:center"}, h("input", {type:"checkbox", checked:CA.ev, onchange:e => { CA.ev = e.target.checked; draw(); }}), "પુરાવા/પાનાં લખવાનાં ખાનાં બતાવો"),
       CA.ch === 1 && CA.rater === "R1" && !caStats(d.S).done ? h("button", {class:"btn", type:"button", onclick:() => { CA_CH1.split("|").forEach((g, ci) => g.split(",").forEach((v, i) => { d.S[`${ci + 1}.${i + 1}`] = +v; })); paint(); upd(); draw2(); }}, "પ્રકરણ 1 ના 4th Draft ગુણ (67/153) ભરો") : null),
       ...comps,
-      h("div", {class:"card"}, h("h3", {}, "આ પ્રકરણનો સારાંશ"), sum, h("button", {class:"btn primary", type:"button", id:"caSave", style:"margin-top:8px", onclick:save}, "💾 સેવ કરો")),
-      caResults());
+      h("div", {class:"card"}, h("h3", {}, "આ પ્રકરણનો સારાંશ"), sum, h("button", {class:"btn primary", type:"button", id:"caSave", style:"margin-top:8px", onclick:save}, "💾 સેવ કરો")));
     function draw2(){ box.querySelectorAll(".caq").forEach((q, ci) => { const ind = CA_IND.filter(x => x.comp === ci); q.value = ind.map(x => d.S[x.id] ?? "").join(""); }); }
     paint(); upd();
   }
@@ -1593,11 +1621,7 @@ function caResults(){
         return h("tr", {}, h("td", {}, `${c} ${(CA_SEED[c] || [""])[0]}`), h("td", {}, a ? `${caStats(a.S || {}).done}/51` : "–"), h("td", {}, e ? `${e.NAME_R || "?"} · ${e.SUBMITTED ? "✓ સબમિટ" : "ડ્રાફ્ટ"}${e.VSUB ? " · ✓ ચકાસણી" : ""}` : "–"),
           h("td", {}, rr && !isNaN(rr.alpha) ? rr.alpha.toFixed(3) : "–"), h("td", {}, h("code", {style:"font-size:.75rem"}, `dachauhan1.github.io/teacher.html#rate-${c}`)),
           h("td", {}, a && e && e.SUBMITTED ? h("a", {href:"#cons-" + c, class:"btn small"}, cc ? "✓ જુઓ" : "ચર્ચા કરો") : "–")); }))),
-    cadCard(),
-    h("div", {class:"chips"}, h("button", {class:"btn", type:"button", id:"caSeed", onclick:async () => { try { const n = await caSeedAll(); say(`✓ ${n} પ્રકરણના સંશોધક-ગુણ ભરાયા.`, "ok"); route(true); } catch (er) { say("ભરાયું નહીં: " + (er.code || er.message), "bad"); } }}, "⬇ 13 પ્રકરણના સંશોધક-ગુણ (Word ફાઇલો મુજબ) ભરો"),
-      h("button", {class:"btn", type:"button", id:"caSeedN", onclick:async () => { try { const n = await caSeedNotes(); say(`✓ ${n} પ્રકરણની ઘટકવાર ચાર નોંધ ભરાઈ.`, "ok"); route(true); } catch (er) { say("ભરાયું નહીં: " + (er.code || er.message), "bad"); } }}, "⬇ 13 પ્રકરણની સંશોધક-નોંધ (Word મુજબ) ભરો"),
-      h("button", {class:"btn", type:"button", id:"caPub", onclick:async () => { try { const n = await caPublish(); say(`✓ ${n} પ્રકરણનું વિશ્લેષણ શિક્ષકોની ચકાસણી માટે મોકલાયું (સબમિટ પછી જ દેખાશે).`, "ok"); } catch (er) { say("મોકલાયું નહીં: " + (er.code || er.message) + " — Firebase Rules માં ca_pub ઉમેર્યું છે?", "bad"); } }}, "📤 સંશોધકનું વિશ્લેષણ ચકાસણી માટે મોકલો"),
-      h("button", {class:"btn", type:"button", onclick:xl}, "📥 હેતુ 1 Excel"), h("button", {class:"btn primary", type:"button", onclick:() => thesisDownload(4)}, "📄 Thesis Chapter 4 (હેતુ 1 સહિત)")));
+    h("div", {class:"chips"}, h("button", {class:"btn", type:"button", onclick:xl}, "📥 હેતુ 1 Excel"), h("button", {class:"btn primary", type:"button", onclick:() => thesisDownload(4)}, "📄 Thesis Chapter 4 (હેતુ 1 સહિત)")));
 }
 function caWorkbook(){
   const long = [["પ્રકરણ", "પ્રકરણનું નામ", "મૂલ્યાંકનકાર", "ઘટક", "સૂચક ID", "સૂચક", "†", "ગુણ (0-3)", "પુરાવો"]];
@@ -1837,7 +1861,7 @@ async function caSeedAll(){
 }
 function viewCons(arg){  // compare R1 vs expert, record agreed final score
   const m = $("#main"); if (!isAdmin()) { viewDash(); return; }
-  const ch = Math.min(13, Math.max(1, parseInt(arg, 10) || 1)); const box = h("div"); m.append(box);
+  const ch = Math.min(13, Math.max(1, parseInt(arg, 10) || 1)); const box = h("div"); m.append(obj1Nav("cares"), box);
   caLoad(true).then(() => {
     const r1 = CA.docs.get(caId("R1", ch)), r2 = caR2(ch), cc = CA.docs.get("cons_" + ch) || {F:{}, NOTE:{}};
     box.append(h("div", {class:"card"}, h("h2", {}, `સહમતિ (Consensus): પ્રકરણ ${ch} ${r1 ? r1.NAME || "" : ""}`),
@@ -2825,7 +2849,9 @@ boot();
   pan.append(bar, view);
   const fab = document.createElement("button"); fab.className = "pp-fab"; fab.type = "button"; fab.title = "પેપરનો ફોટો"; fab.textContent = window.__ppAltIcon || "📷";
   fab.onclick = () => { if (typeof window.__ppAlt === "function" && window.__ppAlt()) return; pan.classList.toggle("on"); show(); if (pan.classList.contains("on") && !S.imgs.length) inp.click(); };
-  const mount = () => { document.body.append(pan, fab); let n = 0; const t = setInterval(() => { if (window.__ppAltIcon) fab.textContent = window.__ppAltIcon; if (window.__ppAltIcon || ++n > 20) clearInterval(t); }, 300); };
+  const vis = () => { fab.style.display = typeof window.__ppShow === "function" && !window.__ppShow() ? "none" : ""; if (fab.style.display === "none") { pan.classList.remove("on"); document.body.style.paddingTop = ""; } };
+  addEventListener("hashchange", vis);
+  const mount = () => { document.body.append(pan, fab); setTimeout(vis, 600); let n = 0; const t = setInterval(() => { if (window.__ppAltIcon) fab.textContent = window.__ppAltIcon; if (window.__ppAltIcon || ++n > 20) clearInterval(t); }, 300); };
   if (document.body) mount(); else addEventListener("DOMContentLoaded", mount);
 })();
 

@@ -882,29 +882,43 @@ let fxTimer = null;
 /* ---- digit strip: type a whole table as one number string (3 = નિયમિત, 2 = ક્યારેક, 1 = ક્યારેય નહીં, 0 = ખાલી) ---- */
 function rateGroups(){ const gs = []; STEPS.forEach(st => { if (st.k !== "rate") return; let g = gs.find(x => x.grp === st.grp); if (!g) gs.push(g = {grp:st.grp, steps:[]}); g.steps.push(st); }); return gs; }
 const grpName = g => g === "મૂલ્યાંકન" ? "હેતુ 3 મૂલ્યાંકન" : "વિભાગ " + g;
+/* every single-answer step of the paper, grouped by section: one digit per step (0 = blank) */
+function stripGroups(){ const gs = []; STEPS.forEach((st, i) => { if (st.k === "choice" && st.q.clean === "multi") return; const key = st.k === "gender" ? "જાતિ" : st.grp;
+  let g = gs.find(x => x.grp === key); if (!g) gs.push(g = {grp:key, steps:[]}); g.steps.push(Object.assign({idx:i}, st)); }); return gs; }
+const stripName = g => g === "જાતિ" ? "જાતિ (1 = કુમાર, 2 = કન્યા)" : g === "મૂલ્યાંકન" ? "હેતુ 3 મૂલ્યાંકન" : g === "C" ? "વિભાગ C (વિકલ્પ-નંબર / ક્રમ)" : /^[A-Z]/.test(g) ? "વિભાગ " + g : g;
+const stripMax = st => st.k === "gender" ? 2 : st.k === "rate" ? Math.max(...SCALE.map(x => x.code)) : st.k === "rank" ? 4 : st.q.opts.length;
+function stripGet(st){ const d = FX.d;
+  if (st.k === "gender") return d.GENDER || 0; if (st.k === "rate") return isEmpty(d[st.v]) ? 0 : d[st.v]; if (st.k === "rank") return d[st.q.raw[st.i]] || 0;
+  const k = st.q.raw.findIndex(v => d[v] === 1); return k < 0 ? 0 : k + 1; }
+function stripSet(st, n){ const d = FX.d;
+  if (st.k === "gender") d.GENDER = n || null; else if (st.k === "rate") d[st.v] = n || null; else if (st.k === "rank") d[st.q.raw[st.i]] = n || null;
+  else { st.q.raw.forEach(v => { d[v] = null; }); if (st.q.oth) d[st.q.oth] = null; if (n) d[st.q.raw[n - 1]] = 1; } }
 function digitCard(){
-  const gs = rateGroups();
-  const sel = h("select", {id:"dg_g", style:"font-size:1rem;padding:6px"}, ...gs.map((g, i) => h("option", {value:i}, `${grpName(g.grp)} (${g.steps.length})`)));
+  const gs = stripGroups();
+  const sel = h("select", {id:"dg_g", style:"font-size:1rem;padding:6px;max-width:100%"}, ...gs.map((g, i) => h("option", {value:i}, `${stripName(g.grp)} (${g.steps.length})`)));
   const inp = h("input", {id:"dg_in", type:"text", inputmode:"numeric", autocomplete:"off", placeholder:"દા.ત. 323322331…", style:"font-size:1.35rem;letter-spacing:3px;width:100%;padding:8px;font-family:monospace"});
   const info = h("div", {id:"dg_info", class:"note", style:"margin-top:4px"});
   const G = () => gs[+sel.value];
-  const cur = () => G().steps.map(st => isEmpty(FX.d[st.v]) ? "0" : String(FX.d[st.v])).join("").replace(/0+$/, "");
-  const show = () => { const g = G(), t = inp.value.replace(/[^0-3]/g, ""); const bad = inp.value.replace(/[0-3\s]/g, "");
-    info.textContent = `${t.length}/${g.steps.length} અંક` + (bad ? " · ⚠ ફક્ત 0, 1, 2, 3 લખો" : "") + (t.length > g.steps.length ? ` · ⚠ ${t.length - g.steps.length} અંક વધારે` : t.length === g.steps.length ? " · ✓ પૂરું — Enter / ભરો દબાવો" : ""); };
-  const apply = () => { const g = G(), t = inp.value.replace(/[^0-3]/g, "");
-    if (t.length !== g.steps.length) { show(); info.textContent += ` — ${g.steps.length} અંક જોઈએ`; return; }
+  const cur = () => G().steps.map(stripGet).join("").replace(/0+$/, "");
+  const bad = t => G().steps.map((st, i) => t[i] != null && +t[i] > stripMax(st) ? i + 1 : null).filter(Boolean);
+  const show = () => { const g = G(), t = inp.value.replace(/[^0-9]/g, ""), b = bad(t);
+    info.textContent = `${t.length}/${g.steps.length} અંક` + (b.length ? ` · ⚠ ક્રમ ${b.join(", ")} માં અંક મર્યાદા બહાર` : "") + (t.length > g.steps.length ? ` · ⚠ ${t.length - g.steps.length} અંક વધારે` : t.length === g.steps.length && !b.length ? " · ✓ પૂરું — Enter / ભરો દબાવો" : ""); };
+  const apply = () => { const g = G(), t = inp.value.replace(/[^0-9]/g, "");
+    if (t.length !== g.steps.length || bad(t).length) { show(); info.textContent += ` — ${g.steps.length} સાચા અંક જોઈએ`; return; }
     if (!FX.t0) FX.t0 = Date.now();
-    g.steps.forEach((st, i) => { const c = +t[i]; FX.d[st.v] = c === 0 ? null : c; });
-    fxKeep(); const nx = (+sel.value + 1) % gs.length;
-    route(false).then(() => { const s2 = $("#dg_g"), i2 = $("#dg_in"); if (s2 && nx > +sel.value) { s2.value = nx; s2.dispatchEvent(new Event("change")); }
-      say(`⌨️ ${grpName(g.grp)}: ${t.length} જવાબ ભર્યા` + (nx > +sel.value ? ` — હવે ${grpName(gs[nx].grp)} લખો.` : " — હવે વિભાગ C ભરી સેવ કરો."), "ok"); if (i2) i2.focus(); }); };
+    g.steps.forEach((st, i) => stripSet(st, +t[i]));
+    fxKeep(); const nx = +sel.value + 1;
+    route(false).then(() => { const s2 = $("#dg_g"), i2 = $("#dg_in"); if (s2 && nx < gs.length) { s2.value = nx; s2.dispatchEvent(new Event("change")); }
+      say(`⌨️ ${stripName(g.grp)}: ${t.length} જવાબ ભર્યા` + (nx < gs.length ? ` — હવે ${stripName(gs[nx].grp)} લખો.` : " — બધા વિભાગ પૂરા; બહુવિકલ્પ પ્રશ્નો (હોય તો) ટૅપથી ભરી સેવ કરો."), "ok"); if (i2) i2.focus(); }); };
   sel.onchange = () => { inp.value = cur(); show(); };
   inp.addEventListener("input", show);
   inp.addEventListener("keydown", e => { e.stopPropagation(); if (e.key === "Enter") { e.preventDefault(); apply(); } });
   inp.value = cur(); setTimeout(show, 0);
+  const multi = STEPS.filter(st => st.k === "choice" && st.q.clean === "multi").length;
   return h("details", {class:"card", id:"dg_card", style:"padding:10px 12px", open:(lsGet(PKEY) || {}).dg ? "" : null, ontoggle:e => lsSet(PKEY, Object.assign(lsGet(PKEY) || {}, {dg:e.target.open}))},
-    h("summary", {style:"font-weight:700;font-size:1.05rem;cursor:pointer"}, "⌨️ અંક-પટ્ટી: આખું કોષ્ટક એક સાથે લખો (સૌથી ઝડપી)"),
-    h("p", {class:"note", style:"margin:6px 0"}, "પેપર પર ઉપરથી નીચે દરેક પ્રશ્નનો જવાબ અંકમાં લખતા જાઓ: 3 = નિયમિત, 2 = ક્યારેક, 1 = ક્યારેય નહીં, 0 = ખાલી/બે નિશાન. વચ્ચે જગ્યા ચાલે."),
+    h("summary", {style:"font-weight:700;font-size:1.05rem;cursor:pointer"}, "⌨️ અંક-પટ્ટી: આખું પેપર વિભાગવાર અંકમાં (સૌથી ઝડપી)"),
+    h("p", {class:"note", style:"margin:6px 0"}, "દરેક પ્રશ્નનો જવાબ એક અંક: કોષ્ટક 3 = નિયમિત, 2 = ક્યારેક, 1 = ક્યારેય નહીં · વિકલ્પ-પ્રશ્નમાં પસંદ કરેલા વિકલ્પનો નંબર · ક્રમ-પ્રશ્નમાં ક્રમ · 0 = ખાલી/બે નિશાન. Enter પછી આગળનો વિભાગ આપમેળે."
+      + (multi ? ` (${multi} બહુવિકલ્પ પ્રશ્નો ટૅપથી ભરો.)` : "")),
     h("div", {style:"display:flex;gap:6px;align-items:center;margin-bottom:6px"}, sel), inp, info,
     h("button", {type:"button", class:"btn primary", id:"dg_apply", style:"width:100%;margin-top:8px;min-height:48px", onclick:apply}, "✓ ભરો"));
 }

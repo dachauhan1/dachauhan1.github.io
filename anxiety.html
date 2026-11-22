@@ -299,6 +299,21 @@ function viewForm(){
 function viewKeep(){ const y = scrollY; viewForm(); scrollTo(0, y); }
 function chip(label, on, onclick, extra){ return h("button", {type:"button", class:"opt" + (on ? " on" : "") + (extra || ""), role:"radio", "aria-checked":String(!!on), onclick}, ...label); }
 
+
+/* ⌨️ digit strip: a whole block of answers in one line (fastest entry for 2000 papers) */
+function stripBox(o){   // o: {id, title, help, n, parse(text)->{vals, bad}, cur()->text, apply(vals)}
+  const inp = h("input", {type:"text", id:o.id, inputmode:o.decimal ? "decimal" : "numeric", autocomplete:"off", value:o.cur(), placeholder:o.ph || "",
+    style:"font-size:1.3rem;letter-spacing:3px;width:100%;padding:8px;font-family:monospace"});
+  const info = h("div", {class:"muted", style:"margin-top:4px"});
+  const show = () => { const p = o.parse(inp.value); info.textContent = `${p.vals.length}/${o.n}` + (p.bad.length ? ` · ⚠ ક્રમ ${p.bad.join(", ")} મર્યાદા બહાર` : "") + (p.vals.length > o.n ? ` · ⚠ ${p.vals.length - o.n} વધારે` : p.vals.length === o.n && !p.bad.length ? " · ✓ પૂરું — Enter દબાવો" : ""); return p; };
+  inp.addEventListener("input", show);
+  inp.addEventListener("keydown", e => { if (e.key !== "Enter") return; e.preventDefault(); e.stopPropagation(); const p = show();
+    if (p.vals.length !== o.n || p.bad.length) { info.textContent += ` — ${o.n} સાચા જવાબ જોઈએ`; return; }
+    o.apply(p.vals); S.flash = ["ok", `⌨️ ${o.n} જવાબ ભર્યા — ફરી Enter = સેવ`]; viewKeep(); updateProg(); });
+  setTimeout(show, 0);
+  return h("div", {class:"card", id:o.id + "Card"}, h("label", {class:"lbl", for:o.id, style:"font-weight:700"}, o.title), h("p", {class:"muted", style:"margin:4px 0"}, o.help), inp, info);
+}
+
 function formAX(m, r){
   const g = r.GENDER;
   m.append(h("div", {class:"card"}, h("div", {class:"grid"},
@@ -306,6 +321,11 @@ function formAX(m, r){
       h("button", {type:"button", class:"chip" + (g === v ? " on" : ""), onclick:() => { r.GENDER = r.GENDER === v ? null : v; viewKeep(); }}, l)))),
     h("div", {class:"field"}, h("label", {class:"lbl", for:"cdate"}, "તારીખ"), h("input", {type:"date", id:"cdate", value:r.COLLECTION_DATE || "", onchange:e => { r.COLLECTION_DATE = e.target.value; }}))),
     h("p", {class:"muted", style:"margin-top:6px"}, "નીચેના કી-પેડ પર 5 4 3 2 1 દબાવો — આગળનું વિધાન આપમેળે આવે. કોઈ પણ વિધાન પર ટેપ કરી ત્યાં જઈ શકાય. ખાલી રહેલું વિધાન સેવ વખતે 99 (જવાબ નથી) ગણાશે.")));
+  m.append(stripBox({id:"axStrip", n:21, title:"⌨️ અંક-પટ્ટી: 21 વિધાન એક સાથે (સૌથી ઝડપી)", ph:"દા.ત. 543215432154321543215",
+    help:"પેપર પરથી ઉપરથી નીચે દરેક વિધાનનો અંક લખો: 5 = સંપૂર્ણ સહમત … 1 = સંપૂર્ણ અસહમત, 0 = ખાલી/બે નિશાન. Enter → ભરાઈ જશે, ફરી Enter → સેવ.",
+    cur:() => AX_ITEMS.map((_, i) => r["AX" + (i + 1)] == null ? "0" : String(r["AX" + (i + 1)])).join("").replace(/0+$/, ""),
+    parse:t => { const v = t.replace(/[^0-9]/g, "").split("").map(Number); return {vals:v, bad:v.map((x, i) => x > 5 ? i + 1 : null).filter(Boolean)}; },
+    apply:v => { v.forEach((x, i) => { r["AX" + (i + 1)] = x ? x : null; }); S.i = 20; }}));
   const hdr = document.querySelector("header.top"); if (hdr) document.documentElement.style.setProperty("--hdrh", hdr.offsetHeight + "px");
   const box = h("div", {class:"card", id:"items"}, h("h2", {}, "21 વિધાન"),
     h("div", {class:"axh"}, ...SCALE5.map(([c, gu]) => h("span", {}, h("b", {}, String(c)), gu))));
@@ -345,6 +365,12 @@ function formAC(m, r){
     h("div", {class:"field", style:"margin-top:8px"}, h("label", {class:"lbl", for:"mcqQuick"}, "ઝડપી: પ્રશ્ન 1–12 ના ગુણ એક સાથે (1 = સાચો, 0 = ખોટો/ખાલી)"), mcq),
     h("p", {class:"muted", style:"margin-top:6px"}, "પ્રશ્ન 13–23: કાગળ પર તપાસનારે આપેલા કુલ ગુણનું બટન દબાવો (0, ½, 1, 1½, 2, 2½, 3 …). કુલ /40 આપમેળે.")));
   if (r.ABSENT) return;
+  const LQ = AC_Q.filter(x => x.q >= 13 && !x.subs);
+  m.append(stripBox({id:"acStrip", n:LQ.length, decimal:true, title:`⌨️ અંક-પટ્ટી: પ્રશ્ન 13–23 ના ગુણ એક સાથે`, ph:"દા.ત. 21.5021.52 ...",
+    help:"દરેક પ્રશ્નનો ગુણ ક્રમમાં લખો; અડધો ગુણ હોય તો અંક પછી બિંદુ: 1.5 → '1.' કે '1.5'. દા.ત. 2 · 1½ · 0 · 2 → 21.502. મહત્તમ: પ્ર. 13–19 = 2, 20–21 = 4, 22–23 = 3. Enter → ભરાઈ જશે, ફરી Enter → સેવ.",
+    cur:() => LQ.every(x => r["Q" + x.q] != null) ? LQ.map(x => { const v = r["Q" + x.q]; return Number.isInteger(v) ? String(v) : Math.floor(v) + ".5"; }).join("") : "",
+    parse:t => { const v = (t.replace(/,/g, ".").match(/\d(\.5?)?/g) || []).map(x => parseInt(x, 10) + (x.includes(".") ? .5 : 0)); return {vals:v, bad:v.map((x, i) => LQ[i] && x > LQ[i].max ? LQ[i].q : null).filter(Boolean)}; },
+    apply:v => { v.forEach((x, i) => { r["Q" + LQ[i].q] = x; }); S.i = AC_Q.length - 1; }}));
   const box = h("div", {class:"card", id:"items"}, h("h2", {}, `23 પ્રશ્ન · કુલ ${AC_TOTAL} ગુણ`), h("div", {class:"stats", id:"acStats"}));
   AC_Q.forEach((x, i) => {
     const tot = acQ(r, x);

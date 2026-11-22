@@ -35,7 +35,13 @@ nav.tabs a.main[data-k="home"]{flex:0 0 42px;padding:6px 2px}
 nav.tabs a.main.cur{background:var(--accent);border-color:var(--accent);color:#fff}
 nav.tabs a.mbtn{flex:none;padding:6px 10px}
 nav.tabs .brk{flex-basis:100%;height:0}
-nav.tabs.open span.mhd{flex-basis:100%;display:block;font-weight:800;color:#1f6f54;margin:10px 4px 0;font-size:.95rem;border-bottom:1px solid #d5e3dc;padding-bottom:2px}
+nav.tabs.open span.mhd{flex-basis:100%;display:block;font-weight:800;margin:10px 4px 0;font-size:.95rem;padding-bottom:2px;border-bottom:2px solid currentColor}
+nav.tabs.open{max-height:78vh;overflow-y:auto;padding-bottom:10px}
+nav.tabs.open a.tile{flex:1 1 calc(50% - 8px);min-height:58px;border-radius:14px;border:0;color:#fff;font-weight:700;font-size:.92rem;line-height:1.25;white-space:normal;padding:8px 12px;box-shadow:0 2px 5px rgba(0,0,0,.15)}
+nav.tabs.open a.tile:active{transform:scale(.97)}
+.g0{--gc:#6741d9}.g1{--gc:#0c8599}.g2{--gc:#e8590c}.g3{--gc:#495057}.gfav{--gc:#f08c00}
+nav.tabs.open a.tile{background:var(--gc)} nav.tabs.open span.mhd{color:var(--gc)}
+nav.tabs.open a.tile[data-k].on,nav.tabs.open a.tile.cur{outline:3px solid #212529}
 .paperform .qsec{display:block!important}
 .paperform .qsec .pager{display:none}
 .paperform .qsec:last-of-type .pager{display:flex}
@@ -540,17 +546,23 @@ const MENU = [
   ["👩‍🏫 હેતુ 2–3: શિક્ષક ડેટા", [["dash", "📈 ડેશબોર્ડ"], ["list", "📋 શિક્ષક યાદી"], ["quality", "✔ ડેટા ગુણવત્તા"], ["analysis", "📊 વિશ્લેષણ (Chapter 4)"], ["qual", "💬 ગુણાત્મક જવાબ"], ["codebook", "📖 કોડબુક"], ["schools", "🏫 શાળા માસ્ટર"]]],
   ["⚙️ સેટિંગ", [["admin", "⚙️ એડમિન"]], true]];
 const MENU_ADMIN = new Set(["integ", "thesis", "write", "tools", "ca", "cad", "cares", "admin"]);
+function useTop(n){ let u = {}; try { u = JSON.parse(localStorage.getItem("cr_use") || "{}"); } catch (e) {} return Object.entries(u).filter(([k]) => !["form", "home"].includes(k)).sort((a, b) => b[1] - a[1]).slice(0, n).map(x => x[0]); }
+function useMark(k){ try { const u = JSON.parse(localStorage.getItem("cr_use") || "{}"); u[k] = (u[k] || 0) + 1; localStorage.setItem("cr_use", JSON.stringify(u)); } catch (e) {} }
+document.addEventListener("click", e => { const t = $("#tabs"); if (t && t.classList.contains("open") && !t.contains(e.target)) t.classList.remove("open"); });
 function renderShell(){
   const t = $("#tabs"); t.textContent = ""; t.hidden = false; t.classList.remove("open");
   if (MERGED) {
-    if (isAdmin()) t.append(h("a", {href:"#home", class:"main", "data-k":"home", "aria-label":"હોમ"}, "🏠"));
+    if (isAdmin()) t.append(h("a", {href:"#home", class:"main" + (S.route === "home" ? " cur" : ""), "data-k":"home", "aria-label":"હોમ"}, "🏠"));
     t.append(h("a", {href:"./index.html#fast", class:"main"}, "⚡ હેતુ 2–3"), h("a", {href:"./test.html", class:"main"}, "📝 હેતુ 4"),
-      h("a", {href:"./anxiety.html", class:"main"}, "😟 હેતુ 6"), h("a", {href:"#form", class:"main cur"}, "👩‍🏫 શિક્ષક"),
+      h("a", {href:"./anxiety.html", class:"main"}, "😟 હેતુ 6"), h("a", {href:"#form", class:"main", "data-k":"form"}, "👩‍🏫 શિક્ષક"),
       ...(isAdmin() ? [h("a", {href:"#thesis", class:"main", "data-k":"thesis"}, "📄 થીસિસ")] : []),
       h("a", {href:"#", class:"main mbtn", "aria-label":"વધુ વિકલ્પ", onclick:e => { e.preventDefault(); t.classList.toggle("open"); }}, "☰"), h("span", {class:"brk more"}));
     const close = () => t.classList.remove("open");
-    MENU.forEach(([title, items, adm]) => { const its = items.filter(([k]) => isAdmin() || !MENU_ADMIN.has(k)); if (!its.length || (adm && !isAdmin())) return;
-      t.append(h("span", {class:"more mhd"}, title)); its.forEach(([k, l]) => t.append(h("a", {href:"#" + k, "data-k":k, class:"more", onclick:close}, l))); });
+    const allowed = MENU.flatMap(([, items, adm], gi) => (adm && !isAdmin()) ? [] : items.filter(([k]) => isAdmin() || !MENU_ADMIN.has(k)).map(x => [x[0], x[1], gi]));
+    const fav = useTop(4).map(k => allowed.find(x => x[0] === k)).filter(Boolean);
+    if (fav.length) { t.append(h("span", {class:"more mhd gfav"}, "⭐ વારંવાર વપરાતા")); fav.forEach(([k, l]) => t.append(h("a", {href:"#" + k, "data-k":k, class:"more tile gfav", onclick:close}, l))); }
+    MENU.forEach(([title, items, adm], gi) => { const its = items.filter(([k]) => isAdmin() || !MENU_ADMIN.has(k)); if (!its.length || (adm && !isAdmin())) return;
+      t.append(h("span", {class:"more mhd g" + gi}, title)); its.forEach(([k, l]) => t.append(h("a", {href:"#" + k, "data-k":k, class:"more tile g" + gi, onclick:close}, l))); });
     t.append(h("span", {class:"more mhd"}, ""));
     t.append(h("a", {href:"#", class:"more", onclick:async e => { e.preventDefault(); if (S.form && S.form.dirty && !(await ask("સેવ ન થયેલ ફેરફાર છે. છતાં બહાર નીકળવું છે?"))) return; S.fb.U.signOut(S.fb.auth); }},
       "બહાર (" + (S.user.email || "") + (isAdmin() ? " · એડમિન" : "") + ")"));
@@ -568,6 +580,7 @@ async function route(soft){
   if (!S.user || !S.role) return;
   const hash = location.hash.slice(1) || (MERGED ? (isAdmin() ? "home" : "form") : "dash");
   const cut = hash.indexOf("-"); const name = cut < 0 ? hash : hash.slice(0, cut); const arg = cut < 0 ? "" : hash.slice(cut + 1);
+  useMark(name);
   document.querySelectorAll("#tabs a.main").forEach(a => { const k = a.dataset.k || (a.getAttribute("href") === "#form" ? "form" : ""); if (k) a.classList.toggle("cur", k === name); });
   if (S.route === "form" && name !== "form" && S.form && S.form.dirty && !soft) {
     const back = "#form-" + S.form.tid; const target = location.hash;
@@ -577,6 +590,7 @@ async function route(soft){
   }
   if (soft && name === S.route && name === "form") return;
   S.route = name;
+  setTimeout(() => document.querySelectorAll("#tabs a.main").forEach(a => { const k = a.dataset.k; if (k) a.classList.toggle("cur", k === name); }), 0);
   document.querySelectorAll("#tabs a").forEach(a => a.classList.toggle("on", a.dataset.k === name));
   document.querySelectorAll('#tabs a.main[href="#form"]').forEach(a => a.classList.toggle("cur", !["thesis", "ca", "rate", "cons", "tools", "write"].includes(name)));
   $("#savebar").hidden = name !== "form";

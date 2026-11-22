@@ -35,6 +35,18 @@ nav.tabs a.main[data-k="home"]{flex:0 0 42px;padding:6px 2px}
 nav.tabs a.main.cur{background:var(--accent);border-color:var(--accent);color:#fff}
 nav.tabs a.mbtn{flex:none;padding:6px 10px}
 nav.tabs .brk{flex-basis:100%;height:0}
+.objgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.objtile{display:block;text-decoration:none;color:#fff;background:var(--oc);border-radius:16px;padding:12px 14px;box-shadow:0 3px 8px rgba(0,0,0,.18);min-height:132px}
+.objtile:active{transform:scale(.98)} .objtile .oi{font-size:1.8rem;line-height:1} .objtile .ot{font-weight:800;font-size:1.15rem;margin-top:4px}
+.objtile .os{font-size:.82rem;opacity:.92;line-height:1.3;margin-top:2px} .objtile .ol{font-size:.82rem;margin-top:4px;font-weight:600}
+.ob{height:8px;background:rgba(255,255,255,.35);border-radius:6px;overflow:hidden;margin-top:8px} .ob i{display:block;height:100%;background:#fff}
+.hubhead{border-left:8px solid var(--oc)} .hubhead h2{color:var(--oc)} .hubhead .ob{background:#e9ecef;height:12px} .hubhead .ob i{background:var(--oc)}
+.hback{display:inline-block;margin-bottom:6px;font-weight:700;color:var(--oc)}
+.hsec{border-top:1px dashed #d5e3dc;padding:10px 0} .hsec:first-child{border-top:0} .hsec h3{margin:0 0 8px;font-size:1.02rem}
+.hrow{display:flex;flex-wrap:wrap;gap:8px}
+.hbtn{display:inline-flex;align-items:center;min-height:48px;padding:8px 14px;border-radius:12px;border:2px solid var(--oc);background:#fff;color:var(--oc);font-weight:700;font-size:.98rem;text-decoration:none;cursor:pointer;font-family:inherit}
+.hbtn.pri{background:var(--oc);color:#fff} .hmini{display:inline-flex;padding:6px 12px;border-radius:999px;background:var(--oc);color:#fff;text-decoration:none;font-weight:700;font-size:.9rem}
+@media (min-width:1100px){.objgrid{grid-template-columns:repeat(3,minmax(0,1fr))}.objtile{min-height:150px;padding:16px 18px}.objtile .ot{font-size:1.35rem}.objtile .os,.objtile .ol{font-size:.95rem}}
 nav.tabs.open span.mhd{flex-basis:100%;display:block;font-weight:800;margin:10px 4px 0;font-size:.95rem;padding-bottom:2px;border-bottom:2px solid currentColor}
 nav.tabs.open{max-height:78vh;overflow-y:auto;padding-bottom:10px}
 nav.tabs.open a.tile{flex:1 1 calc(50% - 8px);min-height:58px;border-radius:14px;border:0;color:#fff;font-weight:700;font-size:.92rem;line-height:1.25;white-space:normal;padding:8px 12px;box-shadow:0 2px 5px rgba(0,0,0,.15)}
@@ -623,7 +635,7 @@ async function route(soft){
   const m = $("#main"); const keepScroll = soft ? scrollY : 0;
   m.textContent = ""; m.append(h("p", {class:"msg", id:"msg", hidden:true}));
   const R = {dash:viewDash, list:viewList, form:() => viewForm(arg), schools:viewSchools, qual:viewQual, analysis:viewAnalysis, quality:viewQuality, codebook:viewCodebook,
-             admin:() => isAdmin() ? viewAdmin() : viewDash(), thesis:viewThesis, write:() => viewWrite(arg), tools:viewTools, integ:viewInteg, home:viewHome, ca:viewCA, cad:viewCAD, cares:viewCARes, rate:() => viewRate(arg), cons:() => viewCons(arg)}[name] || viewDash;
+             admin:() => isAdmin() ? viewAdmin() : viewDash(), thesis:viewThesis, write:() => viewWrite(arg), tools:viewTools, obj:() => viewObj(arg), integ:viewInteg, home:viewHome, ca:viewCA, cad:viewCAD, cares:viewCARes, rate:() => viewRate(arg), cons:() => viewCons(arg)}[name] || viewDash;
   R();
   if (soft) scrollTo(0, keepScroll);
 }
@@ -1591,6 +1603,82 @@ async function countOf(c){
   catch (e) { return null; }
 }
 function lastBackup(){ try { return localStorage.getItem("cr_last_backup") || ""; } catch (e) { return ""; } }
+/* 🎯 objective hubs: one screen per objective = entry → checking → analysis → thesis */
+const OBJ = {
+  "1":  {c:"#0c8599", ic:"📚", t:"હેતુ 1", s:"પાઠ્યપુસ્તક વિષયવસ્તુ વિશ્લેષણ (13 પ્રકરણ)", ch:"4.2"},
+  "2s": {c:"#1c7ed6", ic:"🧒", t:"હેતુ 2–3 વિદ્યાર્થી", s:"અધ્યયન અનુભવ અને મૂલ્યાંકન અનુસૂચિ", ch:"4.4 · 4.5"},
+  "2t": {c:"#e8590c", ic:"👩‍🏫", t:"હેતુ 2–3 શિક્ષક", s:"અધ્યાપન અને મૂલ્યાંકન પ્રથાઓ", ch:"4.4 · 4.5"},
+  "4":  {c:"#2f9e44", ic:"📝", t:"હેતુ 4", s:"ગણિત સિદ્ધિ કસોટી (40 ગુણ)", ch:"4.6"},
+  "5":  {c:"#ae3ec9", ic:"🔗", t:"હેતુ 5", s:"ગણિતીકરણ = હેતુ 2–3 + હેતુ 4 (સંકલિત અર્થઘટન)", ch:"4.7"},
+  "6":  {c:"#e03131", ic:"😟", t:"હેતુ 6", s:"ગણિત ચિંતા માપદંડ (21 વિધાન)", ch:"4.8"}};
+const HUBC = {};
+async function hubCounts(force){
+  if (HUBC.t && !force && Date.now() - HUBC.t < 60000) return HUBC;
+  await caLoad(); const n1 = [...Array(13).keys()].map(i => i + 1), r1 = c => CA.docs.get(caId("R1", c)), r2 = c => caR2(c);
+  HUBC.sc = n1.filter(c => r1(c) && caStats(r1(c).S || {}).done === 51).length; HUBC.sub = n1.filter(c => r2(c) && r2(c).SUBMITTED).length; HUBC.con = n1.filter(c => CA.docs.get("cons_" + c)).length;
+  const [s23, s23b, ac, ax] = await Promise.all(["s23_students", "s23_second", "ac_students", "ax_students"].map(countOf));
+  Object.assign(HUBC, {s23, s23b, ac, ax, t:Date.now()}); return HUBC;
+}
+function hubStat(k, C){
+  const recs = [...S.teachers.values()], comp = recs.filter(r => r.ENTRY_STATUS === "Complete").length, ver = recs.filter(r => r.VERIFY_STATUS === "Verified").length, nz = x => x == null ? 0 : x;
+  return {"1":[C.sc + C.sub + C.con, 39, `સંશોધક ${C.sc}/13 · તજ્જ્ઞ ${C.sub}/13 · સહમતિ ${C.con}/13`], "2s":[nz(C.s23), STU_TARGET, `${nz(C.s23)}/${STU_TARGET} · બીજી એન્ટ્રી ${nz(C.s23b)}`],
+    "2t":[comp, TARGET_T, `Complete ${comp}/${TARGET_T} · Verified ${ver}`], "4":[nz(C.ac), STU_TARGET, `${nz(C.ac)}/${STU_TARGET}`],
+    "5":[Math.min(nz(C.s23), nz(C.ac)), STU_TARGET, `જોડાયેલ વિદ્યાર્થી ≈ ${Math.min(nz(C.s23), nz(C.ac))} (હેતુ 2–3 ∩ હેતુ 4)`], "6":[nz(C.ax), STU_TARGET, `${nz(C.ax)}/${STU_TARGET}`]}[k];
+}
+function objTiles(C){
+  return h("div", {class:"objgrid"}, ...["1", "2s", "2t", "4", "5", "6"].map(x => [x, OBJ[x]]).map(([k, o]) => { const [n, t, line] = hubStat(k, C);
+    return h("a", {href:"#obj-" + k, class:"objtile", "data-o":k, style:`--oc:${o.c}`}, h("div", {class:"oi"}, o.ic), h("div", {class:"ot"}, o.t), h("div", {class:"os"}, o.s),
+      h("div", {class:"ob"}, h("i", {style:`width:${Math.min(100, t ? n / t * 100 : 0)}%`})), h("div", {class:"ol"}, line)); }));
+}
+function viewObj(arg){
+  const m = $("#main"); if (!isAdmin()) { location.hash = "#form"; return; }
+  const k = OBJ[arg] ? arg : "1", o = OBJ[k], box = h("div"); m.append(box); box.append(h("p", {class:"note"}, "લોડ થાય છે…"));
+  const B = (href, label, pri) => h("a", {href, class:"hbtn" + (pri ? " pri" : ""), style:`--oc:${o.c}`}, label);
+  const F = (fn, label, pri, id) => h("button", {type:"button", id, class:"hbtn" + (pri ? " pri" : ""), style:`--oc:${o.c}`, onclick:fn}, label);
+  const xl = (name, fn) => () => download(`${name}_${today()}.xlsx`, fn(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+  const sec = (n, t, ...b) => h("div", {class:"hsec"}, h("h3", {}, `${n} ${t}`), h("div", {class:"hrow"}, ...b));
+  hubCounts().then(C => { const [n, t, line] = hubStat(k, C); box.textContent = "";
+    box.append(h("div", {class:"card hubhead", style:`--oc:${o.c}`}, h("a", {href:"#home", class:"hback"}, "← બધા હેતુ"), h("h2", {}, `${o.ic} ${o.t}: ${o.s}`),
+      h("div", {class:"ob big"}, h("i", {style:`width:${Math.min(100, t ? n / t * 100 : 0)}%`})), h("p", {class:"note", style:"font-size:1rem"}, line + ` · થીસિસ: પ્રકરણ 4 વિભાગ ${o.ch}`)));
+    const card = h("div", {class:"card"}); box.append(card);
+    if (k === "1") card.append(
+      sec("1️⃣", "સંશોધકનો ડેટા", B("#cad", "⬆ Word અપલોડ / 13 × 3 Word", true), B("#ca", "✏️ ગુણ દાખલ / સુધારો")),
+      sec("2️⃣", "તજ્જ્ઞ શિક્ષક", B("#cad", "📤 ચકાસણી માટે મોકલો + લિંક"), B("#cares", "🤝 સહમતિ-ગુણ")),
+      sec("3️⃣", "વિશ્લેષણ", B("#cares", "📊 સૂચકાંક · α · κ · ઘટકવાર", true), F(xl("Objective1_Content_Analysis", caWorkbook), "📥 Excel (7 શીટ)")),
+      sec("4️⃣", "થીસિસ", F(() => thesisDownload(4), "📄 પ્રકરણ 4 (વિભાગ 4.2 સહિત)", true), F(() => thesisDownload(3), "📄 પ્રકરણ 3 (ઉપકરણ T1)")));
+    else if (k === "2s") card.append(
+      sec("1️⃣", "ડેટા એન્ટ્રી", B("./index.html#fast", "⚡ ⌨️ અંક-પટ્ટીથી એન્ટ્રી", true), B("./index.html#list", "📋 ભરાયેલ યાદી")),
+      sec("2️⃣", "ચકાસણી", B("./index.html#check", "✔ ડેટા ગુણવત્તા"), F(() => { location.hash = "#home"; setTimeout(() => { const s = $("#smpK"); if (s) { s.value = "s23_students"; s.scrollIntoView({block:"center"}); } }, 900); }, "🎲 10% ચકાસણી નમૂનો")),
+      sec("3️⃣", "વિશ્લેષણ", B("./index.html#analysis", "📊 આવૃત્તિ · % · મધ્યક · ક્રમ", true), B("./index.html#codebook", "📖 કોડબુક"), B("./index.html#admin", "📥 Excel / SPSS નિકાસ")),
+      sec("4️⃣", "થીસિસ", F(() => thesisDownload(4), "📄 પ્રકરણ 4 (4.4, 4.5)", true)));
+    else if (k === "2t") card.append(
+      sec("1️⃣", "ડેટા એન્ટ્રી", B("#form", "✍ નવું શિક્ષક ફોર્મ", true), B("#list", "📋 શિક્ષક યાદી")),
+      sec("2️⃣", "ચકાસણી", B("#quality", "✔ ડેટા ગુણવત્તા / Verified"), F(() => { location.hash = "#home"; setTimeout(() => { const s = $("#smpK"); if (s) { s.value = "teachers"; s.scrollIntoView({block:"center"}); } }, 900); }, "🎲 10% ચકાસણી નમૂનો")),
+      sec("3️⃣", "વિશ્લેષણ", B("#analysis", "📊 વિશ્લેષણ (આવૃત્તિ, %, મધ્યક)", true), B("#qual", "💬 ગુણાત્મક જવાબ"), B("#codebook", "📖 કોડબુક"), F(xl("Teacher_Research_Data", buildWorkbook), "📥 Excel workbook")),
+      sec("4️⃣", "થીસિસ", F(() => thesisDownload(4), "📄 પ્રકરણ 4 (4.3–4.5)", true), F(() => thesisDownload(3), "📄 પ્રકરણ 3")));
+    else if (k === "4") card.append(
+      sec("1️⃣", "ડેટા એન્ટ્રી", B("./test.html#form", "📝 ⌨️ અંક-પટ્ટીથી ગુણ", true), B("./test.html#list", "📋 યાદી")),
+      sec("2️⃣", "ચકાસણી", B("./test.html#code", "📐 ગુણ-યોજના"), F(() => { location.hash = "#home"; setTimeout(() => { const s = $("#smpK"); if (s) { s.value = "ac_students"; s.scrollIntoView({block:"center"}); } }, 900); }, "🎲 10% ચકાસણી નમૂનો")),
+      sec("3️⃣", "વિશ્લેષણ", B("./test.html#export", "📥 RAW · SCORED · SPSS (.sps)", true)),
+      sec("4️⃣", "થીસિસ", F(() => thesisDownload(4), "📄 પ્રકરણ 4 (4.6 માટે [કૌંસ])", true)),
+      h("p", {class:"note"}, "SPSS માં: મધ્યક, SD, ટકાવારી, જાતિ/જિલ્લા/શાળા-પ્રકાર મુજબ t / ANOVA, ઘટક (C2, C3, C4, C7) મુજબ સરેરાશ."));
+    else if (k === "5") card.append(
+      h("p", {class:"note", style:"font-size:1rem"}, "હેતુ 5 માટે નવી એન્ટ્રી નથી: હેતુ 2–3 (વિદ્યાર્થી અનુભવ/મૂલ્યાંકન) અને હેતુ 4 (સિદ્ધિ) ના એ જ વિદ્યાર્થી-ID ને જોડીને ગણિતીકરણનું સંકલિત અર્થઘટન થાય છે."),
+      sec("1️⃣", "પૂર્વશરત", B("#obj-2s", "🧒 હેતુ 2–3 વિદ્યાર્થી પૂરું?"), B("#obj-4", "📝 હેતુ 4 પૂરું?")),
+      sec("2️⃣", "જોડેલો ડેટા", B("./test.html#export", "🔗 Obj5 ફાઇલ (CSV + Summary + SPSS)", true)),
+      sec("3️⃣", "વિશ્લેષણ", h("div", {class:"note"}, "SPSS: અનુભવ-સૂચકાંક ↔ સિદ્ધિ સહસંબંધ (r), ઘટકવાર (C2–C7) સરખામણી, ઉચ્ચ/નિમ્ન જૂથ t-કસોટી, (હેતુ 6 સાથે) બહુચલ રિગ્રેશન.")),
+      sec("4️⃣", "થીસિસ", F(() => thesisDownload(4), "📄 પ્રકરણ 4 (4.7)", true), F(() => thesisDownload(5), "📄 પ્રકરણ 5 (સંકલિત તારણ)")));
+    else card.append(
+      sec("1️⃣", "ડેટા એન્ટ્રી", B("./anxiety.html#form", "😟 ⌨️ 21 અંકની પટ્ટી", true), B("./anxiety.html#list", "📋 યાદી")),
+      sec("2️⃣", "ચકાસણી", B("./anxiety.html#code", "🔁 કોડ / ઊલટા ગુણ"), F(() => { location.hash = "#home"; setTimeout(() => { const s = $("#smpK"); if (s) { s.value = "ax_students"; s.scrollIntoView({block:"center"}); } }, 900); }, "🎲 10% ચકાસણી નમૂનો")),
+      sec("3️⃣", "વિશ્લેષણ", B("./anxiety.html#export", "📥 RAW · SCORED (MAS) · SPSS", true)),
+      sec("4️⃣", "થીસિસ", F(() => thesisDownload(4), "📄 પ્રકરણ 4 (4.8 માટે [કૌંસ])", true)),
+      h("p", {class:"note"}, "SPSS માં: Cronbach's α, MAS મધ્યક/SD, ચિંતા-સ્તર (નીચું/મધ્યમ/ઊંચું), જાતિ/જિલ્લા મુજબ t / ANOVA, ચિંતા ↔ સિદ્ધિ સહસંબંધ."));
+    const nav = h("div", {class:"hrow", style:"margin-top:8px"}, ...["1", "2s", "2t", "4", "5", "6"].map(x => [x, OBJ[x]]).filter(([x]) => x !== k).map(([x, oo]) => h("a", {href:"#obj-" + x, class:"hmini", style:`--oc:${oo.c}`}, `${oo.ic} ${oo.t}`)));
+    box.append(h("div", {class:"card"}, h("h3", {style:"margin:0 0 6px"}, "બીજો હેતુ"), nav));
+  }).catch(e => { box.textContent = "લોડ ન થયું: " + (e.code || e.message); });
+}
+
 function viewHome(){
   const m = $("#main"); if (!isAdmin()) { location.hash = "#form"; return; }
   const box = h("div"); m.append(box);
@@ -1611,17 +1699,11 @@ function viewHome(){
     const recs = [...S.teachers.values()], comp = recs.filter(r => r.ENTRY_STATUS === "Complete").length, verT = recs.filter(r => r.VERIFY_STATUS === "Verified").length;
     const [s23, s23b, ac, ax] = await Promise.all(["s23_students", "s23_second", "ac_students", "ax_students"].map(countOf));
     const nz = x => x == null ? "?" : x;
-    slot.textContent = "";
-    slot.append(
-      tile("📚 હેતુ 1: પાઠ્યપુસ્તક વિષયવસ્તુ વિશ્લેષણ", [`સંશોધકના ગુણ: ${sc}/13 પ્રકરણ · Word ડેટા: ${word}/13`, `તજ્જ્ઞ સબમિટ: ${sub}/13 · ચકાસણી: ${ver}/13 · સહમતિ: ${con}/13`], bar(sc + sub + con, 39),
-        [next1, ["#cares", "📊 પરિણામ"]]),
-      tile("👩‍🏫 હેતુ 2–3: શિક્ષક ઉપકરણ", [`Complete: ${comp}/${TARGET_T} · Verified: ${verT}/${recs.length}`], bar(comp, TARGET_T),
-        [["#form", "✍ નવું શિક્ષક ફોર્મ", comp < TARGET_T], ["#quality", "✔ ડેટા ગુણવત્તા", comp >= TARGET_T], ["#analysis", "📊 Chapter 4"]]),
-      tile("🧒 હેતુ 2–3: વિદ્યાર્થી અનુસૂચિ", [`ભરાયેલ: ${nz(s23)}/${STU_TARGET} · બીજી એન્ટ્રી (ચકાસણી): ${nz(s23b)}`], bar(s23 || 0, STU_TARGET), [["./index.html#fast", "⚡ ડેટા એન્ટ્રી", true]]),
-      tile("📝 હેતુ 4: સિદ્ધિ કસોટી", [`ભરાયેલ: ${nz(ac)}/${STU_TARGET}`], bar(ac || 0, STU_TARGET), [["./test.html", "📝 ડેટા એન્ટ્રી", true]]),
-      tile("😟 હેતુ 6: ગણિત ચિંતા", [`ભરાયેલ: ${nz(ax)}/${STU_TARGET}`], bar(ax || 0, STU_TARGET), [["./anxiety.html", "😟 ડેટા એન્ટ્રી", true]]),
-      tile("📄 થીસિસ", ["પ્રકરણ 1–5 Word (શ્રુતિ ફૉન્ટ) — ડેટા પરથી આપમેળે"], null, [["#thesis", "📄 પ્રકરણ 1–5", true], ["#write", "✍️ મુદ્દા લખો"]]),
-      sampleCard(), backupCard());
+    slot.textContent = ""; slot.className = "";
+    Object.assign(HUBC, {sc, sub, con, s23, s23b, ac, ax, t:Date.now()});
+    slot.append(h("h2", {style:"margin:6px 2px"}, "🎯 હેતુ પસંદ કરો — અંદર એન્ટ્રી, ચકાસણી, વિશ્લેષણ અને થીસિસ એક જ સ્ક્રીનમાં"), objTiles(HUBC),
+      h("div", {class:"homegrid", style:"margin-top:12px"}, tile("📄 થીસિસ", ["પ્રકરણ 1–5 · આખી થીસિસ · પરિશિષ્ટ · APA 7"], null, [["#thesis", "📘 થીસિસ કાર્ય-માર્ગ", true], ["#write", "✍️ મુદ્દા લખો"], ["#integ", "🛡 પ્રામાણિકતા"]]),
+        sampleCard(), backupCard()));
   })().catch(e => { slot.textContent = "ગણતરી ન થઈ: " + (e.code || e.message); });
 }
 

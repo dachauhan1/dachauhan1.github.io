@@ -31,6 +31,7 @@ nav.tabs{flex-wrap:wrap;overflow:visible}
 nav.tabs a.more,nav.tabs span.more{display:none}
 nav.tabs.open a.more,nav.tabs.open span.more{display:inline-flex}
 nav.tabs a.main{flex:1 1 0;justify-content:center;min-width:0;padding:6px 6px;font-size:.84rem;white-space:nowrap}
+nav.tabs a.main[data-k="home"]{flex:0 0 42px;padding:6px 2px}
 nav.tabs a.main.cur{background:var(--accent);border-color:var(--accent);color:#fff}
 nav.tabs a.mbtn{flex:none;padding:6px 10px}
 nav.tabs .brk{flex-basis:100%;height:0}
@@ -518,7 +519,7 @@ function startSubs(){
   setTimeout(() => { if (!S.connected) say("ક્લાઉડ ડેટા હજી પહોંચ્યો નથી — ઇન્ટરનેટ તપાસો. જોડાણ આવતાં આપમેળે દેખાશે.", "warn"); }, 10000);
 }
 let refreshTimer = null;
-const LIVE = new Set(["dash", "list", "analysis", "quality", "codebook"]);
+const LIVE = new Set(["home", "dash", "list", "analysis", "quality", "codebook"]);
 function refreshView(){
   clearTimeout(refreshTimer);
   refreshTimer = setTimeout(() => {
@@ -542,6 +543,7 @@ const MENU_ADMIN = new Set(["thesis", "write", "tools", "ca", "cad", "cares", "a
 function renderShell(){
   const t = $("#tabs"); t.textContent = ""; t.hidden = false; t.classList.remove("open");
   if (MERGED) {
+    if (isAdmin()) t.append(h("a", {href:"#home", class:"main", "data-k":"home", "aria-label":"હોમ"}, "🏠"));
     t.append(h("a", {href:"./index.html#fast", class:"main"}, "⚡ હેતુ 2–3"), h("a", {href:"./test.html", class:"main"}, "📝 હેતુ 4"),
       h("a", {href:"./anxiety.html", class:"main"}, "😟 હેતુ 6"), h("a", {href:"#form", class:"main cur"}, "👩‍🏫 શિક્ષક"),
       ...(isAdmin() ? [h("a", {href:"#thesis", class:"main", "data-k":"thesis"}, "📄 થીસિસ")] : []),
@@ -564,8 +566,9 @@ addEventListener("hashchange", () => route());
 addEventListener("beforeunload", e => { if ((S.form && S.form.dirty) || S.pending) { e.preventDefault(); e.returnValue = ""; } });
 async function route(soft){
   if (!S.user || !S.role) return;
-  const hash = location.hash.slice(1) || (MERGED ? "form" : "dash");
+  const hash = location.hash.slice(1) || (MERGED ? (isAdmin() ? "home" : "form") : "dash");
   const cut = hash.indexOf("-"); const name = cut < 0 ? hash : hash.slice(0, cut); const arg = cut < 0 ? "" : hash.slice(cut + 1);
+  document.querySelectorAll("#tabs a.main").forEach(a => { const k = a.dataset.k || (a.getAttribute("href") === "#form" ? "form" : ""); if (k) a.classList.toggle("cur", k === name); });
   if (S.route === "form" && name !== "form" && S.form && S.form.dirty && !soft) {
     const back = "#form-" + S.form.tid; const target = location.hash;
     history.replaceState(null, "", back);
@@ -580,7 +583,7 @@ async function route(soft){
   const m = $("#main"); const keepScroll = soft ? scrollY : 0;
   m.textContent = ""; m.append(h("p", {class:"msg", id:"msg", hidden:true}));
   const R = {dash:viewDash, list:viewList, form:() => viewForm(arg), schools:viewSchools, qual:viewQual, analysis:viewAnalysis, quality:viewQuality, codebook:viewCodebook,
-             admin:() => isAdmin() ? viewAdmin() : viewDash(), thesis:viewThesis, write:() => viewWrite(arg), tools:viewTools, ca:viewCA, cad:viewCAD, cares:viewCARes, rate:() => viewRate(arg), cons:() => viewCons(arg)}[name] || viewDash;
+             admin:() => isAdmin() ? viewAdmin() : viewDash(), thesis:viewThesis, write:() => viewWrite(arg), tools:viewTools, home:viewHome, ca:viewCA, cad:viewCAD, cares:viewCARes, rate:() => viewRate(arg), cons:() => viewCons(arg)}[name] || viewDash;
   R();
   if (soft) scrollTo(0, keepScroll);
 }
@@ -1540,20 +1543,132 @@ function cadCard(){
     h("p", {class:"note"}, "'અંતિમ' આવૃત્તિ તજ્જ્ઞ સબમિટ કરે પછી ખૂલે છે; સહમતિ-ગુણ (#cons) સેવ ન થયા હોય તો હાલ સંશોધકના ગુણ વપરાય છે."));
 }
 
-window.__ppShow = () => /^#(form|rate)/.test(location.hash || "#form");
+/* ================= 🏠 Home: one screen for all objectives, bias-free sample, full backup ================= */
+const FULL_COLS = ["teachers", "teachers_second", "schools", "qual", "config", "ca_r2", "ca_pub", "s23_students", "s23_second", "ac_students", "ax_students"];
+const STU_TARGET = 2000;
+async function countOf(c){
+  try { if (fs().getCountFromServer) { const r = await fs().getCountFromServer(cref(c)); return r.data().count; } const r = await fs().getDocs(cref(c)); return r.docs.length; }
+  catch (e) { return null; }
+}
+function lastBackup(){ try { return localStorage.getItem("cr_last_backup") || ""; } catch (e) { return ""; } }
+function viewHome(){
+  const m = $("#main"); if (!isAdmin()) { location.hash = "#form"; return; }
+  const box = h("div"); m.append(box);
+  const bar = (n, t) => h("div", {class:"progress", role:"progressbar", "aria-valuenow":String(n), "aria-valuemax":String(t)}, h("i", {style:`width:${Math.min(100, t ? n / t * 100 : 0)}%`}));
+  const tile = (title, lines, prog, acts) => h("div", {class:"card", style:"margin-bottom:10px"}, h("h2", {style:"margin:0 0 4px"}, title), ...lines.map(l => h("div", {class:"note", style:"font-size:1rem"}, l)), prog || null,
+    h("div", {class:"chips", style:"margin-top:8px"}, ...acts.map(([href, label, pri]) => h("a", {href, class:"btn" + (pri ? " primary" : "")}, label))));
+  const lb = lastBackup(), days = lb ? Math.floor((Date.now() - Date.parse(lb)) / 864e5) : null;
+  box.append(h("div", {class:"card", style:"margin-bottom:10px;background:#f3faf6"}, h("h2", {style:"margin:0"}, "🏠 આજનું કામ — એક નજરે"),
+    h("p", {class:"note"}, "દરેક હેતુની પ્રગતિ અને 'હવે શું કરવું' નું બટન. આંકડા Firebase પરથી ગણાય છે."),
+    days == null || days >= 7 ? h("p", {class:"msg warn"}, days == null ? "💾 હજી એક પણ પૂરો બૅકઅપ લીધો નથી — નીચેથી હમણાં લો." : `💾 છેલ્લો બૅકઅપ ${days} દિવસ પહેલાં — નવો લો.`) : h("p", {class:"msg ok"}, `💾 છેલ્લો બૅકઅપ: ${lb.slice(0, 10)}`)));
+  const slot = h("div", {}, h("p", {class:"note"}, "ગણતરી થાય છે…")); box.append(slot);
+  (async () => {
+    await caLoad();
+    const ch = c => CA.docs.get(caId("R1", c)), r2 = c => caR2(c);
+    const n1 = [...Array(13).keys()].map(i => i + 1), word = n1.filter(c => ch(c) && ch(c).DOCX).length, sc = n1.filter(c => ch(c) && caStats(ch(c).S || {}).done === 51).length,
+      sub = n1.filter(c => r2(c) && r2(c).SUBMITTED).length, ver = n1.filter(c => r2(c) && r2(c).VSUB).length, con = n1.filter(c => CA.docs.get("cons_" + c)).length;
+    const next1 = sc < 13 ? ["#cad", "⬆ Word ફાઇલો અપલોડ કરો", true] : sub < 13 ? ["#cad", "📤 શિક્ષકોને મોકલો / લિંક", true] : con < 13 ? ["#cares", "🤝 સહમતિ-ગુણ સેવ કરો", true] : ["#cad", "📄 અંતિમ Word ડાઉનલોડ", true];
+    const recs = [...S.teachers.values()], comp = recs.filter(r => r.ENTRY_STATUS === "Complete").length, verT = recs.filter(r => r.VERIFY_STATUS === "Verified").length;
+    const [s23, s23b, ac, ax] = await Promise.all(["s23_students", "s23_second", "ac_students", "ax_students"].map(countOf));
+    const nz = x => x == null ? "?" : x;
+    slot.textContent = "";
+    slot.append(
+      tile("📚 હેતુ 1: પાઠ્યપુસ્તક વિષયવસ્તુ વિશ્લેષણ", [`સંશોધકના ગુણ: ${sc}/13 પ્રકરણ · Word ડેટા: ${word}/13`, `તજ્જ્ઞ સબમિટ: ${sub}/13 · ચકાસણી: ${ver}/13 · સહમતિ: ${con}/13`], bar(sc + sub + con, 39),
+        [next1, ["#cares", "📊 પરિણામ"]]),
+      tile("👩‍🏫 હેતુ 2–3: શિક્ષક ઉપકરણ", [`Complete: ${comp}/${TARGET_T} · Verified: ${verT}/${recs.length}`], bar(comp, TARGET_T),
+        [["#form", "✍ નવું શિક્ષક ફોર્મ", comp < TARGET_T], ["#quality", "✔ ડેટા ગુણવત્તા", comp >= TARGET_T], ["#analysis", "📊 Chapter 4"]]),
+      tile("🧒 હેતુ 2–3: વિદ્યાર્થી અનુસૂચિ", [`ભરાયેલ: ${nz(s23)}/${STU_TARGET} · બીજી એન્ટ્રી (ચકાસણી): ${nz(s23b)}`], bar(s23 || 0, STU_TARGET), [["./index.html#fast", "⚡ ડેટા એન્ટ્રી", true]]),
+      tile("📝 હેતુ 4: સિદ્ધિ કસોટી", [`ભરાયેલ: ${nz(ac)}/${STU_TARGET}`], bar(ac || 0, STU_TARGET), [["./test.html", "📝 ડેટા એન્ટ્રી", true]]),
+      tile("😟 હેતુ 6: ગણિત ચિંતા", [`ભરાયેલ: ${nz(ax)}/${STU_TARGET}`], bar(ax || 0, STU_TARGET), [["./anxiety.html", "😟 ડેટા એન્ટ્રી", true]]),
+      tile("📄 થીસિસ", ["પ્રકરણ 1–5 Word (શ્રુતિ ફૉન્ટ) — ડેટા પરથી આપમેળે"], null, [["#thesis", "📄 પ્રકરણ 1–5", true], ["#write", "✍️ મુદ્દા લખો"]]),
+      sampleCard(), backupCard());
+  })().catch(e => { slot.textContent = "ગણતરી ન થઈ: " + (e.code || e.message); });
+}
+
+/* ---- bias-free verification sample: district-stratified simple random sample with a fixed, recorded seed ---- */
+function stratSample(items, pct, seed){   // items: [{id, g}] → same seed + same list ⇒ same sample (reproducible, auditable)
+  const rnd = mulberry(seed), by = {}; items.slice().sort((a, b) => a.id < b.id ? -1 : 1).forEach(x => { (by[x.g || "?"] = by[x.g || "?"] || []).push(x); });
+  const out = [];
+  Object.keys(by).sort().forEach(g => { const a = by[g]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    out.push(...a.slice(0, Math.max(1, Math.round(a.length * pct / 100)))); });
+  return out;
+}
+function sampleCard(){
+  const kind = h("select", {id:"smpK"}, h("option", {value:"teachers"}, "શિક્ષક ફોર્મ (હેતુ 2–3)"), h("option", {value:"s23_students"}, "વિદ્યાર્થી અનુસૂચિ (હેતુ 2–3)"), h("option", {value:"ac_students"}, "સિદ્ધિ કસોટી (હેતુ 4)"), h("option", {value:"ax_students"}, "ગણિત ચિંતા (હેતુ 6)"));
+  const pct = h("input", {type:"number", id:"smpP", value:10, min:1, max:100, style:"width:70px"}), out = h("div", {id:"smpOut"});
+  const run = async () => {
+    const k = kind.value; out.textContent = "નમૂનો બને છે…";
+    let items;
+    if (k === "teachers") items = [...S.teachers.entries()].map(([id, r]) => ({id, g:r.DISTRICT || "", s:r.SID || ""}));
+    else { const r = await fs().getDocs(cref(k)); items = r.docs.map(d => { const x = d.data(); return {id:d.id, g:x.DISTRICT || x.district || String(x.SCHOOL || x.SID || d.id).slice(0, 2), s:x.SCHOOL || x.SID || ""}; }); }
+    if (!items.length) { out.textContent = "આ ઉપકરણમાં હજી રેકોર્ડ નથી."; return; }
+    const ref = dref("config", "sample_" + k); let prev = null; try { const x = await fs().getDoc(ref); prev = x.exists() ? x.data() : null; } catch (e) {}
+    const seed = prev ? prev.SEED : (Date.now() % 900000) + 100000;
+    const smp = stratSample(items, +pct.value || 10, seed);
+    const rec = {KIND:k, SEED:seed, PCT:+pct.value || 10, N:items.length, IDS:smp.map(x => x.id), _at:prev ? prev._at : nowIso(), _updatedAt:nowIso()};
+    try { await fs().setDoc(ref, rec); } catch (e) {}
+    out.textContent = "";
+    out.append(h("p", {class:"note"}, `કુલ ${items.length} માંથી ${smp.length} રેકોર્ડ (${rec.PCT}%), જિલ્લાવાર સ્તરીકૃત યાદચ્છિક નમૂનો · seed = ${seed}${prev ? " (પહેલાં નક્કી થયેલ seed — નમૂનો બદલાતો નથી)" : " (નવો seed સેવ થયો)"}`),
+      h("div", {class:"scroll"}, h("table", {class:"t"}, h("tr", {}, h("th", {}, "ક્રમ"), h("th", {}, "ID"), h("th", {}, "જિલ્લો/જૂથ"), h("th", {}, "શાળા")), ...smp.map((x, i) => h("tr", {}, h("td", {}, i + 1), h("td", {}, x.id), h("td", {}, x.g), h("td", {}, x.s))))),
+      h("p", {class:"note"}, `Chapter 3 માટે: ડેટા-એન્ટ્રીની ચોકસાઈ ચકાસવા ${items.length} રેકોર્ડમાંથી જિલ્લાવાર સ્તરીકૃત સાદા યાદચ્છિક નમૂના (stratified simple random sampling) દ્વારા ${rec.PCT}% (${smp.length}) રેકોર્ડ પસંદ કરી બીજી વ્યક્તિ પાસે મૂળ પેપર પરથી ફરી દાખલ કરાવ્યા. પસંદગી કમ્પ્યુટર-જનિત (seed ${seed}, mulberry32) હોવાથી સંશોધકના પૂર્વગ્રહથી મુક્ત અને ફરી ચકાસી શકાય તેવી છે.`),
+      h("button", {type:"button", class:"btn", onclick:() => download(`Verification_Sample_${k}_${today()}.xlsx`, xlsx([{name:"Sample", rows:[["ક્રમ", "ID", "જિલ્લો/જૂથ", "શાળા", "બીજી એન્ટ્રી થઈ?"], ...smp.map((x, i) => [i + 1, x.id, x.g, x.s, ""])]}, {name:"Method", rows:[["કુલ", items.length], ["નમૂનો", smp.length], ["ટકા", rec.PCT], ["seed", seed], ["પદ્ધતિ", "District-stratified simple random sample (mulberry32 PRNG, fixed seed)"], ["તારીખ", rec._at]]}]), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}, "📥 યાદી Excel"));
+  };
+  return h("div", {class:"card", id:"smpCard"}, h("h2", {}, "🎲 પૂર્વગ્રહ-મુક્ત ચકાસણી નમૂનો (બીજી એન્ટ્રી માટે)"),
+    h("p", {class:"note"}, "કયા પેપર ફરી ભરાવવા તે સંશોધક નહીં, ઍપ યાદચ્છિક રીતે (જિલ્લાવાર) પસંદ કરે છે. પહેલી વાર બનેલો seed સેવ રહે છે, એટલે ફરી દબાવો તો પણ એ જ નમૂનો મળે (cherry-picking શક્ય નથી)."),
+    h("div", {style:"display:flex;gap:8px;flex-wrap:wrap;align-items:center"}, kind, "ટકા:", pct, h("button", {type:"button", class:"btn primary", id:"smpRun", onclick:run}, "🎲 નમૂનો બનાવો / જુઓ")), out);
+}
+
+/* ---- one-click full backup (all objectives) + restore ---- */
+async function fullBackup(){
+  const o = {app:"chauhan-research-full", appVersion:APP_VERSION, exportedAt:nowIso(), exportedBy:S.user.email || "", cols:{}};
+  for (const c of FULL_COLS) { try { const r = await fs().getDocs(cref(c)); o.cols[c] = Object.fromEntries(r.docs.map(d => [d.id, d.data()])); } catch (e) { o.cols[c] = null; } }
+  return o;
+}
+function backupCard(){
+  const st = h("div", {class:"note", id:"bkSt"});
+  const take = async () => {
+    st.textContent = "બૅકઅપ બને છે… (બધાં ઉપકરણોનો ડેટા)";
+    try { const o = await fullBackup(), cnt = Object.entries(o.cols).map(([c, x]) => `${c}: ${x ? Object.keys(x).length : "—"}`).join(" · ");
+      await download(`ChauhanResearch_FULL_Backup_${today()}.json`, JSON.stringify(o), "application/json");
+      const sheets = Object.entries(o.cols).filter(([, x]) => x && Object.keys(x).length).map(([c, x]) => { const rows = Object.entries(x), keys = [...new Set(rows.flatMap(([, d]) => Object.keys(d)))].filter(k => k !== "J").slice(0, 250);
+        return {name:c.slice(0, 30), rows:[["_id", ...keys], ...rows.map(([id, d]) => [id, ...keys.map(k => { const v = d[k]; return v == null ? "" : typeof v === "object" ? JSON.stringify(v).slice(0, 32000) : v; })])]}; });
+      if (sheets.length) await download(`ChauhanResearch_FULL_Backup_${today()}.xlsx`, xlsx(sheets), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      try { localStorage.setItem("cr_last_backup", nowIso()); } catch (e) {}
+      audit("full-backup", "", [], {}); st.textContent = "✓ બૅકઅપ તૈયાર (JSON + Excel). " + cnt; say("✓ પૂરો બૅકઅપ ડાઉનલોડ થયો. તેને Google Drive / PC માં સાચવો.", "ok"); }
+    catch (e) { st.textContent = "બૅકઅપ ન થયો: " + (e.code || e.message); } };
+  const rin = h("input", {type:"file", accept:".json", style:"display:none", id:"bkIn", onchange:async e => { const f = e.target.files[0]; e.target.value = ""; if (f) await fullRestore(f); }});
+  return h("div", {class:"card", id:"bkCard"}, h("h2", {}, "💾 એક-ક્લિક પૂરો બૅકઅપ"),
+    h("p", {class:"note"}, "બધા હેતુનો ડેટા (શિક્ષક, વિદ્યાર્થી, કસોટી, ચિંતા, હેતુ 1, થીસિસ-લખાણ) એક JSON ફાઇલ અને વાંચી શકાય તેવી Excel ફાઇલમાં. દર અઠવાડિયે લો અને Google Drive / PC માં રાખો."),
+    h("div", {class:"chips"}, h("button", {type:"button", class:"btn primary", id:"bkRun", onclick:take}, "💾 હમણાં બૅકઅપ લો"), h("label", {class:"btn", for:"bkIn"}, "♻ બૅકઅપમાંથી પાછું લાવો"), rin), st);
+}
+async function fullRestore(file){
+  let o; try { o = JSON.parse(await file.text()); } catch (e) { return say("ફાઇલ JSON નથી.", "bad"); }
+  if (o.app === "math-teacher-survey") return restore(file);
+  if (o.app !== "chauhan-research-full" || !o.cols) return say("આ Chauhan Research નો પૂરો બૅકઅપ નથી.", "bad");
+  const cols = Object.entries(o.cols).filter(([c, x]) => FULL_COLS.includes(c) && x && typeof x === "object"), n = cols.reduce((a, [, x]) => a + Object.keys(x).length, 0);
+  const typed = await ask(`${fmtTime(o.exportedAt)} ના બૅકઅપમાંથી ${n} રેકોર્ડ ફરી લખાશે (સમાન ID વાળા હાલના રેકોર્ડ બદલાશે). ચાલુ રાખવા RESTORE લખો.`, {input:true});
+  if (typed !== "RESTORE") return say("પુનઃસ્થાપન રદ.", "");
+  try { let batch = fs().writeBatch(S.fb.db), k = 0;
+    for (const [c, x] of cols) for (const [id, d] of Object.entries(x)) { batch.set(dref(c, id), d); if (++k % 300 === 0) { await tracked(batch.commit(), "પુનઃસ્થાપન"); batch = fs().writeBatch(S.fb.db); } }
+    await tracked(batch.commit(), "પુનઃસ્થાપન"); audit("full-restore", "", [], {count:n, from:o.exportedAt || ""}); say(`✓ ${n} રેકોર્ડ પુનઃસ્થાપિત.`, "ok"); }
+  catch (e) { say("પુનઃસ્થાપન અધૂરું: " + (e.code || e.message), "bad"); }
+}
+
+window.__ppShow = () => S.route === "form" || S.route === "rate";
 function obj1Nav(k){
   return h("div", {class:"chips obj1nav", style:"margin:0 0 10px"}, ...[["ca", "✏️ ગુણ દાખલ / સુધારો"], ["cad", "📑 13 પ્રકરણ × 3 Word"], ["cares", "📊 પરિણામ · સહમતિ · વિશ્વસનીયતા"]]
-    .map(([x, l]) => h("a", {href:"#" + x, class:"btn small" + (x === k ? " primary" : "")}, l)));
+    .map(([x, l]) => h("a", {href:"#" + x, class:"btn small" + (x === k ? " primary" : "")}, l)),
+    h("button", {type:"button", class:"btn small", title:"શિક્ષકોના નવા જવાબ લાવો", onclick:async () => { await caLoad(true); route(true); say("✓ તાજું કર્યું.", "ok"); }}, "🔄"));
 }
 function viewCAD(){
   const m = $("#main"); if (!isAdmin()) { viewDash(); return; }
   const box = h("div"); m.append(obj1Nav("cad"), box); box.append(h("p", {class:"note"}, "લોડ થાય છે…"));
-  caLoad(true).then(() => { box.textContent = ""; box.append(cadCard()); }).catch(e => { box.textContent = "લોડ ન થયું: " + (e.code || e.message); });
+  caLoad().then(() => { box.textContent = ""; box.append(cadCard()); }).catch(e => { box.textContent = "લોડ ન થયું: " + (e.code || e.message); });
 }
 function viewCARes(){
   const m = $("#main"); if (!isAdmin()) { viewDash(); return; }
   const box = h("div"); m.append(obj1Nav("cares"), box); box.append(h("p", {class:"note"}, "લોડ થાય છે…"));
-  caLoad(true).then(() => { box.textContent = ""; box.append(caResults()); }).catch(e => { box.textContent = "લોડ ન થયું: " + (e.code || e.message); });
+  caLoad().then(() => { box.textContent = ""; box.append(caResults()); }).catch(e => { box.textContent = "લોડ ન થયું: " + (e.code || e.message); });
 }
 function viewCA(){
   const m = $("#main"); if (!isAdmin()) { viewDash(); return; }
@@ -2812,7 +2927,7 @@ function buildVerifyWorkbook(){
     ["Original checkbox options compared", VERIFY_ROWS.reduce((a, r) => a + (r.n_opts || 0), 0)], ["Original table statements compared", VERIFY_ROWS.filter(r => r.kind === "table-row").length]];
   return xlsx([{name:"Summary", rows:sum, filter:false, freeze:false, widths:[40, 20]}, {name:"Verification_Report", rows, wrap:true, widths:[8, 30, 10, 60, 50, 60, 50, 10, 50]}]);
 }
-window.__TEST__ = {caWorkbook, caStruct, caDocxBlocks, caImportDocx, caChapterDoc, relStats, cadLoad, S, buildWorkbook, buildVerifyWorkbook, spssSyntax, spssCsv, masterCsv, codebookRows, thesisCh3, thesisCh4, thesisCh5, caStats, kAlphaOrdinal, CA, caLoad, raterKit, TD, tdLoad, splitItems, fileToText, TW, twLoad, twChapterDoc, twRefsDoc, qualityOf, completeness, readForm};
+window.__TEST__ = {stratSample, fullBackup, caWorkbook, caStruct, caDocxBlocks, caImportDocx, caChapterDoc, relStats, cadLoad, S, buildWorkbook, buildVerifyWorkbook, spssSyntax, spssCsv, masterCsv, codebookRows, thesisCh3, thesisCh4, thesisCh5, caStats, kAlphaOrdinal, CA, caLoad, raterKit, TD, tdLoad, splitItems, fileToText, TW, twLoad, twChapterDoc, twRefsDoc, qualityOf, completeness, readForm};
 boot();
 </script>
 <script data-pp>/* Paper-photo panel: shows the photo of the filled paper form at the top of the screen while the operator enters data below.
@@ -2850,7 +2965,7 @@ boot();
   const fab = document.createElement("button"); fab.className = "pp-fab"; fab.type = "button"; fab.title = "પેપરનો ફોટો"; fab.textContent = window.__ppAltIcon || "📷";
   fab.onclick = () => { if (typeof window.__ppAlt === "function" && window.__ppAlt()) return; pan.classList.toggle("on"); show(); if (pan.classList.contains("on") && !S.imgs.length) inp.click(); };
   const vis = () => { fab.style.display = typeof window.__ppShow === "function" && !window.__ppShow() ? "none" : ""; if (fab.style.display === "none") { pan.classList.remove("on"); document.body.style.paddingTop = ""; } };
-  addEventListener("hashchange", vis);
+  addEventListener("hashchange", () => setTimeout(vis, 300));
   const mount = () => { document.body.append(pan, fab); setTimeout(vis, 600); let n = 0; const t = setInterval(() => { if (window.__ppAltIcon) fab.textContent = window.__ppAltIcon; if (window.__ppAltIcon || ++n > 20) clearInterval(t); }, 300); };
   if (document.body) mount(); else addEventListener("DOMContentLoaded", mount);
 })();

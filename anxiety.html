@@ -692,7 +692,9 @@ boot();
   pan.append(bar, view);
   const fab = document.createElement("button"); fab.className = "pp-fab"; fab.type = "button"; fab.title = "પેપરનો ફોટો"; fab.textContent = window.__ppAltIcon || "📷";
   fab.onclick = () => { if (typeof window.__ppAlt === "function" && window.__ppAlt()) return; pan.classList.toggle("on"); show(); if (pan.classList.contains("on") && !S.imgs.length) inp.click(); };
-  const mount = () => { document.body.append(pan, fab); let n = 0; const t = setInterval(() => { if (window.__ppAltIcon) fab.textContent = window.__ppAltIcon; if (window.__ppAltIcon || ++n > 20) clearInterval(t); }, 300); };
+  const vis = () => { fab.style.display = typeof window.__ppShow === "function" && !window.__ppShow() ? "none" : ""; if (fab.style.display === "none") { pan.classList.remove("on"); document.body.style.paddingTop = ""; } };
+  addEventListener("hashchange", () => setTimeout(vis, 300));
+  const mount = () => { document.body.append(pan, fab); setTimeout(vis, 600); let n = 0; const t = setInterval(() => { if (window.__ppAltIcon) fab.textContent = window.__ppAltIcon; if (window.__ppAltIcon || ++n > 20) clearInterval(t); }, 300); };
   if (document.body) mount(); else addEventListener("DOMContentLoaded", mount);
 })();
 

@@ -2283,17 +2283,62 @@ async function unzipEntry(buf, name){
     p += 46 + fl + xl + cl; }
   throw new Error("missing " + name);
 }
+/* ---- ગુજરાતી OCR: ફોટો / સ્કેન કરેલી PDF → લખાણ (Tesseract.js, guj+eng) ---- */
+const OCR_JS = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+const IMG_RE = /\.(jpe?g|png|webp|bmp|gif|heic|heif)$/i;
+let OCR_WORKER = null;
+function loadScript(src){ return new Promise((ok, no) => { if (document.querySelector(`script[src="${src}"]`) && window.Tesseract) return ok(); const sc = document.createElement("script"); sc.src = src; sc.onload = ok; sc.onerror = () => no(new Error("ઇન્ટરનેટ નથી — OCR લાઇબ્રેરી લોડ ન થઈ")); document.head.append(sc); }); }
+async function ocrWorker(){
+  if (OCR_WORKER) return OCR_WORKER;
+  await loadScript(OCR_JS);
+  OCR_WORKER = await window.Tesseract.createWorker(["guj", "eng"], 1, {logger:m => { if (m.status === "recognizing text") say(`🔍 ગુજરાતી લખાણ ઓળખાય છે… ${Math.round((m.progress || 0) * 100)}%`, ""); else if (/load|initializ/i.test(m.status || "")) say("⏳ ગુજરાતી OCR તૈયાર થાય છે (પહેલી વાર 1–2 મિનિટ લાગી શકે)…", ""); }});
+  await OCR_WORKER.setParameters({preserve_interword_spaces:"1"});
+  return OCR_WORKER;
+}
+async function prepImage(src){
+  /* નાના ફોટાને મોટો કરી ગ્રે કરવાથી OCR સુધરે છે */
+  const img = await createImageBitmap(src); const k = Math.min(3, Math.max(1, 2200 / Math.max(img.width, img.height)));
+  const c = document.createElement("canvas"); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+  const g = c.getContext("2d"); g.filter = "grayscale(1) contrast(1.25)"; g.drawImage(img, 0, 0, c.width, c.height); return c;
+}
+function ocrClean(t){
+  const fix = [[/\b[06]5513\b/g, "GSSTB"], [/સ્વડપ/g, "સ્વરૂપ"], [/પાઠયપુસ્તક/g, "પાઠ્યપુસ્તક"], [/[|¦]/g, ""], [/ +/g, " "]];
+  let L = String(t || "").replace(/\r/g, "").split("\n").map(x => x.trim());
+  /* માત્ર ચિહ્નો / કચરો ધરાવતી લાઇનો કાઢો (દા.ત. "e ©", "હુ. ©") */
+  L = L.filter(x => !x || (x.match(/[\u0A80-\u0AFFA-Za-z0-9]/g) || []).length >= Math.min(6, x.length * 0.6));
+  /* તૂટેલી લાઇનો જોડીને ફકરા બનાવો; ખાલી લાઇન = નવો ફકરો */
+  const out = []; let buf = "";
+  const endS = x => /[.?!:।)\]]$/.test(x);
+  for (let i = 0; i < L.length; i++) { const x = L[i];
+    if (!x) { const nx = L.slice(i + 1).find(Boolean) || ""; if (buf && (endS(buf) || /^(\(?[0-9૦-૯]{1,3}[.)]|[-•*]\s|[0-9]+\.[0-9]+\s)/.test(nx))) { out.push(buf); buf = ""; } continue; }
+    const starts = /^(\(?[0-9૦-૯]{1,3}[.)]|[-•*]\s|[0-9]+\.[0-9]+\s)/.test(x);
+    if (starts && buf) { out.push(buf); buf = x; } else buf = buf ? (/[-‐]$/.test(buf) ? buf + x : buf + " " + x) : x; }
+  if (buf) out.push(buf);
+  let r = out.join("\n\n"); for (const [a, b] of fix) r = r.replace(a, b); return r.trim();
+}
+async function ocrCanvases(list){
+  const w = await ocrWorker(); let out = [];
+  for (let i = 0; i < list.length; i++) { say(`🔍 પાન ${i + 1}/${list.length}: ગુજરાતી લખાણ ઓળખાય છે…`, ""); const {data} = await w.recognize(list[i]); out.push(ocrClean(data.text)); }
+  return out.filter(Boolean).join("\n\n");
+}
 async function fileToText(f){
   const buf = await f.arrayBuffer();
   if (/\.txt$/i.test(f.name)) return new TextDecoder().decode(buf);
   if (/\.docx$/i.test(f.name)) { const x = await unzipEntry(buf, "word/document.xml");
     return x.replace(/<w:tab\/>/g, " ").replace(/<\/w:p>/g, "\n\n").replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&"); }
+  if (IMG_RE.test(f.name) || /^image\//.test(f.type)) return ocrCanvases([await prepImage(new Blob([buf], {type:f.type || "image/jpeg"}))]);
   if (/\.pdf$/i.test(f.name)) {
     const lib = await import("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs");
     lib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
     const doc = await lib.getDocument({data:new Uint8Array(buf)}).promise; let out = "";
     for (let i = 1; i <= doc.numPages; i++) { const pg = await (await doc.getPage(i)).getTextContent(); let last = null;
       for (const it of pg.items) { if (last !== null && Math.abs(it.transform[5] - last) > 2) out += "\n"; out += it.str; last = it.transform[5]; } out += "\n"; }
+    /* લખાણ ન મળે (સ્કેન કરેલી PDF) અથવા ગુજરાતી ફૉન્ટ તૂટેલા હોય તો દરેક પાનાનું OCR */
+    const txt = out.replace(/\s/g, "").length;
+    if (txt < 30 * doc.numPages) {
+      const pages = []; for (let i = 1; i <= doc.numPages; i++) { const p = await doc.getPage(i); const v = p.getViewport({scale:2.2});
+        const c = document.createElement("canvas"); c.width = v.width; c.height = v.height; await p.render({canvasContext:c.getContext("2d"), viewport:v}).promise; pages.push(c); }
+      return ocrCanvases(pages); }
     return out; }
   throw new Error("type");
 }
@@ -2301,9 +2346,9 @@ function rowsEditor(st, sid){
   const R = TD_ROWS[sid]; st.rows = st.rows || []; const wrap = h("div"), list = h("div");
   const paste = h("textarea", {rows:4, class:"tdPaste", style:"width:100%", placeholder:`${R.text} અહીં પેસ્ટ કરો — દરેક લાઇન કે ક્રમાંક (1. 2. 3. / a) b) / -) = એક ${R.text}. અંગ્રેજી પણ ચાલશે.`});
   const who = h("input", {type:"text", class:"tdWho", placeholder:`${R.who} (બધી નવી લાઇનો માટે, વૈકલ્પિક)`, style:"width:100%"});
-  const fileIn = h("input", {type:"file", accept:".txt,.docx,.pdf", onchange:async e => { const f = e.target.files[0]; if (!f) return;
+  const fileIn = h("input", {type:"file", accept:".txt,.docx,.pdf,image/*", onchange:async e => { const f = e.target.files[0]; if (!f) return;
     try { paste.value = (await fileToText(f)).trim(); say(`✓ ${f.name} માંથી લખાણ વાંચ્યું. જરૂરી ભાગ રાખી 'યાદીમાં ઉમેરો' દબાવો.`, "ok"); }
-    catch (er) { say(/\.pdf$/i.test(f.name) ? "PDF નું લખાણ વાંચી ન શકાયું (સ્કેન કરેલી PDF કે નેટ નથી). PDF ખોલી લખાણ કોપી કરી ઉપર પેસ્ટ કરો." : "ફાઇલ વાંચી ન શકાઈ: " + (er.message || er), "warn"); } e.target.value = ""; }});
+    catch (er) { say(/\.pdf$/i.test(f.name) ? "લખાણ વાંચી ન શકાયું (" + (er.message || er) + "). ઇન્ટરનેટ ચાલુ રાખી ફરી પ્રયત્ન કરો." : "ફાઇલ વાંચી ન શકાઈ: " + (er.message || er), "warn"); } e.target.value = ""; }});
   const draw = () => { list.textContent = "";
     st.rows.forEach((r, i) => list.append(h("div", {class:"card", style:"margin:6px 0;padding:8px"},
       h("div", {style:"display:flex;gap:6px;align-items:center"}, h("b", {}, String(i + 1)), h("input", {type:"text", value:r.item || "", placeholder:"વિધાન/પ્રશ્ન નં.", style:"width:110px", oninput:e => { r.item = e.target.value; }}),
@@ -2315,7 +2360,7 @@ function rowsEditor(st, sid){
     if (!st.rows.length) list.append(h("p", {class:"note"}, "હજી કોઈ લાઇન નથી."));
   };
   wrap.append(h("div", {class:"field", style:"margin-top:8px"}, h("label", {}, `📋 ${R.title} — પ્રકરણ 3 માં કોષ્ટક તરીકે આવશે`)),
-    h("div", {class:"note"}, "ફાઇલમાંથી વાંચો (.txt / .docx / .pdf):"), fileIn, paste, who,
+    h("div", {class:"note"}, "ફાઇલમાંથી વાંચો (.txt / .docx / .pdf / 📷 ફોટો — ગુજરાતી OCR):"), fileIn, paste, who,
     h("div", {class:"chips"}, h("button", {class:"btn", type:"button", onclick:() => { const it = splitItems(paste.value); if (!it.length) return say("ઉપર લખાણ પેસ્ટ કરો.", "warn");
       it.forEach(t => st.rows.push({text:t, who:who.value.trim(), item:"", dec:"", act:""})); paste.value = ""; draw(); say(`✓ ${it.length} લાઇન ઉમેરાઈ. હવે દરેક માટે નિર્ણય અને સુધારો લખો, પછી સેવ કરો.`, "ok"); }}, "⬇ યાદીમાં ઉમેરો"),
       h("button", {class:"btn", type:"button", onclick:() => { st.rows.push({text:"", who:who.value.trim(), item:"", dec:"", act:""}); draw(); }}, "+ એક લાઇન")), list);
@@ -2461,19 +2506,19 @@ function viewWrite(arg){
     box.textContent = ""; const ch = TW.ch; const d = twDoc(ch); const gen = ch >= 3;
     const save = async quiet => { d._at = nowIso(); d._by = S.user.email || S.user.uid; await tracked(fs().setDoc(dref("config", "tw_" + ch), d), "થીસિસ લખાણ"); TW.docs.set(ch, JSON.parse(JSON.stringify(d))); if (!quiet) say(`✓ ${TW_OUT[ch][0]}: સેવ થયું.`, "ok"); };
     box.append(h("div", {class:"card"}, h("h2", {}, "✍️ થીસિસ લેખન: પ્રકરણવાર મુદ્દા"),
-      h("p", {class:"note"}, gen ? "આ પ્રકરણ ડેટા પરથી આપમેળે બને છે. અહીં લખેલું લખાણ Word માં એ જ મુદ્દાના શીર્ષક નીચે ઉમેરાશે (અને ત્યાંનો [કૌંસ] સંદેશ નીકળી જશે)." : "દરેક મુદ્દામાં લખાણ લખો, પેસ્ટ કરો અથવા ફાઇલ (.txt / .docx / .pdf) માંથી વાંચો. ખાલી લાઇનથી નવો ફકરો; '- ' થી શરૂ થતી લાઇન = બુલેટ. જરૂર મુજબ પેટા-મુદ્દા ઉમેરી શકાય."),
+      h("p", {class:"note"}, gen ? "આ પ્રકરણ ડેટા પરથી આપમેળે બને છે. અહીં લખેલું લખાણ Word માં એ જ મુદ્દાના શીર્ષક નીચે ઉમેરાશે (અને ત્યાંનો [કૌંસ] સંદેશ નીકળી જશે)." : "દરેક મુદ્દામાં લખાણ લખો, પેસ્ટ કરો અથવા ફાઇલ (.txt / .docx / .pdf / 📷 ફોટો) માંથી વાંચો — સ્કેન કરેલી PDF અને ફોટાનું ગુજરાતી લખાણ આપમેળે ઓળખાઈ (OCR) અહીં આવશે; ચકાસીને સેવ કરો. ખાલી લાઇનથી નવો ફકરો; '- ' થી શરૂ થતી લાઇન = બુલેટ. જરૂર મુજબ પેટા-મુદ્દા ઉમેરી શકાય."),
       h("div", {class:"chips"}, ...[1, 2, 3, 4, 5].map(c => h("button", {class:"btn" + (c === ch ? " primary" : ""), type:"button", onclick:() => { TW.ch = c; draw(); }}, `પ્રકરણ ${c}`)),
         h("button", {class:"btn", type:"button", onclick:() => { save(true).then(() => download(`Thesis_References_${today()}.docx`, twRefsDoc(), "application/vnd.openxmlformats-officedocument.wordprocessingml.document")).catch(er => say(er.code || er.message, "bad")); }}, "📚 સંદર્ભસૂચિ (Word)"))));
     box.append(h("h3", {style:"margin:8px 4px"}, TW_OUT[ch][0]));
     for (const s of d.sec) {
       const depth = s.no.split(".").length; const wc = h("span", {class:"note"}, ` (${twWords(s.text)} શબ્દ)`);
       const ta = h("textarea", {rows:depth > 2 ? 5 : 7, style:"width:100%", placeholder:gen ? "આ મુદ્દા નીચે ઉમેરવાનું તમારું લખાણ (વૈકલ્પિક)" : "લખાણ…", oninput:e => { s.text = e.target.value; wc.textContent = ` (${twWords(s.text)} શબ્દ)`; }}, s.text || "");
-      const imp = h("input", {type:"file", accept:".txt,.docx,.pdf", onchange:async e => { const f = e.target.files[0]; if (!f) return;
+      const imp = h("input", {type:"file", accept:".txt,.docx,.pdf,image/*", onchange:async e => { const f = e.target.files[0]; if (!f) return;
         try { const t = (await fileToText(f)).replace(/\n{3,}/g, "\n\n").trim(); s.text = (s.text ? s.text + "\n\n" : "") + t; ta.value = s.text; wc.textContent = ` (${twWords(s.text)} શબ્દ)`; say(`✓ ${f.name}: ${twWords(t)} શબ્દ ઉમેરાયા. ચકાસી સેવ કરો.`, "ok"); }
-        catch (er) { say(/\.pdf$/i.test(f.name) ? "PDF વાંચી ન શકાઈ (સ્કેન કે નેટ નથી). લખાણ કોપી કરી પેસ્ટ કરો." : "ફાઇલ વાંચી ન શકાઈ.", "warn"); } e.target.value = ""; }});
+        catch (er) { say("ફાઇલ વાંચી ન શકાઈ (" + (er.message || er) + "). ઇન્ટરનેટ ચાલુ રાખી ફરી પ્રયત્ન કરો.", "warn"); } e.target.value = ""; }});
       const card = h("details", {class:"card", style:depth > 2 ? "margin-left:14px" : ""}, h("summary", {}, h("b", {}, s.no + " "), s.title, wc),
         !gen ? h("div", {class:"field"}, h("label", {}, "શીર્ષક"), h("input", {type:"text", value:s.title, oninput:e => { s.title = e.target.value; }})) : null,
-        ta, h("div", {class:"note", style:"margin-top:4px"}, "ફાઇલમાંથી ઉમેરો: "), imp,
+        ta, h("div", {class:"note", style:"margin-top:4px"}, "ફાઇલ / 📷 ફોટોમાંથી ઉમેરો (ગુજરાતી OCR): "), imp,
         ch === 1 && s.no === "1.9" ? h("p", {class:"note"}, "ખાલી રાખશો તો 6 હેતુઓ આપમેળે આવશે.") : null,
         ch === 1 && s.no === "1.14" ? h("p", {class:"note"}, "ખાલી રાખશો તો પ્રકરણ યોજના આપમેળે આવશે.") : null,
         ch === 2 && s.no === "2.5" ? h("p", {class:"note"}, "સમીક્ષા કરેલાં સંશોધનોનું વિહંગાવલોકન કોષ્ટક આપમેળે બનશે.") : null,

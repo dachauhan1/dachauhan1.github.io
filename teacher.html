@@ -580,6 +580,7 @@ const TABS = [["thesis", "📄 થીસિસ પ્રકરણ 1–5"], ["wri
               ["quality", "ડેટા ગુણવત્તા"], ["codebook", "કોડબુક"], ["admin", "એડમિન"]];
 const MENU = [
   ["📄 થીસિસ (પ્રકરણ 1–5)", [["thesis", "📄 થીસિસ Word: પ્રકરણ 1–5"], ["write", "✍️ પ્રકરણવાર મુદ્દા / સાહિત્ય સમીક્ષા"], ["tools", "🛠 ઉપકરણ રચના (પ્રકરણ 3)"], ["integ", "🛡 પ્રામાણિકતા · ગોપનીયતા · Shodhganga"]], true],
+  ["📊 વિદ્યાર્થી ડેટા વિશ્લેષણ (Google Sheet)", [["./sheet-analysis.html", "📊 Google Sheet: હેતુ 2–3 · 4 · 6 વિશ્લેષણ + H01–H04"]]],
   ["📚 હેતુ 1: પાઠ્યપુસ્તક વિષયવસ્તુ વિશ્લેષણ", [["cad", "📑 13 પ્રકરણ × 3 Word (સંશોધક · તજ્જ્ઞ · અંતિમ)"], ["ca", "✏️ સંશોધકના ગુણ દાખલ / સુધારો"], ["cares", "📊 પરિણામ · સહમતિ · વિશ્વસનીયતા"], ["rate", "📋 તજ્જ્ઞ શિક્ષક પત્રક"]]],
   ["👩‍🏫 હેતુ 2–3: શિક્ષક ડેટા", [["dash", "📈 ડેશબોર્ડ"], ["list", "📋 શિક્ષક યાદી"], ["quality", "✔ ડેટા ગુણવત્તા"], ["analysis", "📊 વિશ્લેષણ (Chapter 4)"], ["qual", "💬 ગુણાત્મક જવાબ"], ["codebook", "📖 કોડબુક"], ["schools", "🏫 શાળા માસ્ટર"]]],
   ["⚙️ સેટિંગ", [["admin", "⚙️ એડમિન"]], true]];
@@ -598,9 +599,9 @@ function renderShell(){
     const close = () => t.classList.remove("open");
     const allowed = MENU.flatMap(([, items, adm], gi) => (adm && !isAdmin()) ? [] : items.filter(([k]) => isAdmin() || !MENU_ADMIN.has(k)).map(x => [x[0], x[1], gi]));
     const fav = useTop(4).map(k => allowed.find(x => x[0] === k)).filter(Boolean);
-    if (fav.length) { t.append(h("span", {class:"more mhd gfav"}, "⭐ વારંવાર વપરાતા")); fav.forEach(([k, l]) => t.append(h("a", {href:"#" + k, "data-k":k, class:"more tile gfav", onclick:close}, l))); }
+    if (fav.length) { t.append(h("span", {class:"more mhd gfav"}, "⭐ વારંવાર વપરાતા")); fav.forEach(([k, l]) => t.append(h("a", {href:k.startsWith("./") ? k : "#" + k, "data-k":k, class:"more tile gfav", onclick:close}, l))); }
     MENU.forEach(([title, items, adm], gi) => { const its = items.filter(([k]) => isAdmin() || !MENU_ADMIN.has(k)); if (!its.length || (adm && !isAdmin())) return;
-      t.append(h("span", {class:"more mhd g" + gi}, title)); its.forEach(([k, l]) => t.append(h("a", {href:"#" + k, "data-k":k, class:"more tile g" + gi, onclick:close}, l))); });
+      t.append(h("span", {class:"more mhd g" + gi}, title)); its.forEach(([k, l]) => t.append(h("a", {href:k.startsWith("./") ? k : "#" + k, "data-k":k, class:"more tile g" + gi, onclick:close}, l))); });
     t.append(h("span", {class:"more mhd"}, ""));
     t.append(h("a", {href:"#", class:"more", onclick:async e => { e.preventDefault(); if (S.form && S.form.dirty && !(await ask("સેવ ન થયેલ ફેરફાર છે. છતાં બહાર નીકળવું છે?"))) return; S.fb.U.signOut(S.fb.auth); }},
       "બહાર (" + (S.user.email || "") + (isAdmin() ? " · એડમિન" : "") + ")"));
@@ -1649,7 +1650,7 @@ function viewObj(arg){
     else if (k === "2s") card.append(
       sec("1️⃣", "ડેટા એન્ટ્રી", B("./index.html#fast", "⚡ ⌨️ અંક-પટ્ટીથી એન્ટ્રી", true), B("./index.html#list", "📋 ભરાયેલ યાદી")),
       sec("2️⃣", "ચકાસણી", B("./index.html#check", "✔ ડેટા ગુણવત્તા"), F(() => { location.hash = "#home"; setTimeout(() => { const s = $("#smpK"); if (s) { s.value = "s23_students"; s.scrollIntoView({block:"center"}); } }, 900); }, "🎲 10% ચકાસણી નમૂનો")),
-      sec("3️⃣", "વિશ્લેષણ", B("./index.html#analysis", "📊 આવૃત્તિ · % · મધ્યક · ક્રમ", true), B("./index.html#codebook", "📖 કોડબુક"), B("./index.html#admin", "📥 Excel / SPSS નિકાસ")),
+      sec("3️⃣", "વિશ્લેષણ", B("./index.html#analysis", "📊 આવૃત્તિ · % · મધ્યક · ક્રમ", true), B("./sheet-analysis.html", "📊 Google Sheet વિશ્લેષણ (H01–H04)"), B("./index.html#codebook", "📖 કોડબુક"), B("./index.html#admin", "📥 Excel / SPSS નિકાસ")),
       sec("4️⃣", "થીસિસ", F(() => thesisDownload(4), "📄 પ્રકરણ 4 (4.4, 4.5)", true)));
     else if (k === "2t") card.append(
       sec("1️⃣", "ડેટા એન્ટ્રી", B("#form", "✍ નવું શિક્ષક ફોર્મ", true), B("#list", "📋 શિક્ષક યાદી")),
@@ -1659,7 +1660,7 @@ function viewObj(arg){
     else if (k === "4") card.append(
       sec("1️⃣", "ડેટા એન્ટ્રી", B("./test.html#form", "📝 ⌨️ અંક-પટ્ટીથી ગુણ", true), B("./test.html#list", "📋 યાદી")),
       sec("2️⃣", "ચકાસણી", B("./test.html#code", "📐 ગુણ-યોજના"), F(() => { location.hash = "#home"; setTimeout(() => { const s = $("#smpK"); if (s) { s.value = "ac_students"; s.scrollIntoView({block:"center"}); } }, 900); }, "🎲 10% ચકાસણી નમૂનો")),
-      sec("3️⃣", "વિશ્લેષણ", B("./test.html#export", "📥 RAW · SCORED · SPSS (.sps)", true)),
+      sec("3️⃣", "વિશ્લેષણ", B("./test.html#export", "📥 RAW · SCORED · SPSS (.sps)", true), B("./sheet-analysis.html", "📊 Google Sheet વિશ્લેષણ (H01–H04)")),
       sec("4️⃣", "થીસિસ", F(() => thesisDownload(4), "📄 પ્રકરણ 4 (4.6 માટે [કૌંસ])", true)),
       h("p", {class:"note"}, "SPSS માં: મધ્યક, SD, ટકાવારી, જાતિ/જિલ્લા/શાળા-પ્રકાર મુજબ t / ANOVA, ઘટક (C2, C3, C4, C7) મુજબ સરેરાશ."));
     else if (k === "5") card.append(
@@ -1671,7 +1672,7 @@ function viewObj(arg){
     else card.append(
       sec("1️⃣", "ડેટા એન્ટ્રી", B("./anxiety.html#form", "😟 ⌨️ 21 અંકની પટ્ટી", true), B("./anxiety.html#list", "📋 યાદી")),
       sec("2️⃣", "ચકાસણી", B("./anxiety.html#code", "🔁 કોડ / ઊલટા ગુણ"), F(() => { location.hash = "#home"; setTimeout(() => { const s = $("#smpK"); if (s) { s.value = "ax_students"; s.scrollIntoView({block:"center"}); } }, 900); }, "🎲 10% ચકાસણી નમૂનો")),
-      sec("3️⃣", "વિશ્લેષણ", B("./anxiety.html#export", "📥 RAW · SCORED (MAS) · SPSS", true)),
+      sec("3️⃣", "વિશ્લેષણ", B("./anxiety.html#export", "📥 RAW · SCORED (MAS) · SPSS", true), B("./sheet-analysis.html", "📊 Google Sheet વિશ્લેષણ (H01–H04)")),
       sec("4️⃣", "થીસિસ", F(() => thesisDownload(4), "📄 પ્રકરણ 4 (4.8 માટે [કૌંસ])", true)),
       h("p", {class:"note"}, "SPSS માં: Cronbach's α, MAS મધ્યક/SD, ચિંતા-સ્તર (નીચું/મધ્યમ/ઊંચું), જાતિ/જિલ્લા મુજબ t / ANOVA, ચિંતા ↔ સિદ્ધિ સહસંબંધ."));
     const nav = h("div", {class:"hrow", style:"margin-top:8px"}, ...["1", "2s", "2t", "4", "5", "6"].map(x => [x, OBJ[x]]).filter(([x]) => x !== k).map(([x, oo]) => h("a", {href:"#obj-" + x, class:"hmini", style:`--oc:${oo.c}`}, `${oo.ic} ${oo.t}`)));

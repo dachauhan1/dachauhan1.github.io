@@ -332,12 +332,15 @@ function stripBox(o){   // o: {id, title, help, n, parse(text)->{vals, bad}, cur
     style:"font-size:1.3rem;letter-spacing:3px;width:100%;padding:8px;font-family:monospace"});
   const info = h("div", {class:"muted", style:"margin-top:4px"});
   const show = () => { const p = o.parse(inp.value); info.textContent = `${p.vals.length}/${o.n}` + (p.bad.length ? ` · ⚠ ક્રમ ${p.bad.join(", ")} મર્યાદા બહાર` : "") + (p.vals.length > o.n ? ` · ⚠ ${p.vals.length - o.n} વધારે` : p.vals.length === o.n && !p.bad.length ? " · ✓ પૂરું — Enter દબાવો" : ""); return p; };
-  inp.addEventListener("input", show);
-  inp.addEventListener("keydown", e => { if (e.key !== "Enter") return; e.preventDefault(); e.stopPropagation(); const p = show();
-    if (p.vals.length !== o.n || p.bad.length) { info.textContent += ` — ${o.n} સાચા જવાબ જોઈએ`; return; }
-    o.apply(p.vals); S.flash = ["ok", `⌨️ ${o.n} જવાબ ભર્યા — ફરી Enter = સેવ`]; viewKeep(); updateProg(); });
+  inp.setAttribute("enterkeyhint", "done");
+  const fill = () => { const p = show(); if (p.vals.length !== o.n || p.bad.length) { info.textContent += ` — ${o.n} સાચા જવાબ જોઈએ`; return; }
+    o.apply(p.vals); S.flash = ["ok", `⌨️ ${o.n} જવાબ ભર્યા — હવે 💾 સેવ કરો (કી-બોર્ડ પર ફરી Enter)`]; viewKeep(); updateProg(); };
+  let tm = null, start = inp.value;   // auto-fill once the full, valid answer string is typed
+  inp.addEventListener("input", () => { const p = show(); clearTimeout(tm); if (p.vals.length === o.n && !p.bad.length && inp.value !== start) tm = setTimeout(fill, 700); });
+  inp.addEventListener("keydown", e => { if (e.key !== "Enter") return; e.preventDefault(); e.stopPropagation(); clearTimeout(tm); fill(); });
   setTimeout(show, 0);
-  return h("div", {class:"card", id:o.id + "Card"}, h("label", {class:"lbl", for:o.id, style:"font-weight:700"}, o.title), h("p", {class:"muted", style:"margin:4px 0"}, o.help), inp, info);
+  return h("div", {class:"card", id:o.id + "Card"}, h("label", {class:"lbl", for:o.id, style:"font-weight:700"}, o.title), h("p", {class:"muted", style:"margin:4px 0"}, o.help), inp, info,
+    h("button", {type:"button", class:"btn", style:"margin-top:6px;min-height:44px", onclick:() => { clearTimeout(tm); fill(); }}, "✓ ભરો"));
 }
 
 function formAX(m, r){
@@ -347,6 +350,11 @@ function formAX(m, r){
       h("button", {type:"button", class:"chip" + (g === v ? " on" : ""), onclick:() => { r.GENDER = r.GENDER === v ? null : v; viewKeep(); }}, l)))),
     h("div", {class:"field"}, h("label", {class:"lbl", for:"cdate"}, "તારીખ"), h("input", {type:"date", id:"cdate", value:r.COLLECTION_DATE || "", onchange:e => { r.COLLECTION_DATE = e.target.value; }}))),
     h("p", {class:"muted", style:"margin-top:6px"}, "નીચેના કી-પેડ પર 5 4 3 2 1 દબાવો — આગળનું વિધાન આપમેળે આવે. કોઈ પણ વિધાન પર ટેપ કરી ત્યાં જઈ શકાય. ખાલી રહેલું વિધાન સેવ વખતે 99 (જવાબ નથી) ગણાશે.")));
+  m.append(h("button", {type:"button", class:"btn", id:"axPhoto", style:"width:100%;margin:6px 0;background:#d9480f;border-color:#d9480f;color:#fff;font-weight:700;min-height:48px", onclick:() => {
+    if (!window.PhotoRead) return;
+    PhotoRead.open({groups:[{label:"21 વિધાન — ખાનાં ડાબેથી 5 → 1", rows:21, colLabels:["5", "4", "3", "2", "1"]}, {label:"21 વિધાન — ખાનાં ડાબેથી 1 → 5", rows:21, colLabels:["1", "2", "3", "4", "5"]}],
+      onApply(gi, s0, ans){ let n = 0; const fl = []; ans.forEach((a, i) => { const k = s0 + i; if (k > 20) return; if (a == null) { fl.push(k + 1); return; } r["AX" + (k + 1)] = gi === 0 ? 5 - a : a + 1; n++; }); return {n, fl}; },
+      after(ans, res){ S.flash = [res.fl.length ? "warn" : "ok", `🪄 ${res.n} વિધાન ફોટામાંથી ભર્યાં.` + (res.fl.length ? ` શંકાસ્પદ: ${res.fl.join(", ")} — પેપર જોઈ જાતે ભરો.` : " પેપર સાથે એક નજર મેળવી સેવ કરો.")]; viewKeep(); updateProg(); }}); }}, "🪄 ફોટામાંથી ✓ વાંચો (21 વિધાન)"));
   m.append(stripBox({id:"axStrip", n:21, title:"⌨️ અંક-પટ્ટી: 21 વિધાન એક સાથે (સૌથી ઝડપી)", ph:"દા.ત. 543215432154321543215",
     help:"પેપર પરથી ઉપરથી નીચે દરેક વિધાનનો અંક લખો: 5 = સંપૂર્ણ સહમત … 1 = સંપૂર્ણ અસહમત, 0 = ખાલી/બે નિશાન. Enter → ભરાઈ જશે, ફરી Enter → સેવ.",
     cur:() => AX_ITEMS.map((_, i) => r["AX" + (i + 1)] == null ? "0" : String(r["AX" + (i + 1)])).join("").replace(/0+$/, ""),
@@ -749,6 +757,8 @@ boot();
   fab.onclick = () => { if (typeof window.__ppAlt === "function" && window.__ppAlt()) return; pan.classList.toggle("on"); show(); if (pan.classList.contains("on") && !S.imgs.length) inp.click(); };
   const vis = () => { fab.style.display = typeof window.__ppShow === "function" && !window.__ppShow() ? "none" : ""; if (fab.style.display === "none") { pan.classList.remove("on"); document.body.style.paddingTop = ""; } };
   addEventListener("hashchange", () => setTimeout(vis, 300));
+  const ekh = () => document.querySelectorAll('input[inputmode="numeric"]:not([enterkeyhint]),input[inputmode="decimal"]:not([enterkeyhint])').forEach(e => e.setAttribute("enterkeyhint", "done"));
+  try { new MutationObserver(() => { clearTimeout(window.__ekt); window.__ekt = setTimeout(ekh, 120); }).observe(document.documentElement, {childList:true, subtree:true}); } catch (e) {}
   const mount = () => { document.body.append(pan, fab); setTimeout(vis, 600); let n = 0; const t = setInterval(() => { if (window.__ppAltIcon) fab.textContent = window.__ppAltIcon; if (window.__ppAltIcon || ++n > 20) clearInterval(t); }, 300); };
   if (document.body) mount(); else addEventListener("DOMContentLoaded", mount);
 })();

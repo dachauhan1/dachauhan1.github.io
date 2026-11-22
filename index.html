@@ -937,8 +937,10 @@ function digitCard(){
     route(false).then(() => { const s2 = $("#dg_g"), i2 = $("#dg_in"); if (s2 && nx < gs.length) { s2.value = nx; s2.dispatchEvent(new Event("change")); }
       say(`⌨️ ${stripName(g.grp)}: ${t.length} જવાબ ભર્યા` + (nx < gs.length ? ` — હવે ${stripName(gs[nx].grp)} લખો.` : " — બધા વિભાગ પૂરા; બહુવિકલ્પ પ્રશ્નો (હોય તો) ટૅપથી ભરી સેવ કરો."), "ok"); if (i2) i2.focus(); }); };
   sel.onchange = () => { inp.value = cur(); show(); };
-  inp.addEventListener("input", show);
-  inp.addEventListener("keydown", e => { e.stopPropagation(); if (e.key === "Enter") { e.preventDefault(); apply(); } });
+  let tm = null;   // auto-fill as soon as the right number of valid digits is typed (no Enter needed on phones)
+  inp.addEventListener("input", () => { show(); clearTimeout(tm); const t = inp.value.replace(/[^0-9]/g, ""); if (t.length === G().steps.length && !bad(t).length && t !== cur()) tm = setTimeout(apply, 600); });
+  inp.addEventListener("keydown", e => { e.stopPropagation(); if (e.key === "Enter") { e.preventDefault(); clearTimeout(tm); apply(); } });
+  inp.setAttribute("enterkeyhint", "done");
   inp.value = cur(); setTimeout(show, 0);
   const multi = STEPS.filter(st => st.k === "choice" && st.q.clean === "multi").length;
   return h("details", {class:"card", id:"dg_card", style:"padding:10px 12px", open:(lsGet(PKEY) || {}).dg ? "" : null, ontoggle:e => lsSet(PKEY, Object.assign(lsGet(PKEY) || {}, {dg:e.target.open}))},
@@ -1942,6 +1944,8 @@ boot();
   fab.onclick = () => { if (typeof window.__ppAlt === "function" && window.__ppAlt()) return; pan.classList.toggle("on"); show(); if (pan.classList.contains("on") && !S.imgs.length) inp.click(); };
   const vis = () => { fab.style.display = typeof window.__ppShow === "function" && !window.__ppShow() ? "none" : ""; if (fab.style.display === "none") { pan.classList.remove("on"); document.body.style.paddingTop = ""; } };
   addEventListener("hashchange", () => setTimeout(vis, 300));
+  const ekh = () => document.querySelectorAll('input[inputmode="numeric"]:not([enterkeyhint]),input[inputmode="decimal"]:not([enterkeyhint])').forEach(e => e.setAttribute("enterkeyhint", "done"));
+  try { new MutationObserver(() => { clearTimeout(window.__ekt); window.__ekt = setTimeout(ekh, 120); }).observe(document.documentElement, {childList:true, subtree:true}); } catch (e) {}
   const mount = () => { document.body.append(pan, fab); setTimeout(vis, 600); let n = 0; const t = setInterval(() => { if (window.__ppAltIcon) fab.textContent = window.__ppAltIcon; if (window.__ppAltIcon || ++n > 20) clearInterval(t); }, 300); };
   if (document.body) mount(); else addEventListener("DOMContentLoaded", mount);
 })();

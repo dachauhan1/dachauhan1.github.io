@@ -537,7 +537,7 @@ function renderShell(){
   if (MERGED) {
     t.append(h("a", {href:"./index.html#fast", class:"main"}, "⚡ હેતુ 2–3"), h("a", {href:"./test.html", class:"main"}, "📝 હેતુ 4"),
       h("a", {href:"./anxiety.html", class:"main"}, "😟 હેતુ 6"), h("a", {href:"#form", class:"main cur"}, "👩‍🏫 શિક્ષક"),
-      isAdmin() ? h("a", {href:"#thesis", class:"main", "data-k":"thesis"}, "📄 થીસિસ") : null,
+      ...(isAdmin() ? [h("a", {href:"#thesis", class:"main", "data-k":"thesis"}, "📄 થીસિસ")] : []),
       h("a", {href:"#", class:"main mbtn", "aria-label":"વધુ વિકલ્પ", onclick:e => { e.preventDefault(); t.classList.toggle("open"); }}, "☰"), h("span", {class:"brk more"}));
     TABS.forEach(([k, l]) => { if (k === "form" || ((k === "admin" || k === "thesis" || k === "ca" || k === "tools" || k === "write") && !isAdmin())) return; t.append(h("a", {href:"#" + k, "data-k":k, class:"more", onclick:() => t.classList.remove("open")}, l)); });
     t.append(h("a", {href:"#", class:"more", onclick:async e => { e.preventDefault(); if (S.form && S.form.dirty && !(await ask("સેવ ન થયેલ ફેરફાર છે. છતાં બહાર નીકળવું છે?"))) return; S.fb.U.signOut(S.fb.auth); }},
@@ -1318,6 +1318,214 @@ function caReliability(){
   const all = pairs.length ? {n:pairs.length, exact:pairs.filter(([x, y]) => x === y).length / pairs.length * 100, adj:pairs.filter(([x, y]) => Math.abs(x - y) <= 1).length / pairs.length * 100, alpha:kAlphaOrdinal(pairs)} : null;
   return {rows, all};
 }
+/* ================= Objective 1: chapter-wise full content analysis in three versions =================
+   R = researcher (rater A), T = expert mathematics teacher (rater B), F = final (after consensus + expert verification).
+   The researcher's Word draft is read in the browser (docx → blocks) and stored in config/ca_D_xx, so everything stays digital. */
+const CAD = new Map();
+const cadId = ch => "ca_D_" + String(ch).padStart(2, "0");
+async function cadLoad(ch, force){
+  if (CAD.has(ch) && !force) return CAD.get(ch);
+  let d = null; try { const x = await fs().getDoc(dref("config", cadId(ch))); d = x.exists() ? JSON.parse(x.data().J || "null") : null; } catch (e) { d = null; }
+  CAD.set(ch, d); return d;
+}
+async function caDocxBlocks(buf){
+  const xml = await unzipEntry(buf, "word/document.xml"), doc = new DOMParser().parseFromString(xml, "application/xml");
+  const NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main", kids = (e, n) => Array.from(e.childNodes).filter(c => c.localName === n);
+  const ptext = p => { let t = ""; p.querySelectorAll("*").forEach(n => { if (n.namespaceURI !== NS) return; if (n.localName === "t") t += n.textContent; else if (n.localName === "tab") t += " "; else if (n.localName === "br") t += "\n"; }); return t.replace(/[  ]+/g, " ").trim(); };
+  const ctext = c => Array.from(c.getElementsByTagNameNS(NS, "p")).map(ptext).filter(Boolean).join("\n");
+  const body = doc.getElementsByTagNameNS(NS, "body")[0], out = [];
+  for (const n of Array.from(body.childNodes)) {
+    if (n.localName === "p") { const t = ptext(n); if (!t) continue; const st = n.getElementsByTagNameNS(NS, "pStyle")[0]; out.push({p:t, s:st ? st.getAttributeNS(NS, "val") || st.getAttribute("w:val") || "" : ""}); }
+    else if (n.localName === "tbl") out.push({t:kids(n, "tr").map(tr => kids(tr, "tc").map(ctext))});
+  }
+  return out;
+}
+function caStruct(blocks){
+  const h1 = blocks.map((b, i) => b.s === "Heading1" ? i : -1).filter(i => i >= 0);
+  const sec = re => { const i = h1.find(k => re.test(blocks[k].p)); if (i == null) return []; const j = h1.find(k => k > i); return blocks.slice(i, j == null ? blocks.length : j); };
+  const title = (blocks.find(b => b.t) || {t:[[""]]}).t[0][0] || "";
+  const m = title.match(/પ્રકરણ\s*(\d+)\s*[:：]?\s*([^\n(]*)/); const ch = m ? +m[1] : 0;
+  const D = {ch, TITLE:title, NAME:m ? m[2].trim() : "", BASE:sec(/^વિશ્લેષણનો આધાર/), FRONT:[...sec(/^પ્રકરણ-માહિતી/), ...sec(/^અભ્યાસક્રમ-મેપિંગ/)], CB:[], IND:{}, XB:{}, S:{}, Q:{}, CS:[], DL:[]};
+  CA_COMP.forEach((_, ci) => {
+    const s = sec(new RegExp("^ઘટક " + (ci + 1) + ":")); D.CB[ci] = (s.find(b => b.p && /^NCF-SE 2023 આધાર/.test(b.p)) || {}).p || "";
+    const ti = s.findIndex(b => b.t && b.t[0][0] === "ID");
+    if (ti >= 0) for (const r of s[ti].t.slice(1)) { const id = (r[0] || "").trim(); if (!/^\d\.\d+$/.test(id)) continue; const sc = (String(r[5] || "").match(/[0-3]/) || [])[0];
+      D.IND[id] = {E:r[2] || "", I:r[3] || "", L:r[4] || "", J:r[6] || ""}; if (sc != null) D.S[id] = +sc; }
+    const ni = s.findIndex(b => b.t && /^1\.\s*મુખ્ય સકારાત્મક/.test(b.t[0][0] || ""));
+    if (ni >= 0) { D.Q[ci] = ["", "", "", ""]; s[ni].t.forEach(r => { const k = +((r[0] || "").match(/^([1-4])\./) || [])[1]; if (k) D.Q[ci][k - 1] = r[1] || ""; });
+      const xb = s.slice(ni + 1).filter(b => !(b.p && /^ઘટક \d+નો સારાંશ|^ઘટકને 100%/.test(b.p))); if (xb.length) D.XB[ci] = xb; }
+  });
+  const cs = sec(/^પ્રકરણનું આલોચનાત્મક/).find(b => b.t); if (cs) D.CS = cs.t.map(r => [r[0] || "", r[1] || ""]);
+  const dl = sec(/^નિર્ણય-નોંધ/).find(b => b.t); if (dl) D.DL = dl.t;
+  return D;
+}
+async function caImportDocx(file){
+  const D = caStruct(await caDocxBlocks(await file.arrayBuffer()));
+  if (!(D.ch >= 1 && D.ch <= 13)) throw new Error(`${file.name}: પ્રકરણ-ક્રમાંક ઓળખાયો નહીં`);
+  if (Object.keys(D.S).length < 51) throw new Error(`${file.name}: ${Object.keys(D.S).length}/51 સૂચકના ગુણ મળ્યા`);
+  D.SRC = file.name; D._at = nowIso();
+  await fs().setDoc(dref("config", cadId(D.ch)), {CH:D.ch, J:JSON.stringify(D), SRC:file.name, _at:D._at});
+  CAD.set(D.ch, D);
+  const id = caId("R1", D.ch), old = CA.docs.get(id) || {}, E = Object.assign({}, old.E || {});
+  Object.entries(D.IND).forEach(([k, v]) => { if (!E[k]) E[k] = (v.E || "").slice(0, 300); });
+  const nd = Object.assign({}, old, {DOCX:file.name, CH:D.ch, RATER:"R1", NAME:D.NAME || old.NAME || "", S:D.S, E, Q:Object.keys(D.Q).length ? D.Q : (old.Q || {}), _updatedAt:nowIso(), _updatedBy:S.user.email || S.user.uid});
+  await fs().setDoc(dref("config", id), nd); CA.docs.set(id, nd);
+  audit("ca-docx", "", [], {ch:D.ch, src:file.name}); return D;
+}
+
+/* ---- statistics for two ordinal raters (0–3) ---- */
+function mulberry(a){ return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const phi = z => { const t = 1 / (1 + 0.2316419 * Math.abs(z)), d = 0.3989423 * Math.exp(-z * z / 2), p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274)))); return z > 0 ? 1 - p : p; };
+function ranks(v){ const o = v.map((x, i) => [x, i]).sort((a, b) => a[0] - b[0]), r = new Array(v.length); let i = 0;
+  while (i < o.length) { let j = i; while (j + 1 < o.length && o[j + 1][0] === o[i][0]) j++; for (let k = i; k <= j; k++) r[o[k][1]] = (i + j) / 2 + 1; i = j + 1; } return r; }
+function pearson(x, y){ const n = x.length, mx = x.reduce((a, b) => a + b, 0) / n, my = y.reduce((a, b) => a + b, 0) / n; let sxy = 0, sx = 0, sy = 0;
+  for (let i = 0; i < n; i++) { sxy += (x[i] - mx) * (y[i] - my); sx += (x[i] - mx) ** 2; sy += (y[i] - my) ** 2; } return sx && sy ? sxy / Math.sqrt(sx * sy) : NaN; }
+function kappaQW(pairs, k = 4){ const n = pairs.length, O = Array.from({length:k}, () => new Array(k).fill(0)), ra = new Array(k).fill(0), rb = new Array(k).fill(0);
+  pairs.forEach(([a, b]) => { O[a][b]++; ra[a]++; rb[b]++; }); let no = 0, ne = 0;
+  for (let i = 0; i < k; i++) for (let j = 0; j < k; j++) { const w = (i - j) ** 2 / (k - 1) ** 2; no += w * O[i][j] / n; ne += w * ra[i] * rb[j] / (n * n); } return ne ? 1 - no / ne : NaN; }
+function wilcoxon(pairs){ const d = pairs.map(([a, b]) => a - b).filter(x => x !== 0), n = d.length; if (!n) return {n:0, z:0, p:1, wp:0, wm:0};
+  const r = ranks(d.map(Math.abs)); let wp = 0, wm = 0; d.forEach((x, i) => { if (x > 0) wp += r[i]; else wm += r[i]; });
+  const cnt = {}; d.map(Math.abs).forEach(x => { cnt[x] = (cnt[x] || 0) + 1; }); const tie = Object.values(cnt).reduce((a, t) => a + (t ** 3 - t), 0) / 48;
+  const mu = n * (n + 1) / 4, sd = Math.sqrt(n * (n + 1) * (2 * n + 1) / 24 - tie); const z = sd ? (wp - mu - Math.sign(wp - mu) * 0.5) / sd : 0;
+  if (n <= 16) { let ext = 0; const tot = 2 ** n, dev = Math.abs(wp - mu) - 1e-9;   // exact permutation distribution of W+ (ties kept)
+    for (let m = 0; m < tot; m++) { let w = 0; for (let i = 0; i < n; i++) if (m & (1 << i)) w += r[i]; if (Math.abs(w - mu) >= dev) ext++; }
+    return {n, wp, wm, z, p:Math.min(1, ext / tot), exact:true}; }
+  return {n, wp, wm, z, p:2 * (1 - phi(Math.abs(z))), exact:false}; }
+function relStats(pairs, seed = 7){
+  const n = pairs.length; if (!n) return null; const A = pairs.map(p => p[0]), B = pairs.map(p => p[1]), mean = v => v.reduce((a, b) => a + b, 0) / v.length;
+  const dif = pairs.map(([a, b]) => a - b), md = mean(dif), sdd = Math.sqrt(dif.reduce((a, x) => a + (x - md) ** 2, 0) / Math.max(1, n - 1));
+  const rho = pearson(ranks(A), ranks(B)), zr = isNaN(rho) ? NaN : rho * Math.sqrt(n - 1);
+  const alpha = kAlphaOrdinal(pairs), rnd = mulberry(seed), bs = [];
+  for (let b = 0; b < 1000; b++) { const s = []; for (let i = 0; i < n; i++) s.push(pairs[Math.floor(rnd() * n)]); const a = kAlphaOrdinal(s); if (!isNaN(a)) bs.push(a); }
+  bs.sort((a, b) => a - b); const ci = bs.length > 100 ? [bs[Math.floor(bs.length * .025)], bs[Math.floor(bs.length * .975) - 1]] : [NaN, NaN];
+  return {n, exact:pairs.filter(([a, b]) => a === b).length / n * 100, adj:pairs.filter(([a, b]) => Math.abs(a - b) <= 1).length / n * 100, mA:mean(A), mB:mean(B), md, sdd,
+    rho, prho:isNaN(zr) ? NaN : 2 * (1 - phi(Math.abs(zr))), kw:kappaQW(pairs), alpha, ci, wil:wilcoxon(pairs), qa:bs.length ? bs.filter(x => x < 0.667).length / bs.length : NaN};
+}
+const alphaWord = a => isNaN(a) ? "–" : a >= 0.8 ? "વિશ્વસનીય (≥ 0.800)" : a >= 0.667 ? "કામચલાઉ તારણ માટે સ્વીકાર્ય (0.667–0.799)" : "અપૂરતી (< 0.667) — ગુણાંકન-નિયમો ફરી તપાસો";
+const kWord = k => isNaN(k) ? "–" : k > 0.8 ? "લગભગ સંપૂર્ણ" : k > 0.6 ? "નોંધપાત્ર" : k > 0.4 ? "મધ્યમ" : k > 0.2 ? "સામાન્ય" : "નબળી";
+const f3 = x => x == null || isNaN(x) ? "–" : x.toFixed(3);
+const p3 = p => isNaN(p) ? "–" : p < 0.001 ? "< .001" : p.toFixed(3).replace(/^0/, "");
+
+/* ---- Word: one chapter, one version ---- */
+async function caChapterDoc(ch, ver){
+  await caLoad(true); const D = await cadLoad(ch, true) || {}, r1 = CA.docs.get(caId("R1", ch)) || {}, r2 = caR2(ch), cons = CA.docs.get("cons_" + ch);
+  if (ver === "T" && !(r2 && r2.SUBMITTED)) throw new Error("તજ્જ્ઞ શિક્ષકનું પત્રક હજુ સબમિટ થયું નથી");
+  if (ver !== "T" && !r1.S) throw new Error("સંશોધકના ગુણ નથી");
+  const K = docKit({land:ver !== "T"}), {P, H, T, cap, fx} = K, b = [];
+  const name = r1.NAME || D.NAME || (CA_SEED[ch] || [""])[0];
+  const SA = r1.S || {}, SB = (r2 && r2.S) || {}, SF = ver === "F" ? (cons && cons.F) || SA : ver === "T" ? SB : SA;
+  const VT = {R:"સંશોધકનું વિષયવસ્તુ વિશ્લેષણ (મૂલ્યાંકનકાર A)", T:"તજ્જ્ઞ ગણિત શિક્ષકનું સ્વતંત્ર વિષયવસ્તુ વિશ્લેષણ (મૂલ્યાંકનકાર B)", F:"અંતિમ વિષયવસ્તુ વિશ્લેષણ (સ્વતંત્ર ગુણાંકન → સહમતિ → તજ્જ્ઞ ચકાસણી પછી)"}[ver];
+  const blocksOut = bl => (bl || []).forEach(x => { if (x.t) { if (x.t.length) b.push(T(x.t[0], x.t.slice(1), "")); }
+    else if (x.s === "Heading1") b.push(H(x.p, 1)); else if (x.s === "Heading2") b.push(H(x.p, 2)); else if (x.s === "Heading3") b.push(H(x.p, 3)); else b.push(P(x.p)); });
+  // cover
+  b.push(P(`ધોરણ 8 ગણિત — પ્રકરણ ${ch}: ${name}`, {b:true, sz:36, center:true, after:120}), P("NCF-SE 2023 સંદર્ભે પાઠ્યપુસ્તક વિષયવસ્તુ વિશ્લેષણ", {b:true, sz:28, center:true}),
+    P(VT, {b:true, center:true, sz:26}), P(`સંશોધન: ${TH.title}`, {center:true, i:true}),
+    T(["બાબત", "વિગત"], [["મૂલ્યાંકનકાર", ver === "T" ? `${r2.NAME_R || ""}${r2.POST ? ", " + r2.POST : ""}` : ver === "F" ? `સંશોધક (A) + ${r2 ? (r2.NAME_R || "તજ્જ્ઞ") + " (B)" : "તજ્જ્ઞ (B) — બાકી"}` : "સંશોધક: દશરથભાઈ એ. ચૌહાણ (A)"],
+      ["ગુણનો આધાર", ver === "F" ? (cons ? "સહમતિ પછીના અંતિમ ગુણ" : "સહમતિ હજુ બાકી — હાલ સંશોધકના ગુણ") : ver === "T" ? "તજ્જ્ઞના સ્વતંત્ર (blind) ગુણ" : "સંશોધકના સ્વતંત્ર ગુણ"],
+      ["સાધન", "9 ઘટક · 51 સૂચક · 0–3 ગુણ · મહત્તમ 153 (40 RAC-સૂચિત + 11 સંશોધક-ઉમેરેલા †)"], ["તારીખ", today()]], "", [1, 3]));
+  // basis + chapter front matter
+  if (D.BASE && D.BASE.length) blocksOut(D.BASE);
+  else { b.push(H("વિશ્લેષણનો આધાર", 1), cap("મૂલ્યાંકન માપદંડ"), T(["ગુણ", "વર્ણનકર્તા"], CA_SCALE.map((x, i) => [String(3 - i), x]), ""), H("ગુણાંકનના નિયમો", 2)); CA_RULES.forEach((r, i) => b.push(K.N(`${i + 1}.`, r))); }
+  if (ver !== "T") blocksOut(D.FRONT);
+  // components
+  const st = caStats(SF);
+  CA_COMP.forEach((c, ci) => {
+    const ind = CA_IND.filter(x => x.comp === ci), cs = st.comps[ci];
+    b.push(H(`ઘટક ${ci + 1}: ${c[0]}${ci === 1 || ci === 4 ? " †" : ""}`, 1)); if (D.CB && D.CB[ci]) b.push(P(D.CB[ci], {i:true}));
+    const def = x => (CA_DEF[x.id] ? CA_DEF[x.id][0] + "\nશું જોવું: " + CA_DEF[x.id][1] : x.text);
+    if (ver === "T") b.push(T(["ID", "વિધાન (સૂચક)", "ગુણ (0–3)", "પાનું / કારણ (તજ્જ્ઞ)"], ind.map(x => [x.id + (x.dag ? " †" : ""), def(x), SB[x.id] ?? "–", (r2.N || {})[x.id] || ""]), "", [0.6, 4, 0.8, 2.6]));
+    else if (ver === "R") b.push(T(["ID", "વિધાન (સૂચક) — શું જોવું", "પુરાવો (Evidence)", "અર્થઘટન (Interpretation)", "NCF-SE 2023 જોડાણ", "ગુણ", "ગુણાંકનનું કારણ (Justification)"],
+      ind.map(x => { const v = (D.IND || {})[x.id] || {}; return [x.id + (x.dag ? " †" : ""), def(x), v.E || (r1.E || {})[x.id] || "", v.I || "", v.L || "", SA[x.id] ?? "–", v.J || ""]; }), "", [0.5, 2.2, 2.6, 2.2, 1.6, 0.5, 2.2]));
+    else b.push(T(["ID", "વિધાન (સૂચક) — શું જોવું", "પુરાવો (Evidence)", "અર્થઘટન", "NCF-SE 2023 જોડાણ", "A", "B", "અંતિમ", "ગુણાંકનનું કારણ / સહમતિ-નોંધ"],
+      ind.map(x => { const v = (D.IND || {})[x.id] || {}, a = SA[x.id], bb = SB[x.id], f = SF[x.id], note = ((cons || {}).NOTE || {})[x.id] || "";
+        return [x.id + (x.dag ? " †" : ""), def(x), v.E || (r1.E || {})[x.id] || "", v.I || "", v.L || "", a ?? "–", bb ?? "–", f ?? "–", (v.J || "") + (a !== f && f != null ? `\nસહમતિ: ${a} → ${f}${note ? " — " + note : ""}` : note ? "\nસહમતિ-નોંધ: " + note : "")]; }), "", [0.45, 2, 2.3, 2, 1.4, 0.35, 0.35, 0.45, 2.2]));
+    b.push(P(`ઘટક ${ci + 1}નો સારાંશ — કુલ ગુણ: ${cs.max}  |  પ્રાપ્ત ગુણ: ${cs.got}  |  સરેરાશ ગુણાંક: ${cs.m.toFixed(2)}  |  ટકાવારી: ${cs.p.toFixed(2)}%  |  સુસંગતતા-સ્તર: ${caLevel(cs.m)}`, {b:true}),
+      P(`ઘટકને 100% ગુણ મળે તો ગુણાંકનના નિયમ 10 મુજબ ફેરચકાસણી: ${cs.p >= 99.99 ? "જરૂરી — દરેક સૂચક માટે તરત નીચેનું સ્તર વધુ યોગ્ય નથી તેની ફરી ચકાસણી કરો" : "લાગુ પડતું નથી"}`, {i:true}));
+    const Qx = ver === "T" ? r2.Q : r1.Q || D.Q;
+    b.push(H(ver === "T" ? "તજ્જ્ઞ શિક્ષકની વિશ્લેષણાત્મક નોંધ" : ver === "F" ? "અંતિમ વિશ્લેષણાત્મક નોંધ (સંશોધકની નોંધ + તજ્જ્ઞ ચકાસણી)" : "સંશોધકની વિશ્લેષણાત્મક નોંધ (Researcher's Analytical Note)", 2));
+    const rows = CA_NQ.map(([t], k) => [`${k + 1}. ${t}`, caQ(Qx, ci, k) || "—"]);
+    if (ver === "F" && r2) { const v = (r2.V || {})[ci] || {}; rows.push(["5. તજ્જ્ઞ શિક્ષકની ચકાસણી", v.a ? `${v.a}${v.c ? " — " + v.c : ""}` : "ચકાસણી બાકી"]); if (caQ(r2.Q, ci, 0)) rows.push(["6. તજ્જ્ઞ શિક્ષકની ચાર નોંધનો સાર", CA_NQ.map(([t], k) => `${k + 1}) ${caQ(r2.Q, ci, k)}`).join("\n")]); }
+    b.push(T(["પાસું", "નોંધ"], rows, "", [1.2, 4]));
+    if (ver !== "T" && D.XB && D.XB[ci]) blocksOut(D.XB[ci]);
+  });
+  // overall
+  b.push(H("સમગ્ર પ્રકરણનું એકંદર મૂલ્યાંકન (Overall Rating)", 1),
+    T(["ક્રમ", "ઘટક", "સૂચકો", "કુલ ગુણ", "પ્રાપ્ત ગુણ", "સરેરાશ ગુણાંક", "ટકાવારી", "સ્તર"], st.comps.map(c => [c.ci + 1, CA_COMP[c.ci][0], c.n, c.max, c.got, c.m.toFixed(2), c.p.toFixed(2), caLevel(c.m)]).concat([["", "કુલ", 51, 153, st.got, st.mean.toFixed(2), st.overall.toFixed(2), caLevel(st.mean)]]), "", [0.5, 3, 0.7, 0.8, 0.9, 1, 1, 1.4]),
+    P(`કુલ સુસંગતતા (Overall Alignment %) = (પ્રાપ્ત ગુણ ÷ કુલ ગુણ) × 100 = (${st.got} ÷ 153) × 100 = ${st.overall.toFixed(2)}%`, {b:true}),
+    P(`સૂચકદીઠ સરેરાશ ગુણાંક = પ્રાપ્ત ગુણ ÷ 51 = ${st.mean.toFixed(2)}`, {b:true}),
+    P(`ઘટકોને સમાન ભાર આપતો સૂચકાંક = નવ ઘટક-ટકાવારીઓની સરેરાશ = ${st.equal.toFixed(2)}%`, {b:true}),
+    P(`RAC-સૂચિત માળખાનો સૂચકાંક (TCA-40) = (${Math.round(st.tca * 1.2)} ÷ 120) × 100 = ${st.tca.toFixed(2)}%`, {b:true}),
+    T(["સુસંગતતા-સ્તર", "સૂચકદીઠ સરેરાશ ગુણાંક", "નિશાની"], [["ઉચ્ચ", "2.50–3.00"], ["આંશિક", "1.50–2.49"], ["ન્યૂનતમ", "0.50–1.49"], ["નથી", "0.50 થી ઓછો"]].map(([l, r]) => [l, r, caLevel(st.mean) === l ? "✓" : ""]), "", [2, 2, 1]),
+    P(`પ્રકરણ NCF-SE 2023 સાથે ${caLevel(st.mean)} સુસંગતતા દર્શાવે છે.${caLevel(st.equal / 100 * 3) !== caLevel(st.mean) ? ` ઘટક-સમાન-ભાર સૂચકાંક (${st.equal.toFixed(2)}%) જુદા સ્તરે આવે છે, કારણ કે ઘટકોમાં સૂચક-સંખ્યા સરખી નથી; ચુકાદો સરહદી ગણવો.` : " બંને સૂચકાંક એક જ સ્તરે છે."}${caLevel(st.tcaMean) !== caLevel(st.mean) ? ` TCA-40 મુજબ સ્તર ${caLevel(st.tcaMean)} છે, એટલે † સૂચકો ચુકાદાને અસર કરે છે.` : " TCA-40 મુજબ પણ એ જ સ્તર છે, એટલે તારણ † સૂચકો પર આધારિત નથી."}`));
+  const dist = st.comps.map(c => { const v = CA_IND.filter(x => x.comp === c.ci).map(x => SF[x.id]); return [3, 2, 1, 0].map(k => v.filter(y => y === k).length); });
+  const top = Math.max(...st.dist) / 51 * 100;
+  b.push(H("ગુણ-વિતરણ (Score Distribution) — રેટિંગ-માપદંડની ભેદક્ષમતા", 2),
+    T(["ઘટક", "સૂચકો", "3 ગુણ", "2 ગુણ", "1 ગુણ", "0 ગુણ", "મધ્યક"], st.comps.map((c, i) => [`${c.ci + 1} ${CA_SHORT[c.ci]}`, c.n, ...dist[i], c.m.toFixed(2)]).concat([["કુલ", 51, ...st.dist, st.mean.toFixed(2)]]), "", [2, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8]),
+    P(`${st.dist[0] / 51 * 100 > 50 ? "અડધાથી વધુ સૂચકોને 3 ગુણ મળ્યા છે — ઉદારતા-પૂર્વગ્રહ (leniency) ચકાસો. " : ""}${top > 70 ? "ગુણ એક જ સ્તરે કેન્દ્રિત છે — માપદંડની ભેદક્ષમતા ઓછી. " : ""}ચારેય ગુણ-સ્તરોનો ઉપયોગ ${st.dist.filter(x => x).length} સ્તરમાં થયો છે; સૌથી વધુ કેન્દ્રીકરણ ${top.toFixed(1)}% હોવાથી માપદંડ ${top > 70 ? "ઓછી" : "પૂરતી"} ભેદક્ષમતા દર્શાવે છે.`));
+  // synthesis / expert opinion
+  if (ver === "T") {
+    b.push(H("તજ્જ્ઞ શિક્ષકનો એકંદર અભિપ્રાય", 1), P(((r2.V || {}).ALL) || "—"));
+    if (r2.VSUB) b.push(H("સંશોધકના વિશ્લેષણની ચકાસણી (તબક્કો 2)", 2), T(["ઘટક", "ચકાસણી", "ટિપ્પણી / સુધારા-સૂચન"], CA_COMP.map((c, ci) => { const v = (r2.V || {})[ci] || {}; return [`${ci + 1} ${CA_SHORT[ci]}`, v.a || "–", v.c || ""]; }), "", [1.4, 1, 4]));
+    b.push(H("મૂલ્યાંકનકારની માહિતી", 2), T(["બાબત", "વિગત"], [["નામ", r2.NAME_R || ""], ["હોદ્દો/શાળા", r2.POST || ""], ["ગણિત શિક્ષણનો અનુભવ (વર્ષ)", r2.EXP || ""], ["લાયકાત", r2.QUAL || ""], ["તાલીમ/કેલિબ્રેશન", r2.TRAINED ? "હા" : "ના"], ["સબમિટ", (r2._at || "").slice(0, 10)]], "", [1.5, 3]));
+  } else if (D.CS && D.CS.length) {
+    b.push(H("પ્રકરણનું આલોચનાત્મક તારણ (Critical Synthesis)", 1), T(D.CS[0][0] === "પાસું" ? D.CS[0] : ["પાસું", "તારણ"], D.CS[0][0] === "પાસું" ? D.CS.slice(1) : D.CS, ver === "F" && cons ? `અંતિમ ગુણ મુજબ: એકંદર ${st.overall.toFixed(2)}%, સ્તર ${caLevel(st.mean)}. ઉપરનું લખાણ સંશોધકના ડ્રાફ્ટનું છે; સહમતિથી બદલાયેલા ગુણ નિર્ણય-નોંધમાં છે.` : "", [1.3, 4]));
+  }
+  // decision log
+  if (ver !== "T") {
+    const dl = (D.DL || []).slice(); const head = dl.length ? dl.shift() : ["ક્રમ", "તારીખ", "સૂચક ID", "મુદ્દો / મૂંઝવણ", "લીધેલો નિર્ણય અને કારણ", "ગુણ-ફેરફાર (પહેલાં → પછી)", "બધાં પ્રકરણોમાં લાગુ? (હા/ના)"];
+    if (ver === "F" && cons) CA_IND.forEach(x => { const a = SA[x.id], f = SF[x.id], bb = SB[x.id]; if (a !== f || (bb != null && bb !== a)) dl.push([String(dl.length + 1), ((cons._updatedAt || "").slice(0, 10)), x.id, `સ્વતંત્ર ગુણમાં તફાવત: સંશોધક A = ${a ?? "–"}, તજ્જ્ઞ B = ${bb ?? "–"}`, `સહમતિ-ચર્ચા પછી ${f}${((cons.NOTE || {})[x.id]) ? " — " + cons.NOTE[x.id] : ""}`, a === f ? "ફેરફાર નથી" : `${a} → ${f}`, "ના"]); });
+    if (dl.length) b.push(H("નિર્ણય-નોંધ (Decision Log / Audit Trail)", 1), T(head, dl, "", [0.4, 0.8, 0.7, 2, 2.6, 1, 0.7]));
+  }
+  // reliability (researcher & final, once the expert has submitted)
+  if (ver !== "T" && r2 && r2.SUBMITTED) {
+    const pairs = CA_IND.map(x => [SA[x.id], SB[x.id]]).filter(([x, y]) => typeof x === "number" && typeof y === "number"), R = relStats(pairs, ch * 101);
+    b.push(H("પરિશિષ્ટ C: આંતર-મૂલ્યાંકનકાર વિશ્વસનીયતા (Inter-rater Reliability)", 1),
+      T(["બાબત", "વિગત"], [["બીજા મૂલ્યાંકનકાર", `${r2.NAME_R || ""}${r2.POST ? ", " + r2.POST : ""}${r2.EXP ? ", અનુભવ " + r2.EXP + " વર્ષ" : ""}`], ["પદ્ધતિ", "બંને મૂલ્યાંકનકારોએ એકબીજાના ગુણ જોયા વિના, એ જ નિયમો અને 'શું જોવું' વ્યાખ્યાઓ મુજબ સ્વતંત્ર ગુણ આપ્યા (blind rating); વિશ્વસનીયતા સહમતિ પહેલાંના ગુણ પરથી ગણી છે."]], "", [1.2, 4]),
+      T(["ID", "સૂચક", "સંશોધક (A)", "તજ્જ્ઞ (B)", "|A − B|", "સહમતિ-ગુણ", "નોંધ"], CA_IND.map(x => [x.id, x.text, SA[x.id] ?? "–", SB[x.id] ?? "–", typeof SA[x.id] === "number" && typeof SB[x.id] === "number" ? Math.abs(SA[x.id] - SB[x.id]) : "–", ((cons || {}).F || {})[x.id] ?? "", ((cons || {}).NOTE || {})[x.id] || ""]), "", [0.5, 4, 0.7, 0.7, 0.6, 0.8, 2]));
+    if (R) b.push(cap("આંકડાકીય વિશ્લેષણ (n = " + R.n + " સૂચક-જોડી)"),
+      T(["આંકડો", "મૂલ્ય", "અર્થઘટન"], [
+        ["સંપૂર્ણ સહમતિ (Exact agreement)", R.exact.toFixed(1) + "%", "|A − B| = 0"],
+        ["નજીકની સહમતિ (Adjacent, ±1)", R.adj.toFixed(1) + "%", "|A − B| ≤ 1"],
+        ["Krippendorff's α (ordinal)", `${f3(R.alpha)} (95% CI ${f3(R.ci[0])} – ${f3(R.ci[1])})`, `${alphaWord(R.alpha)}; bootstrap 1000 નમૂના; α < 0.667 ની સંભાવના ${isNaN(R.qa) ? "–" : (R.qa * 100).toFixed(1) + "%"}`],
+        ["Cohen's weighted κ (quadratic)", f3(R.kw), kWord(R.kw) + " સહમતિ (Landis & Koch)"],
+        ["Spearman's ρ", `${f3(R.rho)} (p ${p3(R.prho)})`, "ક્રમ-સંબંધ: બંનેના ગુણ સાથે વધે-ઘટે છે કે નહીં"],
+        ["સરેરાશ ગુણ A / B", `${R.mA.toFixed(2)} / ${R.mB.toFixed(2)}`, `તફાવત (A − B) = ${R.md.toFixed(2)}, SD ${R.sdd.toFixed(2)}`],
+        ["Wilcoxon signed-rank (વ્યવસ્થિત પૂર્વગ્રહ)", R.wil.n ? `z = ${R.wil.z.toFixed(2)}, p ${p3(R.wil.p)}${R.wil.exact ? " (exact)" : ""} (n≠0 = ${R.wil.n})` : "બધા ગુણ સરખા", R.wil.p < 0.05 ? (R.md > 0 ? "સંશોધક વ્યવસ્થિત રીતે વધુ ગુણ આપે છે" : "તજ્જ્ઞ વ્યવસ્થિત રીતે વધુ ગુણ આપે છે") + " (p < .05)" : "બંને વચ્ચે વ્યવસ્થિત તફાવત નથી (p ≥ .05)"]], "ટકાવારી-સહમતિ તક (chance)થી થતી સહમતિ બાદ કરતી નથી; તેથી α અને κw મુખ્ય આંકડા ગણવા. α માટે નિર્ણય-સીમા: ≥ 0.800 વિશ્વસનીય, 0.667–0.799 કામચલાઉ, < 0.667 અપૂરતી (Krippendorff, 2004).", [2, 1.6, 3]),
+      T(["ઘટક", "જોડી", "સંપૂર્ણ %", "±1 %", "α"], CA_COMP.map((c, ci) => { const pp = CA_IND.filter(x => x.comp === ci).map(x => [SA[x.id], SB[x.id]]).filter(([x, y]) => typeof x === "number" && typeof y === "number");
+        return [`${ci + 1} ${CA_SHORT[ci]}`, pp.length, pp.length ? (pp.filter(([x, y]) => x === y).length / pp.length * 100).toFixed(1) : "–", pp.length ? (pp.filter(([x, y]) => Math.abs(x - y) <= 1).length / pp.length * 100).toFixed(1) : "–", f3(kAlphaOrdinal(pp))]; }), "ઘટક-સ્તરે સૂચકો ઓછા હોવાથી α અસ્થિર હોઈ શકે; અર્થઘટન સાવધાનીથી.", [2, 0.8, 1, 1, 1]),
+      P(`અર્થઘટન: પ્રકરણ ${ch} માં સંશોધક અને તજ્જ્ઞ વચ્ચે ${R.exact.toFixed(1)}% સંપૂર્ણ અને ${R.adj.toFixed(1)}% નજીકની સહમતિ છે; Krippendorff's α = ${f3(R.alpha)} (95% CI ${f3(R.ci[0])}–${f3(R.ci[1])}; ${alphaWord(R.alpha)}) અને quadratic weighted κ = ${f3(R.kw)} (${kWord(R.kw)}).${R.wil.n && R.wil.p < 0.05 ? ` Wilcoxon કસોટી વ્યવસ્થિત તફાવત દર્શાવે છે (z = ${R.wil.z.toFixed(2)}, p ${p3(R.wil.p)}).` : " બે મૂલ્યાંકનકારોના ગુણમાં વ્યવસ્થિત તફાવત નથી."}${cons ? ` સહમતિ-ચર્ચા પછી અંતિમ ગુણ ${caStats(cons.F || {}).got}/153 (${caStats(cons.F || {}).overall.toFixed(2)}%) રહ્યા.` : " તફાવતવાળા સૂચકો પર સહમતિ-ચર્ચા બાકી છે."}`));
+  }
+  // appendix A/B for the final version: all chapters available so far
+  if (ver === "F") {
+    const all = []; for (let c = 1; c <= 13; c++) { const S0 = caFinalS(c); if (S0 && Object.keys(S0).length) all.push({c, name:(CA.docs.get(caId("R1", c)) || {}).NAME || "", st:caStats(S0)}); }
+    if (all.length) { const got = all.reduce((a, x) => a + x.st.got, 0);
+      b.push(H("પરિશિષ્ટ A: તુલનાત્મક પ્રકરણ-વિશ્લેષણ અને સંચિત સૂચકાંક", 1), T(["પ્રકરણ", ...CA_SHORT.map((_, i) => `ઘ-${i + 1}`), "પ્રાપ્ત/153", "એકંદર %", "સ્તર"], all.map(x => [`${x.c} ${x.name}`, ...x.st.comps.map(c => c.p.toFixed(1)), x.st.got, x.st.overall.toFixed(2), caLevel(x.st.mean)]), `સંચિત સૂચકાંક = ${got} ÷ ${153 * all.length} × 100 = ${(got / (153 * all.length) * 100).toFixed(2)}% (${all.length} પ્રકરણ). ઘ = ${CA_SHORT.map((s, i) => `${i + 1} ${s}`).join(", ")}.`, [1.8, ...CA_SHORT.map(() => 0.6), 0.9, 0.9, 1]),
+        H("પરિશિષ્ટ B: પ્રકરણવાર ગુણ-વિતરણ", 1), T(["પ્રકરણ", "3 ગુણ", "2 ગુણ", "1 ગુણ", "0 ગુણ", "કુલ", "મધ્યક"], all.map(x => [`${x.c} ${x.name}`, ...x.st.dist, x.st.done, x.st.mean.toFixed(2)]), "", [2.5, 1, 1, 1, 1, 1, 1])); }
+  }
+  return K.pack(b);
+}
+async function caChapterDownload(ch, ver){
+  try { say("Word બને છે…", "ok"); const blob = await caChapterDoc(ch, ver);
+    download(`Ch${String(ch).padStart(2, "0")}_Content_Analysis_${{R:"Researcher", T:"Expert_Teacher", F:"Final"}[ver]}_${today()}.docx`, blob, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    say(`✓ પ્રકરણ ${ch}: ${{R:"સંશોધક", T:"તજ્જ્ઞ શિક્ષક", F:"અંતિમ"}[ver]} વિશ્લેષણ (Word) તૈયાર.`, "ok"); }
+  catch (er) { say("Word ન બન્યું: " + (er.message || er), "bad"); }
+}
+function cadCard(){
+  const inp = h("input", {type:"file", id:"cadUp", accept:".docx", multiple:true, style:"display:none", onchange:async e => {
+    const fs0 = Array.from(e.target.files); e.target.value = ""; let ok = 0; const bad = [];
+    for (const f of fs0) { try { const D = await caImportDocx(f); ok++; say(`⬆ ${ok}/${fs0.length}: પ્રકરણ ${D.ch} (${Object.keys(D.S).length} ગુણ, ${Object.keys(D.Q).length} ઘટક-નોંધ) સેવ થયું…`, "ok"); } catch (er) { bad.push(er.message || String(er)); } }
+    await route(true); say(`✓ ${ok} Word ફાઇલ વાંચીને સેવ થઈ.${bad.length ? " ✗ " + bad.join("; ") : ""}`, bad.length ? "warn" : "ok"); }});
+  const btn = (c, v, on) => h("button", {type:"button", class:"btn small" + (on ? "" : " ghost"), "data-c":c, "data-v":v, disabled:!on, onclick:() => caChapterDownload(c, v)}, {R:"📄 સંશોધક", T:"📄 તજ્જ્ઞ શિક્ષક", F:"📄 અંતિમ"}[v]);
+  return h("div", {class:"card", id:"cadCard"}, h("h2", {}, "📑 પ્રકરણવાર સંપૂર્ણ વિષયવસ્તુ વિશ્લેષણ (Word, 3 આવૃત્તિ)"),
+    h("p", {class:"note"}, "દરેક પ્રકરણ માટે: (1) સંશોધકનું વિશ્લેષણ, (2) તજ્જ્ઞ ગણિત શિક્ષકનું સ્વતંત્ર વિશ્લેષણ, (3) અંતિમ વિશ્લેષણ (સહમતિ-ગુણ + તજ્જ્ઞ ચકાસણી + વિશ્વસનીયતા આંકડા: % સહમતિ, Krippendorff's α + 95% CI, weighted κ, Spearman ρ, Wilcoxon). તમારી Word ડ્રાફ્ટ ફાઇલ (5th Draft ફોર્મેટ) અપલોડ કરો — પુરાવો, અર્થઘટન, જોડાણ, કારણ, ચાર નોંધ, આલોચનાત્મક તારણ અને નિર્ણય-નોંધ ડિજિટલ સેવ થશે."),
+    h("label", {class:"btn primary", for:"cadUp", style:"display:inline-block;margin:6px 0"}, "⬆ સંશોધકની Word ફાઇલો અપલોડ કરો (એક કે 13 એકસાથે)"), inp,
+    h("div", {class:"scroll"}, h("table", {class:"t"}, h("tr", {}, ...["પ્રકરણ", "Word ડેટા", "સંશોધક", "તજ્જ્ઞ શિક્ષક", "અંતિમ"].map(x => h("th", {}, x))),
+      ...Array.from({length:13}, (_, i) => { const c = i + 1, a = CA.docs.get(caId("R1", c)), e = caR2(c);
+        return h("tr", {}, h("td", {}, `${c} ${(a && a.NAME) || (CA_SEED[c] || [""])[0]}`), h("td", {class:"note"}, a && a.DOCX ? "✓ " + a.DOCX.slice(-34) : "–"),
+          h("td", {}, btn(c, "R", !!(a && a.S))), h("td", {}, btn(c, "T", !!(e && e.SUBMITTED))), h("td", {}, btn(c, "F", !!(a && a.S && e && e.SUBMITTED)))); }))),
+    h("p", {class:"note"}, "'અંતિમ' આવૃત્તિ તજ્જ્ઞ સબમિટ કરે પછી ખૂલે છે; સહમતિ-ગુણ (#cons) સેવ ન થયા હોય તો હાલ સંશોધકના ગુણ વપરાય છે."));
+}
+
 function viewCA(){
   const m = $("#main"); if (!isAdmin()) { viewDash(); return; }
   const box = h("div"); m.append(box);
@@ -1325,7 +1533,7 @@ function viewCA(){
   caLoad().then(draw).catch(e => { box.textContent = ""; box.append(h("p", {class:"msg bad"}, "લોડ ન થયું: " + (e.code || e.message))); });
   function cur(){ return CA.docs.get(caId(CA.rater, CA.ch)) || {CH:CA.ch, RATER:CA.rater, NAME:"", S:{}, E:{}, QR:false}; }
   function draw(){
-    box.textContent = ""; const d = JSON.parse(JSON.stringify(cur())); d.S = d.S || {}; d.E = d.E || {};
+    box.textContent = ""; const d = JSON.parse(JSON.stringify(cur())); d.S = d.S || {}; d.E = d.E || {}; d.Q = d.Q || {};
     const r1n = n => (CA.docs.get(caId("R1", n)) || {}).NAME || "";
     const chSel = h("select", {id:"caCh", onchange:e => { CA.ch = +e.target.value; draw(); }}, ...Array.from({length:13}, (_, i) => { const n = i + 1, dd = CA.docs.get(caId(CA.rater, n)); const st = dd ? caStats(dd.S || {}).done : 0;
       return h("option", {value:n, selected:n === CA.ch}, `પ્રકરણ ${n}${r1n(n) ? ": " + r1n(n) : ""} (${st}/51)`); }));
@@ -1333,7 +1541,7 @@ function viewCA(){
     const name = h("input", {type:"text", id:"caName", value:d.NAME || (CA.rater === "R2" ? r1n(CA.ch) : (CA.ch === 1 ? "સંમેય સંખ્યાઓ" : "")), placeholder:"પ્રકરણનું નામ (અનુક્રમણિકા મુજબ)"});
     const qr = h("input", {type:"checkbox", id:"caQR", checked:!!d.QR});
     const sum = h("div", {id:"caSum"});
-    const upd = () => { const st = caStats(d.S); sum.textContent = "";
+    const upd = () => { const st = caStats(d.S); sum.textContent = ""; box.querySelectorAll(".caCL").forEach(e => { e.textContent = compLine(d.S, +e.dataset.c); });
       sum.append(h("div", {class:"scroll"}, h("table", {class:"t"}, h("tr", {}, ...["ઘટક", "ભરેલ", "ગુણ", "%", "સરેરાશ", "સ્તર"].map(x => h("th", {}, x))),
         ...st.comps.map(c => h("tr", {}, h("td", {}, `${c.ci + 1} ${CA_SHORT[c.ci]}`), h("td", {}, `${c.done}/${c.n}`), h("td", {}, `${c.got}/${c.max}`), h("td", {}, c.p.toFixed(2)), h("td", {}, c.m.toFixed(2)), h("td", {}, caLevel(c.m)))),
         h("tr", {}, h("th", {}, "કુલ"), h("th", {}, `${st.done}/51`), h("th", {}, `${st.got}/153`), h("th", {}, st.overall.toFixed(2)), h("th", {}, st.mean.toFixed(2)), h("th", {}, caLevel(st.mean))))),
@@ -1345,7 +1553,8 @@ function viewCA(){
       const rows = ind.map(x => { const btns = [0, 1, 2, 3].map(v => h("button", {type:"button", class:"btn small caB", "data-i":x.id, "data-v":v, onclick:() => { d.S[x.id] = v; paint(); upd(); }}, String(v)));
         return h("div", {class:"q", style:"margin:4px 0"}, h("div", {style:"display:flex;gap:8px;align-items:center;flex-wrap:wrap"}, h("b", {style:"min-width:34px"}, x.id), h("span", {style:"flex:1;min-width:180px"}, (x.dag ? "† " : "") + x.text), h("span", {style:"display:flex;gap:4px"}, ...btns)),
           CA.ev ? h("input", {type:"text", class:"caE", "data-i":x.id, value:d.E[x.id] || "", placeholder:"પુરાવો: પાનું / અંશ / કારણ", style:"width:100%;margin-top:4px", oninput:e => { d.E[x.id] = e.target.value; }}) : null); });
-      return h("div", {class:"card"}, h("h3", {}, `ઘટક ${ci + 1}: ${c[0]}`), h("div", {class:"qk"}, quick, h("span", {}, "ક્રમમાં ગુણ લખો: 0 = પુરાવો નથી · 1 = ન્યૂનતમ · 2 = આંશિક · 3 = સુસંગત")), ...rows);
+      return h("div", {class:"card"}, h("h3", {}, `ઘટક ${ci + 1}: ${c[0]}`), h("div", {class:"qk"}, quick, h("span", {}, "ક્રમમાં ગુણ લખો: 0 = પુરાવો નથી · 1 = ન્યૂનતમ · 2 = આંશિક · 3 = સુસંગત")), ...rows,
+        CA.rater === "R1" ? notesBox(ci, d.Q, d.S, false) : null);
     });
     function paint(){ box.querySelectorAll(".caB").forEach(b => { const on = d.S[b.dataset.i] === +b.dataset.v; b.classList.toggle("primary", on); }); }
     const save = async () => {
@@ -1375,13 +1584,19 @@ function caResults(){
     r1.length ? h("div", {class:"scroll"}, h("table", {class:"t"}, h("tr", {}, h("th", {}, "પ્રકરણ"), ...CA_SHORT.map((s, i) => h("th", {}, `ઘ-${i + 1}`)), h("th", {}, "એકંદર %"), h("th", {}, "TCA-40 %"), h("th", {}, "સ્તર")),
       ...r1.map(x => h("tr", {}, h("td", {}, `${x.c} ${x.name}`), ...x.st.comps.map(c => h("td", {}, c.p.toFixed(1))), h("td", {}, x.st.overall.toFixed(2)), h("td", {}, x.st.tca.toFixed(2)), h("td", {}, caLevel(x.st.mean) + (x.st.done < 51 ? ` (${x.st.done}/51)` : "")))))) : h("p", {class:"note"}, "હજી કોઈ પ્રકરણ સેવ થયું નથી."),
     rel.all ? h("p", {class:"note"}, `વિશ્વસનીયતા (${rel.rows.length} પ્રકરણ, ${rel.all.n} જોડી): સંપૂર્ણ સહમતિ ${rel.all.exact.toFixed(1)}% · નજીકની (±1) ${rel.all.adj.toFixed(1)}% · Krippendorff's α (ordinal) = ${isNaN(rel.all.alpha) ? "–" : rel.all.alpha.toFixed(3)}`) : h("p", {class:"note"}, "વિશ્વસનીયતા: મૂલ્યાંકનકાર 2 ના ગુણ ઉમેરશો એટલે અહીં આપમેળે ગણાશે."),
+    (() => { const ca = caCompAgree(); if (!ca.some(x => x.n)) return null;
+      return h("div", {}, h("h3", {}, "ઘટકવાર સહમતિ અને તજ્જ્ઞ ચકાસણી (13 પ્રકરણ)"), h("div", {class:"scroll"}, h("table", {class:"t"}, h("tr", {}, ...["ઘટક", "જોડી", "સંપૂર્ણ %", "±1 %", "α", ...CA_AGREE].map(x => h("th", {}, x))),
+        ...ca.map(x => h("tr", {}, h("td", {}, `${x.ci + 1} ${CA_SHORT[x.ci]}`), h("td", {}, x.n), h("td", {}, isNaN(x.exact) ? "–" : x.exact.toFixed(1)), h("td", {}, isNaN(x.adj) ? "–" : x.adj.toFixed(1)), h("td", {}, isNaN(x.alpha) ? "–" : x.alpha.toFixed(3)), ...CA_AGREE.map(a => h("td", {}, x.ver[a] || 0))))))); })(),
     h("h3", {}, "તજ્જ્ઞ મૂલ્યાંકન (13 શિક્ષક × 1 પ્રકરણ)"),
     h("div", {class:"scroll"}, h("table", {class:"t"}, h("tr", {}, ...["પ્રકરણ", "સંશોધક", "તજ્જ્ઞ", "α", "લિંક (શિક્ષકને મોકલો)", "સહમતિ"].map(x => h("th", {}, x))),
       ...Array.from({length:13}, (_, i) => { const c = i + 1, a = CA.docs.get(caId("R1", c)), e = CA.docs.get("r2_" + c), rr = rel.rows.find(x => x.c === c), cc = CA.docs.get("cons_" + c);
-        return h("tr", {}, h("td", {}, `${c} ${(CA_SEED[c] || [""])[0]}`), h("td", {}, a ? `${caStats(a.S || {}).done}/51` : "–"), h("td", {}, e ? `${e.NAME_R || "?"} · ${e.SUBMITTED ? "✓ સબમિટ" : "ડ્રાફ્ટ"}` : "–"),
+        return h("tr", {}, h("td", {}, `${c} ${(CA_SEED[c] || [""])[0]}`), h("td", {}, a ? `${caStats(a.S || {}).done}/51` : "–"), h("td", {}, e ? `${e.NAME_R || "?"} · ${e.SUBMITTED ? "✓ સબમિટ" : "ડ્રાફ્ટ"}${e.VSUB ? " · ✓ ચકાસણી" : ""}` : "–"),
           h("td", {}, rr && !isNaN(rr.alpha) ? rr.alpha.toFixed(3) : "–"), h("td", {}, h("code", {style:"font-size:.75rem"}, `dachauhan1.github.io/teacher.html#rate-${c}`)),
           h("td", {}, a && e && e.SUBMITTED ? h("a", {href:"#cons-" + c, class:"btn small"}, cc ? "✓ જુઓ" : "ચર્ચા કરો") : "–")); }))),
+    cadCard(),
     h("div", {class:"chips"}, h("button", {class:"btn", type:"button", id:"caSeed", onclick:async () => { try { const n = await caSeedAll(); say(`✓ ${n} પ્રકરણના સંશોધક-ગુણ ભરાયા.`, "ok"); route(true); } catch (er) { say("ભરાયું નહીં: " + (er.code || er.message), "bad"); } }}, "⬇ 13 પ્રકરણના સંશોધક-ગુણ (Word ફાઇલો મુજબ) ભરો"),
+      h("button", {class:"btn", type:"button", id:"caSeedN", onclick:async () => { try { const n = await caSeedNotes(); say(`✓ ${n} પ્રકરણની ઘટકવાર ચાર નોંધ ભરાઈ.`, "ok"); route(true); } catch (er) { say("ભરાયું નહીં: " + (er.code || er.message), "bad"); } }}, "⬇ 13 પ્રકરણની સંશોધક-નોંધ (Word મુજબ) ભરો"),
+      h("button", {class:"btn", type:"button", id:"caPub", onclick:async () => { try { const n = await caPublish(); say(`✓ ${n} પ્રકરણનું વિશ્લેષણ શિક્ષકોની ચકાસણી માટે મોકલાયું (સબમિટ પછી જ દેખાશે).`, "ok"); } catch (er) { say("મોકલાયું નહીં: " + (er.code || er.message) + " — Firebase Rules માં ca_pub ઉમેર્યું છે?", "bad"); } }}, "📤 સંશોધકનું વિશ્લેષણ ચકાસણી માટે મોકલો"),
       h("button", {class:"btn", type:"button", onclick:xl}, "📥 હેતુ 1 Excel"), h("button", {class:"btn primary", type:"button", onclick:() => thesisDownload(4)}, "📄 Thesis Chapter 4 (હેતુ 1 સહિત)")));
 }
 function caWorkbook(){
@@ -1392,11 +1607,20 @@ function caWorkbook(){
   const mat = [["પ્રકરણ", "નામ", ...CA_SHORT.map((s, i) => `ઘ-${i + 1} ${s} %`), "પ્રાપ્ત/153", "એકંદર %", "ઘટક-સમાન-ભાર %", "TCA-40 %", "સરેરાશ", "સ્તર", "3 ગુણ", "2 ગુણ", "1 ગુણ", "0 ગુણ", "QR તપાસ્યા"]];
   for (let c = 1; c <= 13; c++) { const d = CA.docs.get(caId("R1", c)); if (!d) continue; const st = caStats(caFinalS(c) || {});
     mat.push([c, d.NAME || "", ...st.comps.map(x => +x.p.toFixed(2)), st.got, +st.overall.toFixed(2), +st.equal.toFixed(2), +st.tca.toFixed(2), +st.mean.toFixed(2), caLevel(st.mean), ...st.dist, d.QR ? "હા" : "ના"]); }
-  const rel = caReliability(); const rr = [["પ્રકરણ", "નામ", "જોડી", "સંપૂર્ણ સહમતિ %", "નજીકની સહમતિ %", "Krippendorff α (ordinal)"], ...rel.rows.map(x => [x.c, x.name, x.n, +x.exact.toFixed(1), +x.adj.toFixed(1), isNaN(x.alpha) ? "" : +x.alpha.toFixed(3)])];
+  const rel = caReliability(), num = x => x == null || isNaN(x) ? "" : +x.toFixed(3);
+  const rr = [["પ્રકરણ", "નામ", "જોડી", "સંપૂર્ણ સહમતિ %", "નજીકની સહમતિ %", "Krippendorff α (ordinal)", "α 95% CI નીચે", "α 95% CI ઉપર", "weighted κ (quadratic)", "Spearman ρ", "ρ p", "મધ્યક A", "મધ્યક B", "તફાવત A−B", "Wilcoxon z", "Wilcoxon p"],
+    ...rel.rows.map(x => { const a = CA.docs.get(caId("R1", x.c)), b = caR2(x.c), R = relStats(CA_IND.map(i => [a.S?.[i.id], b.S?.[i.id]]).filter(([p, q]) => typeof p === "number" && typeof q === "number"), x.c * 101);
+      return [x.c, x.name, x.n, +x.exact.toFixed(1), +x.adj.toFixed(1), num(x.alpha), num(R.ci[0]), num(R.ci[1]), num(R.kw), num(R.rho), num(R.prho), num(R.mA), num(R.mB), num(R.md), num(R.wil.z), num(R.wil.p)]; })];
   if (rel.all) rr.push(["કુલ", "", rel.all.n, +rel.all.exact.toFixed(1), +rel.all.adj.toFixed(1), isNaN(rel.all.alpha) ? "" : +rel.all.alpha.toFixed(3)]);
   const raters = [["પ્રકરણ", "તજ્જ્ઞનું નામ", "હોદ્દો/સંસ્થા", "અનુભવ (વર્ષ)", "લાયકાત", "તાલીમ", "સબમિટ", "તારીખ"]];
   for (let c = 1; c <= 13; c++) { const d = CA.docs.get("r2_" + c); if (d) raters.push([c, d.NAME_R || "", d.POST || "", d.EXP || "", d.QUAL || "", d.TRAINED ? "હા" : "ના", d.SUBMITTED ? "હા" : "ના", (d._at || "").slice(0, 10)]); }
-  return xlsx([{name:"Matrix_Final", rows:mat}, {name:"Scores_Long", rows:long, wrap:true}, {name:"Reliability", rows:rr}, {name:"Experts", rows:raters}]);
+  const notes = [["પ્રકરણ", "નામ", "કોણ", "ઘટક", ...CA_NQ.map(q => q[0])]];
+  for (let c = 1; c <= 13; c++) { const a = CA.docs.get(caId("R1", c)), b = caR2(c);
+    for (const [who, d] of [["સંશોધક", a], ["તજ્જ્ઞ", b]]) if (d && d.Q) CA_COMP.forEach((_, ci) => notes.push([c, (a || {}).NAME || (CA_SEED[c] || [""])[0], who, `${ci + 1} ${CA_SHORT[ci]}`, ...[0, 1, 2, 3].map(k => caQ(d.Q, ci, k))])); }
+  const ver = [["પ્રકરણ", "તજ્જ્ઞ", "ઘટક", "ચકાસણી", "ટિપ્પણી"]];
+  for (let c = 1; c <= 13; c++) { const b = caR2(c); if (!b || !b.V) continue; CA_COMP.forEach((_, ci) => { const v = b.V[ci] || {}; ver.push([c, b.NAME_R || "", `${ci + 1} ${CA_SHORT[ci]}`, v.a || "", v.c || ""]); }); if (b.V.ALL) ver.push([c, b.NAME_R || "", "એકંદર", "", b.V.ALL]); }
+  const cag = [["ઘટક", "જોડી", "સંપૂર્ણ સહમતિ %", "±1 સહમતિ %", "Krippendorff α", ...CA_AGREE]].concat(caCompAgree().map(x => [`${x.ci + 1} ${CA_SHORT[x.ci]}`, x.n, isNaN(x.exact) ? "" : +x.exact.toFixed(1), isNaN(x.adj) ? "" : +x.adj.toFixed(1), isNaN(x.alpha) ? "" : +x.alpha.toFixed(3), ...CA_AGREE.map(a => x.ver[a])]));
+  return xlsx([{name:"Matrix_Final", rows:mat}, {name:"Scores_Long", rows:long, wrap:true}, {name:"Reliability", rows:rr}, {name:"Component_Agreement", rows:cag}, {name:"Notes_4", rows:notes, wrap:true}, {name:"Verification", rows:ver, wrap:true}, {name:"Experts", rows:raters}]);
 }
 // Thesis section 4.2 (Objective 1) — built from R1 (final) scores
 function caThesis(K){
@@ -1435,12 +1659,22 @@ function caThesis(K){
   const rel = caReliability();
   b.push(cap(`કોષ્ટક ${sub}.3: આંતર-મૂલ્યાંકનકાર વિશ્વસનીયતા`), rel.rows.length ? T(["પ્રકરણ", "જોડી", "સંપૂર્ણ સહમતિ %", "નજીકની સહમતિ %", "Krippendorff α"], rel.rows.map(x => [`${x.c} ${x.name}`, x.n, x.exact.toFixed(1), x.adj.toFixed(1), isNaN(x.alpha) ? "–" : x.alpha.toFixed(3)]).concat(rel.all ? [["કુલ", rel.all.n, rel.all.exact.toFixed(1), rel.all.adj.toFixed(1), isNaN(rel.all.alpha) ? "–" : rel.all.alpha.toFixed(3)]] : []), "α ≥ 0.800 વિશ્વસનીય; 0.667–0.800 કામચલાઉ તારણ માટે સ્વીકાર્ય. ગણતરી સહમતિ પહેલાંના સ્વતંત્ર ગુણ પરથી.") : TODO("બીજા મૂલ્યાંકનકારના ગુણ (મૂલ્યાંકનકાર 2) એપમાં ભર્યા પછી વિશ્વસનીયતા કોષ્ટક આપમેળે આવશે"),
     ...(() => { const cs = caConsStats(); if (!cs.tot) return []; return [P(`વિશ્વસનીયતાનું અર્થઘટન: ${rel.all ? `${rel.rows.length} પ્રકરણોમાં તજ્જ્ઞ અને સંશોધક વચ્ચે સંપૂર્ણ સહમતિ ${rel.all.exact.toFixed(1)}%, ±1 સહમતિ ${rel.all.adj.toFixed(1)}% અને Krippendorff's α = ${isNaN(rel.all.alpha) ? "–" : rel.all.alpha.toFixed(3)} (${rel.all.alpha >= 0.8 ? "વિશ્વસનીય" : rel.all.alpha >= 0.667 ? "કામચલાઉ તારણ માટે સ્વીકાર્ય" : "ઓછી; ગુણાંકન-નિયમો ફરી જોવા"}) છે. ` : ""}તફાવતવાળા સૂચકો પર ચર્ચા પછી સંશોધકના ${cs.tot} ગુણમાંથી ${cs.keep} (${(cs.keep / cs.tot * 100).toFixed(1)}%) યથાવત્ રહ્યા; ${cs.up} ગુણ વધ્યા અને ${cs.down} ગુણ ઘટ્યા. અંતિમ વિશ્લેષણ સહમતિ પછીના ગુણ પરથી છે.`)]; })(),
+    ...(() => { const ca = caCompAgree(); if (!ca.some(x => x.n)) return []; const tv = CA_AGREE.map(a => ca.reduce((t, x) => t + x.ver[a], 0)), nv = tv.reduce((a, c) => a + c, 0);
+      const out = [cap(`કોષ્ટક ${sub}.4: ઘટકવાર આંતર-મૂલ્યાંકનકાર સહમતિ અને તજ્જ્ઞ ચકાસણી`), T(["ઘટક", "જોડી", "સંપૂર્ણ %", "±1 %", "α", ...CA_AGREE], ca.map(x => [`${x.ci + 1} ${CA_SHORT[x.ci]}`, x.n, isNaN(x.exact) ? "–" : x.exact.toFixed(1), isNaN(x.adj) ? "–" : x.adj.toFixed(1), isNaN(x.alpha) ? "–" : x.alpha.toFixed(3), ...CA_AGREE.map(a => x.ver[a])]),
+        "સહમતિ: સંશોધક અને તજ્જ્ઞના સ્વતંત્ર ગુણ. ચકાસણી: તજ્જ્ઞે ગુણ સબમિટ કર્યા પછી સંશોધકના ગુણ અને ચાર નોંધ વાંચી દરેક ઘટક માટે આપેલો અભિપ્રાય (પ્રકરણોની સંખ્યા).")];
+      if (nv) { const lo = ca.filter(x => x.nv).sort((a, b2) => (b2.ver["અસંમત"] + b2.ver["આંશિક સંમત"]) - (a.ver["અસંમત"] + a.ver["આંશિક સંમત"]))[0];
+        out.push(P(`તજ્જ્ઞ ચકાસણીમાં કુલ ${nv} ઘટક-નિર્ણયોમાંથી ${tv[0]} (${(tv[0] / nv * 100).toFixed(1)}%) માં તજ્જ્ઞો સંશોધકના વિશ્લેષણ સાથે સંમત, ${tv[1]} (${(tv[1] / nv * 100).toFixed(1)}%) માં આંશિક સંમત અને ${tv[2]} (${(tv[2] / nv * 100).toFixed(1)}%) માં અસંમત રહ્યા.${lo && (lo.ver["અસંમત"] + lo.ver["આંશિક સંમત"]) ? ` સૌથી વધુ મતભેદ '${CA_COMP[lo.ci][0]}' ઘટકમાં રહ્યો; તજ્જ્ઞોની ટિપ્પણીઓ પરથી તેનું અર્થઘટન સુધાર્યું છે.` : ""}`), TODO("અસંમત/આંશિક ઘટકો માટે તજ્જ્ઞોની મુખ્ય ટિપ્પણીઓ અને તેના આધારે કરેલો સુધારો 2–3 વાક્યમાં લખો (Excel: Verification શીટ)")); }
+      return out; })(),
     H(`${sub.replace(/\.\d+$/, "")}.${k + 1} સંશોધન પ્રશ્ન 1 નો ઉત્તર`, 3),
     P(`ધોરણ 8 ના ગણિત પાઠ્યપુસ્તકની વિષયવસ્તુ NCF-SE 2023 ના પાઠ્યપુસ્તક-રચના સિદ્ધાંતો સાથે ${caLevel(bookMean)} (${bookIdx.toFixed(2)}%) સુસંગતતા ધરાવે છે. '${CA_SHORT[ord[0].ci]}' અને '${CA_SHORT[ord[1] ? ord[1].ci : ord[0].ci]}' સિદ્ધાંતો સાથે સુસંગતતા વધુ, જ્યારે '${CA_SHORT[ord[ord.length - 1].ci]}' અને '${CA_SHORT[ord[ord.length - 2] ? ord[ord.length - 2].ci : ord[ord.length - 1].ci]}' સાથે ઓછી છે.${r1.length < 13 ? ` (હાલ ${r1.length}/13 પ્રકરણ પરથી; બધાં પ્રકરણ ભર્યા પછી અંતિમ.)` : ""}`));
   F.unshift(`સમગ્ર પાઠ્યપુસ્તક (${r1.length} પ્રકરણ): ${bookIdx.toFixed(2)}%, ${caLevel(bookMean)} સુસંગતતા; સૌથી વધુ ${CA_SHORT[ord[0].ci]} (M ${fx(ord[0].st.mean)}%), સૌથી ઓછું ${CA_SHORT[ord[ord.length - 1].ci]} (M ${fx(ord[ord.length - 1].st.mean)}%).`);
   // appendix: indicator scores
   const app = [H("પરિશિષ્ટ: હેતુ 1 — સૂચકવાર ગુણ અને પુરાવા (મૂલ્યાંકનકાર 1)", 2)];
   for (const x of r1) app.push(cap(`પ્રકરણ ${x.c}: ${x.name}`), T(["ID", "સૂચક", "ગુણ", "પુરાવો"], CA_IND.map(i => [i.id + (i.dag ? " †" : ""), i.text, x.d.S?.[i.id] ?? "–", x.d.E?.[i.id] || ""]), "ગુણ: 0–3. 'જવાબ' = પાના-આધારિત પુરાવો/નોંધ."));
+  if (r1.some(x => x.d.Q && missNotes(x.d.Q).length < 9)) { app.push(H("પરિશિષ્ટ: હેતુ 1 — ઘટકવાર સંશોધકની વિશ્લેષણાત્મક નોંધ", 2));
+    for (const x of r1) { if (!x.d.Q) continue; app.push(H(`પ્રકરણ ${x.c}: ${x.name}`, 3));
+      CA_COMP.forEach((c, ci) => { if (![0, 1, 2, 3].some(k => caQ(x.d.Q, ci, k))) return; app.push(P(`ઘટક ${ci + 1}: ${c[0]} — ${compLine(caFinalS(x.c) || {}, ci).replace(/^ઘટક \d+ /, "")}`, {b:true}));
+        CA_NQ.forEach(([t], k) => { const v = caQ(x.d.Q, ci, k); if (v) app.push(P(`${k + 1}. ${t}: ${v.replace(/\n+/g, " ")}`)); }); }); } }
   return {b, F, r1, app, bookIdx, bookMean, ord};
 }
 
@@ -1450,6 +1684,22 @@ const CA_SEED = {"2": ["એક ચલ સુરેખ સમીકરણ", "2222
 /* ---- second rater (expert teacher) — independent, blind scoring; stored in ca_r2/CHxx, locked after submit ---- */
 const CA_SCALE = [["3", "સુસંગત (Strong)", "સ્પષ્ટ, સાતત્યપૂર્ણ અને વિકાસાત્મક રીતે યોગ્ય પુરાવો"], ["2", "આંશિક સુસંગત (Partial)", "પુરાવો હાજર, પરંતુ મર્યાદિત, પરોક્ષ, અપૂર્ણ કે અસમાન"], ["1", "ન્યૂનતમ સુસંગત (Minimal)", "ઉપરછલ્લો, એકલદોકલ કે પ્રતીકાત્મક પુરાવો"], ["0", "સુસંગત નથી (Not Evident)", "સંબંધિત કોઈ સમર્થક પુરાવો નથી"]];
 const r2Id = ch => "CH" + String(ch).padStart(2, "0");
+/* four descriptive notes written after the scores of every component (same headings as the researcher's Word analysis) */
+const CA_NQ = [["મુખ્ય સકારાત્મક પાસાઓ (Major Strengths)", "કયા સૂચકોમાં પાના-સંદર્ભ સાથેનો પ્રત્યક્ષ પુરાવો સુસંગતતા દર્શાવે છે?"],
+  ["મુખ્ય ખામીઓ (Major Gaps)", "અભ્યાસક્રમના હેતુ છતાં શું ખૂટે છે? કઈ ક્ષમતાઓ અપેક્ષિત છે પણ પ્રવૃત્તિમાં કાર્યાન્વિત નથી? પ્રક્રિયા પર વધુ અને તર્ક પર ઓછો ભાર છે?"],
+  ["વિદ્યાર્થી વિકાસ પર સંભવિત અસર (Implications for Learners)", "વિષયવસ્તુ વિદ્યાર્થીની વિચારસરણીને કેવી રીતે ઘડે છે? કોને વધુ લાભ મળે અને કોણ વંચિત રહી શકે (ગ્રામ્ય-શહેરી, ભાષાકીય, સામાજિક-આર્થિક)? દરેક અસર 'અનુમાન' તરીકે લખો."],
+  ["NCF-SE 2023 સાથેનું સંકલન અને સુસંગતતા (Alignment with NCF-SE 2023)", "ઘટકનો ગુણ (પ્રાપ્ત/કુલ, %) અને સ્તર; કેટલા સૂચકો પ્રત્યક્ષ, અર્થઘટનાત્મક કે પુરાવા વિનાના; મુખ્ય જોડાણ અને તેની મર્યાદા."]];
+const CA_AGREE = ["સંમત", "આંશિક સંમત", "અસંમત"];
+const caQ = (Q, ci, k) => ((Q || {})[ci] || [])[k] || "";
+function compLine(S0, ci){ const ind = CA_IND.filter(x => x.comp === ci), v = ind.map(x => S0[x.id]).filter(x => typeof x === "number"), got = v.reduce((a, b) => a + b, 0), m = got / ind.length;
+  return `ઘટક ${ci + 1} ગુણ: ${got}/${3 * ind.length} (${(got / (3 * ind.length) * 100).toFixed(2)}%) · સરેરાશ ${m.toFixed(2)} · સ્તર: ${caLevel(m)}${v.length < ind.length ? ` · ${v.length}/${ind.length} સૂચક ભર્યા` : ""}`; }
+function notesBox(ci, Q, S0, lock){
+  return h("div", {class:"caNotes", style:"border-left:4px solid #1f6f54;background:#f3faf6;padding:8px 12px;margin-top:12px;border-radius:6px"},
+    h("h4", {style:"margin:2px 0 4px"}, `ઘટક ${ci + 1}: વિશ્લેષણાત્મક નોંધ`), h("div", {class:"note caCL", "data-c":ci, style:"font-weight:700;margin-bottom:4px"}, compLine(S0, ci)),
+    ...CA_NQ.map(([t, pq], k) => h("div", {class:"field", style:"margin:8px 0"}, h("label", {style:"font-weight:700"}, `${k + 1}. ${t}`), h("div", {class:"note", style:"margin:2px 0 4px"}, pq),
+      h("textarea", {class:"caQ", "data-c":ci, "data-k":k, rows:3, disabled:lock, style:"width:100%;font-size:1rem", oninput:e => { (Q[ci] = Q[ci] || ["", "", "", ""])[k] = e.target.value; }}, caQ(Q, ci, k)))));
+}
+const missNotes = Q => CA_COMP.map((_, ci) => [0, 1, 2, 3].every(k => caQ(Q, ci, k).trim()) ? null : ci + 1).filter(Boolean);
 const caR2 = c => CA.docs.get("r2_" + c) || CA.docs.get(caId("R2", c));
 const caFinalS = c => { const r1 = CA.docs.get(caId("R1", c)); const cc = CA.docs.get("cons_" + c); if (!r1) return null; return cc && cc.F ? Object.assign({}, r1.S, cc.F) : r1.S; };
 function viewRate(arg){
@@ -1464,13 +1714,14 @@ function viewRate(arg){
   }
   function draw(d0, other){
     box.textContent = "";
-    const d = d0 ? JSON.parse(JSON.stringify(d0)) : {CH:ch, S:{}, N:{}, SUBMITTED:false};
-    d.S = d.S || {}; d.N = d.N || {};
+    const d = d0 ? JSON.parse(JSON.stringify(d0)) : {CH:ch, S:{}, N:{}, Q:{}, SUBMITTED:false};
+    d.S = d.S || {}; d.N = d.N || {}; d.Q = d.Q || {};
     const lock = !!d.SUBMITTED; const seedName = (CA_SEED[ch] || [""])[0];
     const chSel = h("select", {id:"rtCh", onchange:e => { location.hash = "#rate-" + e.target.value; }}, ...Array.from({length:13}, (_, i) => h("option", {value:i + 1, selected:i + 1 === ch}, `પ્રકરણ ${i + 1}: ${(CA_SEED[i + 1] || [""])[0]}`)));
     const fld = (id, lab, v, ph, type) => h("div", {class:"field"}, h("label", {for:id}, lab), h("input", {type:type || "text", id, value:v || "", placeholder:ph || "", disabled:lock}));
     box.append(h("div", {class:"card"}, h("h2", {}, "📋 વિષયવસ્તુ-વિશ્લેષણ: તજ્જ્ઞ મૂલ્યાંકનકાર પત્રક"),
-      h("p", {class:"note"}, "ધોરણ 8 ગણિત પાઠ્યપુસ્તકના ફાળવેલા પ્રકરણને NCF-SE 2023 ના 9 ઘટક અને 51 સૂચક મુજબ 0–3 ગુણ આપો. સંશોધકના ગુણ તમને બતાવવામાં આવતા નથી; પાઠ્યપુસ્તક વાંચીને સ્વતંત્ર રીતે ગુણ આપો. અંતિમ સબમિટ પછી ફેરફાર થઈ શકતો નથી."),
+      h("p", {class:"note"}, "ધોરણ 8 ગણિત પાઠ્યપુસ્તકના ફાળવેલા પ્રકરણને NCF-SE 2023 ના 9 ઘટક અને 51 સૂચક મુજબ 0–3 ગુણ આપો, અને દરેક ઘટકના ગુણ પછી ચાર નોંધ લખો: (1) સકારાત્મક પાસાં, (2) ખામીઓ, (3) વિદ્યાર્થી પર અસર, (4) NCF-SE 2023 સાથે સંકલન."),
+      h("p", {class:"note"}, "તબક્કો 1: સંશોધકના ગુણ જોયા વિના સ્વતંત્ર ગુણ અને નોંધ → અંતિમ સબમિટ (પછી ફેરફાર નહીં). તબક્કો 2: સબમિટ પછી સંશોધકનું વિશ્લેષણ ખૂલશે; દરેક ઘટક માટે સંમત / આંશિક સંમત / અસંમત અને ટિપ્પણી લખો."),
       h("div", {class:"field"}, h("label", {for:"rtCh"}, "ફાળવેલું પ્રકરણ"), chSel),
       other ? h("p", {class:"msg warn"}, "આ પ્રકરણ બીજા મૂલ્યાંકનકારે શરૂ કરેલું છે. સંશોધકે તમને ફાળવેલું પ્રકરણ પસંદ કરો.") : null,
       lock ? h("p", {class:"msg ok"}, `✓ અંતિમ સબમિટ થઈ ગયું (${(d._at || "").slice(0, 10)}). આભાર!`) : null));
@@ -1484,7 +1735,8 @@ function viewRate(arg){
       h("table", {class:"t"}, h("tr", {}, h("th", {}, "ગુણ"), h("th", {}, "વર્ણનકર્તા"), h("th", {}, "અર્થ")), ...CA_SCALE.map(r => h("tr", {}, ...r.map(x => h("td", {}, x))))),
       h("ol", {}, ...CA_RULES.map(r => h("li", {style:"margin:4px 0"}, r)))));
     const prog = h("span", {class:"pill"});
-    const paint = () => { box.querySelectorAll(".rtB").forEach(b => b.classList.toggle("primary", d.S[b.dataset.i] === +b.dataset.v)); prog.textContent = `${CA_IND.filter(x => typeof d.S[x.id] === "number").length}/51 સૂચક`; };
+    const paint = () => { box.querySelectorAll(".rtB").forEach(b => b.classList.toggle("primary", d.S[b.dataset.i] === +b.dataset.v)); box.querySelectorAll(".caCL").forEach(e => { e.textContent = compLine(d.S, +e.dataset.c); });
+      prog.textContent = `${CA_IND.filter(x => typeof d.S[x.id] === "number").length}/51 સૂચક · નોંધ ${9 - missNotes(d.Q).length}/9 ઘટક`; };
     CA_COMP.forEach((c, ci) => {
       const ind = CA_IND.filter(x => x.comp === ci);
       box.append(h("div", {class:"card"}, h("h3", {}, `ઘટક ${ci + 1}: ${c[0]}`),
@@ -1492,7 +1744,8 @@ function viewRate(arg){
           h("div", {}, h("b", {}, x.id + (x.dag ? " †" : "") + " "), CA_DEF[x.id][0]),
           h("div", {class:"note", style:"margin:4px 0"}, "શું જોવું: " + CA_DEF[x.id][1]),
           h("div", {style:"display:flex;gap:6px;align-items:center;flex-wrap:wrap"}, ...[0, 1, 2, 3].map(v => h("button", {type:"button", class:"btn rtB", "data-i":x.id, "data-v":v, disabled:lock, style:"min-width:48px;font-size:1.1rem", onclick:() => { d.S[x.id] = v; paint(); }}, String(v))),
-            h("input", {type:"text", class:"rtN", "data-i":x.id, value:d.N[x.id] || "", disabled:lock, placeholder:"પાનું / ટૂંકું કારણ (વૈકલ્પિક)", style:"flex:1;min-width:160px", oninput:e => { d.N[x.id] = e.target.value; }}))))));
+            h("input", {type:"text", class:"rtN", "data-i":x.id, value:d.N[x.id] || "", disabled:lock, placeholder:"પાનું / ટૂંકું કારણ (વૈકલ્પિક)", style:"flex:1;min-width:160px", oninput:e => { d.N[x.id] = e.target.value; }})))),
+        notesBox(ci, d.Q, d.S, lock)));
     });
     const collect = () => { d.NAME_R = $("#rtName").value.trim(); d.POST = $("#rtPost").value.trim(); d.EXP = $("#rtExp").value; d.QUAL = $("#rtQual").value.trim(); d.TRAINED = $("#rtTrain").checked;
       d.CH = ch; d._uid = S.user.uid; d._email = S.user.email || ""; d._at = nowIso(); };
@@ -1501,12 +1754,48 @@ function viewRate(arg){
       if (final) { const miss = CA_IND.filter(x => typeof d.S[x.id] !== "number").map(x => x.id);
         if (!d.NAME_R) return say("પહેલાં તમારું નામ લખો.", "warn");
         if (miss.length) return say(`${miss.length} સૂચક બાકી છે: ${miss.slice(0, 8).join(", ")}${miss.length > 8 ? " …" : ""}`, "warn");
+        const mq = missNotes(d.Q); if (mq.length) return say(`ઘટક ${mq.join(", ")} ની ચાર નોંધ (સકારાત્મક પાસાં, ખામીઓ, વિદ્યાર્થી પર અસર, NCF-SE સંકલન) હજુ પૂરી લખવાની બાકી છે.`, "warn");
         if (!(await ask("અંતિમ સબમિટ કરવું છે? પછી ગુણ બદલી શકાશે નહીં."))) return; d.SUBMITTED = true; }
       try { await tracked(fs().setDoc(dref("ca_r2", r2Id(ch)), d), "તજ્જ્ઞ પત્રક"); say(final ? "✓ અંતિમ સબમિટ થયું. આભાર!" : "✓ ડ્રાફ્ટ સેવ થયો.", "ok"); if (final) load(); }
       catch (er) { d.SUBMITTED = false; say("સેવ ન થયું: " + (er.code || er.message), "bad"); } };
     if (!lock) box.append(h("div", {class:"card", style:"position:sticky;bottom:0;z-index:5"}, h("div", {style:"display:flex;gap:8px;align-items:center;flex-wrap:wrap"}, prog,
       h("button", {class:"btn", type:"button", id:"rtSave", onclick:() => save(false)}, "💾 ડ્રાફ્ટ સેવ"), h("button", {class:"btn primary", type:"button", id:"rtSubmit", onclick:() => save(true)}, "✅ અંતિમ સબમિટ"))));
     paint();
+    if (lock) verifyStage(d);
+  }
+  /* stage 2: after the blind scores are locked, the expert checks the researcher's analysis component by component */
+  async function verifyStage(d){
+    const card = h("div", {class:"card", id:"vfCard"}, h("h2", {}, "🔍 તબક્કો 2: સંશોધકના વિષયવસ્તુ-વિશ્લેષણની ચકાસણી"), h("p", {class:"note"}, "લોડ થાય છે…")); box.append(card);
+    let pub = null;
+    try { const x = await fs().getDoc(dref("ca_pub", r2Id(ch))); pub = x.exists() ? x.data() : null; } catch (e) { pub = null; }
+    card.textContent = ""; card.append(h("h2", {}, "🔍 તબક્કો 2: સંશોધકના વિષયવસ્તુ-વિશ્લેષણની ચકાસણી"));
+    if (!pub) { card.append(h("p", {class:"msg warn"}, "સંશોધકે આ પ્રકરણનું વિશ્લેષણ હજુ ચકાસણી માટે મોકલ્યું નથી. પછીથી આ પાનું ફરી ખોલો.")); return; }
+    d.V = d.V || {}; const vlock = !!d.VSUB;
+    card.append(h("p", {class:"note"}, "તમારા ગુણ અને નોંધ લૉક છે અને બદલાશે નહીં (વિશ્વસનીયતા તેના પરથી ગણાય છે). હવે દરેક ઘટકમાં સંશોધકના ગુણ અને ચાર નોંધ વાંચી, તે પાઠ્યપુસ્તકના પુરાવા સાથે યોગ્ય છે કે નહીં તે દર્શાવો. 'આંશિક સંમત' કે 'અસંમત' હોય તો કારણ અને સુધારો લખો."),
+      vlock ? h("p", {class:"msg ok"}, `✓ ચકાસણી સબમિટ થઈ ગઈ (${(d.VAT || "").slice(0, 10)}). આભાર!`) : null);
+    CA_COMP.forEach((c, ci) => {
+      const ind = CA_IND.filter(x => x.comp === ci), v = d.V[ci] = d.V[ci] || {a:"", c:""};
+      const nDiff = ind.filter(x => typeof pub.S?.[x.id] === "number" && pub.S[x.id] !== d.S[x.id]).length;
+      const ab = CA_AGREE.map(a => h("button", {type:"button", class:"btn vfA" + (v.a === a ? " primary" : ""), "data-c":ci, "data-a":a, disabled:vlock, onclick:e => { v.a = a; card.querySelectorAll(`.vfA[data-c="${ci}"]`).forEach(b => b.classList.toggle("primary", b.dataset.a === a)); }}, a));
+      card.append(h("div", {style:"border-top:2px solid #1f6f54;margin-top:14px;padding-top:8px"}, h("h3", {}, `ઘટક ${ci + 1}: ${c[0]}`),
+        h("div", {class:"note"}, `સંશોધક: ${compLine(pub.S || {}, ci).replace(/^ઘટક \d+ ગુણ: /, "")} · તમે: ${compLine(d.S, ci).replace(/^ઘટક \d+ ગુણ: /, "")} · ગુણમાં તફાવત: ${nDiff}/${ind.length} સૂચક`),
+        h("div", {class:"scroll"}, h("table", {class:"t"}, h("tr", {}, ...["ID", "સૂચક", "સંશોધક", "તમે"].map(x => h("th", {}, x))),
+          ...ind.map(x => { const a = pub.S?.[x.id], b = d.S[x.id]; return h("tr", {style:a !== b ? "background:#fff3bf" : ""}, h("td", {}, x.id), h("td", {}, x.text), h("td", {style:"text-align:center;font-weight:700"}, a ?? "–"), h("td", {style:"text-align:center"}, b ?? "–")); }))),
+        h("details", {open:true}, h("summary", {style:"font-weight:700;cursor:pointer"}, "સંશોધકની ચાર નોંધ"),
+          ...CA_NQ.map(([t], k) => h("div", {style:"margin:6px 0"}, h("b", {}, `${k + 1}. ${t}`), h("div", {style:"white-space:pre-wrap"}, caQ(pub.Q, ci, k) || "—")))),
+        h("div", {style:"display:flex;gap:6px;flex-wrap:wrap;margin:6px 0"}, ...ab),
+        h("textarea", {class:"vfC", "data-c":ci, rows:2, disabled:vlock, placeholder:"ટિપ્પણી / સુધારા-સૂચન (અસંમત કે આંશિક હોય તો કારણ ફરજિયાત)", style:"width:100%", oninput:e => { v.c = e.target.value; }}, v.c || "")));
+    });
+    card.append(h("div", {class:"field", style:"margin-top:12px"}, h("label", {style:"font-weight:700"}, "એકંદર અભિપ્રાય (સમગ્ર પ્રકરણના વિશ્લેષણ વિશે)"),
+      h("textarea", {id:"vfAll", rows:3, disabled:vlock, style:"width:100%", oninput:e => { d.V.ALL = e.target.value; }}, d.V.ALL || "")));
+    const vsave = async final => {
+      if (final) { const miss = CA_COMP.map((_, ci) => d.V[ci].a ? null : ci + 1).filter(Boolean); if (miss.length) return say(`ઘટક ${miss.join(", ")} માટે સંમતિ પસંદ કરો.`, "warn");
+        const why = CA_COMP.map((_, ci) => d.V[ci].a !== "સંમત" && !(d.V[ci].c || "").trim() ? ci + 1 : null).filter(Boolean); if (why.length) return say(`ઘટક ${why.join(", ")}: આંશિક/અસંમત હોવાનું કારણ લખો.`, "warn");
+        if (!(await ask("ચકાસણી સબમિટ કરવી છે? પછી ફેરફાર થઈ શકશે નહીં."))) return; d.VSUB = true; d.VAT = nowIso(); }
+      try { await tracked(fs().setDoc(dref("ca_r2", r2Id(ch)), d), "ચકાસણી"); say(final ? "✓ ચકાસણી સબમિટ થઈ. આભાર!" : "✓ ચકાસણી ડ્રાફ્ટ સેવ થયો.", "ok"); if (final) load(); }
+      catch (er) { if (final) d.VSUB = false; say("સેવ ન થયું: " + (er.code || er.message), "bad"); } };
+    if (!vlock) card.append(h("div", {style:"display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;position:sticky;bottom:0;background:#fff;padding:8px 0"},
+      h("button", {class:"btn", type:"button", id:"vfSave", onclick:() => vsave(false)}, "💾 ચકાસણી ડ્રાફ્ટ સેવ"), h("button", {class:"btn primary", type:"button", id:"vfSubmit", onclick:() => vsave(true)}, "✅ ચકાસણી સબમિટ")));
   }
   load();
 }
@@ -1518,9 +1807,25 @@ function raterKit(ch){
     H("સૂચનાઓ", 2), B("ફાળવેલું પ્રકરણ પાઠ્યપુસ્તકમાંથી પૂરેપૂરું વાંચો, પછી દરેક સૂચકને 0થી 3 વચ્ચે એક પૂર્ણાંક ગુણ આપો."), B("સંશોધકના ગુણ કે નોંધ જોયા વિના સ્વતંત્ર રીતે ગુણ આપો; બીજા મૂલ્યાંકનકાર સાથે ચર્ચા ન કરો."),
     B("દરેક ગુણ માટે 'શું જોવું' વ્યાખ્યા પ્રમાણે નિર્ણય લો અને શક્ય હોય ત્યાં પાનું લખો."), B(`ડિજિટલ પત્રક: https://dachauhan1.github.io/teacher.html#rate-${ch}`),
     cap("માપદંડ"), T(["ગુણ", "વર્ણનકર્તા", "અર્થ"], CA_SCALE, ""), H("ગુણાંકનના નિયમો", 2), ...CA_RULES.map((r, i) => Num(`${i + 1}.`, r))];
-  CA_COMP.forEach((c, ci) => { b.push(H(`ઘટક ${ci + 1}: ${c[0]}`, 2), T(["ID", "સૂચક", "ગુણ (0–3)", "પાનું / કારણ"], CA_IND.filter(x => x.comp === ci).map(x => [x.id + (x.dag ? " †" : ""), CA_DEF[x.id][0] + "\nશું જોવું: " + CA_DEF[x.id][1], "", ""]), "")); });
+  CA_COMP.forEach((c, ci) => { b.push(H(`ઘટક ${ci + 1}: ${c[0]}`, 2), T(["ID", "સૂચક", "ગુણ (0–3)", "પાનું / કારણ"], CA_IND.filter(x => x.comp === ci).map(x => [x.id + (x.dag ? " †" : ""), CA_DEF[x.id][0] + "\nશું જોવું: " + CA_DEF[x.id][1], "", ""]), ""),
+    P(`ઘટક ${ci + 1}: વિશ્લેષણાત્મક નોંધ — ઘટક ગુણ: ____/${3 * CA_IND.filter(x => x.comp === ci).length}   સ્તર: ____________`, {b:true}),
+    T(["નોંધ", "તમારું લખાણ"], CA_NQ.map(([t, pq], k) => [`${k + 1}. ${t}\n(${pq})`, "\n\n\n"]), "")); });
   b.push(P("મૂલ્યાંકનકારની સહી: ____________________     તારીખ: ____________", {after:300}));
   return K.pack(b);
+}
+async function caSeedNotes(){   // researcher's 4 notes × 9 components × 13 chapters, extracted from the Word files (ca_notes.json next to teacher.html)
+  const r = await fetch("ca_notes.json", {cache:"no-store"}); if (!r.ok) throw new Error("ca_notes.json મળી નહીં — GitHub માં અપલોડ કરો");
+  const J = await r.json(); let n = 0;
+  for (let c = 1; c <= 13; c++) { const id = caId("R1", c), d = CA.docs.get(id); if (!d || !J[c]) continue; if (missNotes(d.Q).length === 0) continue;
+    const Q = {}; J[c].forEach((arr, ci) => { Q[ci] = arr.map((t, k) => caQ(d.Q, ci, k).trim() || t); });
+    const nd = Object.assign({}, d, {Q, _updatedAt:nowIso(), _updatedBy:S.user.email || S.user.uid}); await fs().setDoc(dref("config", id), nd); CA.docs.set(id, nd); n++; }
+  audit("ca-notes", "", [], {n}); return n;
+}
+async function caPublish(){    // copy researcher's scores + notes to ca_pub so each expert can check them after submitting
+  let n = 0;
+  for (let c = 1; c <= 13; c++) { const d = CA.docs.get(caId("R1", c)); if (!d || caStats(d.S || {}).done < 51) continue;
+    await fs().setDoc(dref("ca_pub", r2Id(c)), {CH:c, NAME:d.NAME || "", S:d.S, Q:d.Q || {}, _at:nowIso()}); n++; }
+  audit("ca-publish", "", [], {n}); return n;
 }
 async function caSeedAll(){
   let n = 0;
@@ -1550,7 +1855,20 @@ function viewCons(arg){  // compare R1 vs expert, record agreed final score
         const d = {CH:ch, F:full, NOTE, _updatedAt:nowIso(), _updatedBy:S.user.email || S.user.uid};
         try { await tracked(fs().setDoc(dref("config", "ca_C_" + String(ch).padStart(2, "0")), d), "સહમતિ"); CA.docs.set("cons_" + ch, d); say("✓ સહમતિ ગુણ સેવ થયા.", "ok"); }
         catch (er) { say("સેવ ન થયું: " + (er.code || er.message), "bad"); } }}, "💾 અંતિમ ગુણ સેવ કરો")));
+    box.append(h("div", {class:"card"}, h("h3", {}, "ઘટકવાર ચાર નોંધ: સંશોધક અને તજ્જ્ઞ, તથા તજ્જ્ઞની ચકાસણી"),
+      r2.V && r2.V.ALL ? h("p", {class:"note"}, "તજ્જ્ઞનો એકંદર અભિપ્રાય: " + r2.V.ALL) : null,
+      ...CA_COMP.map((c, ci) => { const v = (r2.V || {})[ci] || {};
+        return h("details", {style:"margin:6px 0;border-top:1px solid #ddd;padding-top:6px"}, h("summary", {style:"cursor:pointer"}, h("b", {}, `ઘટક ${ci + 1}: ${CA_SHORT[ci]}`), ` — ચકાસણી: ${v.a || "–"}${v.c ? " · " + v.c : ""}`),
+          h("div", {class:"scroll"}, h("table", {class:"t"}, h("tr", {}, h("th", {}, "નોંધ"), h("th", {}, "સંશોધક"), h("th", {}, "તજ્જ્ઞ")),
+            ...CA_NQ.map(([t], k) => h("tr", {}, h("td", {}, `${k + 1}. ${t}`), h("td", {style:"white-space:pre-wrap;min-width:180px"}, caQ(r1.Q, ci, k) || "–"), h("td", {style:"white-space:pre-wrap;min-width:180px"}, caQ(r2.Q, ci, k) || "–")))))); })));
   });
+}
+function caCompAgree(){   // researcher vs expert, component-wise over all chapters (independent scores) + expert verification counts
+  return CA_COMP.map((c, ci) => { const pairs = [], ver = {}; CA_AGREE.forEach(a => { ver[a] = 0; });
+    for (let ch = 1; ch <= 13; ch++) { const a = CA.docs.get(caId("R1", ch)), b = caR2(ch); if (!a || !b) continue;
+      CA_IND.filter(x => x.comp === ci).forEach(x => { const p = a.S?.[x.id], q = b.S?.[x.id]; if (typeof p === "number" && typeof q === "number") pairs.push([p, q]); });
+      const v = b.VSUB && b.V && b.V[ci]; if (v && v.a) ver[v.a]++; }
+    const n = pairs.length; return {ci, n, exact:n ? pairs.filter(([x, y]) => x === y).length / n * 100 : NaN, adj:n ? pairs.filter(([x, y]) => Math.abs(x - y) <= 1).length / n * 100 : NaN, alpha:kAlphaOrdinal(pairs), ver, nv:CA_AGREE.reduce((t, a) => t + ver[a], 0)}; });
 }
 function caConsStats(){
   const rows = []; let keep = 0, tot = 0, up = 0, down = 0;
@@ -1864,7 +2182,8 @@ function twRefsDoc(){
 
 /* ====================== THESIS CHAPTERS 3 · 4 · 5 (.docx, Shruti) ====================== */
 // Every number comes from the saved records; sentences are rule-based drafts. [કૌંસ] = the researcher must write or confirm.
-function docKit(){
+function docKit(opt = {}){
+  const TW0 = opt.land ? 13900 : 9000;
   const X = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   const run = (t, o = {}) => `<w:r><w:rPr>${o.b ? "<w:b/><w:bCs/>" : ""}${o.i ? "<w:i/><w:iCs/>" : ""}${o.sz ? `<w:sz w:val="${o.sz}"/><w:szCs w:val="${o.sz}"/>` : ""}</w:rPr><w:t xml:space="preserve">${X(t)}</w:t></w:r>`;
   let fresh = false;   // true right after a heading that received the researcher's own text → the next [કૌંસ] note is dropped
@@ -1877,13 +2196,14 @@ function docKit(){
     if (txt && String(txt).trim()) { x += twParas({P:P0, B:z => P0([run("•  "), run(z)], {ind:500, after:60})}, txt).join(""); fresh = true; } return x; };
   const TODO = t => { if (fresh) { fresh = false; return ""; } return P0("[" + t + "]", {i:true}); };
   const cap = t => P(t, {b:true, keep:true, left:true, after:60});
-  const T = (head, rows, note) => {
+  const T = (head, rows, note, wts) => {
     const wt = head.map(x => /^(ક્રમ|કોડ|f|n)$/.test(x) ? 0.6 : /^(મધ્યક|ક્રમાંક|%)$/.test(x) ? 1.0 : /^(વિધાન|વિકલ્પ|પ્રશ્ન|જવાબ|વર્ગ|વિભાગ|બાબત|વિગત|સૂચક|પુરાવો|વર્ણનકર્તા|સૂચન|અવલોકન|કરેલો સુધારો \/ કારણ)$/.test(x) ? 4 : x === "જિલ્લો" ? 2.4 : 1.3);
-    const tw = wt.reduce((a, b) => a + b, 0), W = wt.map(x => Math.floor(9000 * x / tw));
+    if (wts) wts.forEach((x, i) => { wt[i] = x; });
+    const tw = wt.reduce((a, b) => a + b, 0), W = wt.map(x => Math.floor(TW0 * x / tw));
     fresh = false;
     const cell = (t, hd, i) => `<w:tc><w:tcPr><w:tcW w:w="${W[i]}" w:type="dxa"/>${hd ? '<w:shd w:val="clear" w:color="auto" w:fill="E7EFEA"/>' : ""}</w:tcPr><w:p><w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/><w:jc w:val="left"/></w:pPr>${run(t, {b:hd, sz:20})}</w:p></w:tc>`;
     const bd = ["top", "left", "bottom", "right", "insideH", "insideV"].map(k => `<w:${k} w:val="single" w:sz="4" w:space="0" w:color="808080"/>`).join("");
-    return `<w:tbl><w:tblPr><w:tblW w:w="9000" w:type="dxa"/><w:jc w:val="center"/><w:tblBorders>${bd}</w:tblBorders><w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid>${W.map(x => `<w:gridCol w:w="${x}"/>`).join("")}</w:tblGrid>`
+    return `<w:tbl><w:tblPr><w:tblW w:w="${TW0}" w:type="dxa"/><w:jc w:val="center"/><w:tblBorders>${bd}</w:tblBorders><w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid>${W.map(x => `<w:gridCol w:w="${x}"/>`).join("")}</w:tblGrid>`
       + `<w:tr><w:trPr><w:tblHeader/></w:trPr>${head.map((x, i) => cell(x, true, i)).join("")}</w:tr>` + rows.map(r => `<w:tr><w:trPr><w:cantSplit/></w:trPr>${r.map((x, i) => cell(x, false, i)).join("")}</w:tr>`).join("") + "</w:tbl>"
       + P(note || "", {sz:18, i:true, after:200, left:true});
   };
@@ -1899,7 +2219,7 @@ function docKit(){
     ["_rels/.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'],
     ["word/_rels/document.xml.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdS" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rIdF" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/></Relationships>'],
     ["word/styles.xml", styles], ["word/footer1.xml", footer],
-    ["word/document.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${W_}><w:body>${body.join("")}<w:sectPr><w:footerReference w:type="default" r:id="rIdF"/><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1800" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr></w:body></w:document>`]]);
+    ["word/document.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${W_}><w:body>${body.join("")}<w:sectPr><w:footerReference w:type="default" r:id="rIdF"/>${opt.land ? '<w:pgSz w:w="16838" w:h="11906" w:orient="landscape"/><w:pgMar w:top="1200" w:right="1440" w:bottom="1200" w:left="1440"' : '<w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1800"'} w:header="720" w:footer="720" w:gutter="0"/></w:sectPr></w:body></w:document>`]]);
   return {run, P, H, B, N, T, TODO, cap, pc, fx, pack};
 }
 const TH = {
@@ -2468,7 +2788,7 @@ function buildVerifyWorkbook(){
     ["Original checkbox options compared", VERIFY_ROWS.reduce((a, r) => a + (r.n_opts || 0), 0)], ["Original table statements compared", VERIFY_ROWS.filter(r => r.kind === "table-row").length]];
   return xlsx([{name:"Summary", rows:sum, filter:false, freeze:false, widths:[40, 20]}, {name:"Verification_Report", rows, wrap:true, widths:[8, 30, 10, 60, 50, 60, 50, 10, 50]}]);
 }
-window.__TEST__ = {S, buildWorkbook, buildVerifyWorkbook, spssSyntax, spssCsv, masterCsv, codebookRows, thesisCh3, thesisCh4, thesisCh5, caStats, kAlphaOrdinal, CA, caLoad, raterKit, TD, tdLoad, splitItems, fileToText, TW, twLoad, twChapterDoc, twRefsDoc, qualityOf, completeness, readForm};
+window.__TEST__ = {caWorkbook, caStruct, caDocxBlocks, caImportDocx, caChapterDoc, relStats, cadLoad, S, buildWorkbook, buildVerifyWorkbook, spssSyntax, spssCsv, masterCsv, codebookRows, thesisCh3, thesisCh4, thesisCh5, caStats, kAlphaOrdinal, CA, caLoad, raterKit, TD, tdLoad, splitItems, fileToText, TW, twLoad, twChapterDoc, twRefsDoc, qualityOf, completeness, readForm};
 boot();
 </script>
 <script data-pp>/* Paper-photo panel: shows the photo of the filled paper form at the top of the screen while the operator enters data below.

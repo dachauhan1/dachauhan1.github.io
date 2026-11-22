@@ -879,6 +879,35 @@ function renderPaper(){
   pProgress(); renderPad();
 }
 let fxTimer = null;
+/* ---- digit strip: type a whole table as one number string (3 = નિયમિત, 2 = ક્યારેક, 1 = ક્યારેય નહીં, 0 = ખાલી) ---- */
+function rateGroups(){ const gs = []; STEPS.forEach(st => { if (st.k !== "rate") return; let g = gs.find(x => x.grp === st.grp); if (!g) gs.push(g = {grp:st.grp, steps:[]}); g.steps.push(st); }); return gs; }
+const grpName = g => g === "મૂલ્યાંકન" ? "હેતુ 3 મૂલ્યાંકન" : "વિભાગ " + g;
+function digitCard(){
+  const gs = rateGroups();
+  const sel = h("select", {id:"dg_g", style:"font-size:1rem;padding:6px"}, ...gs.map((g, i) => h("option", {value:i}, `${grpName(g.grp)} (${g.steps.length})`)));
+  const inp = h("input", {id:"dg_in", type:"text", inputmode:"numeric", autocomplete:"off", placeholder:"દા.ત. 323322331…", style:"font-size:1.35rem;letter-spacing:3px;width:100%;padding:8px;font-family:monospace"});
+  const info = h("div", {id:"dg_info", class:"note", style:"margin-top:4px"});
+  const G = () => gs[+sel.value];
+  const cur = () => G().steps.map(st => isEmpty(FX.d[st.v]) ? "0" : String(FX.d[st.v])).join("").replace(/0+$/, "");
+  const show = () => { const g = G(), t = inp.value.replace(/[^0-3]/g, ""); const bad = inp.value.replace(/[0-3\s]/g, "");
+    info.textContent = `${t.length}/${g.steps.length} અંક` + (bad ? " · ⚠ ફક્ત 0, 1, 2, 3 લખો" : "") + (t.length > g.steps.length ? ` · ⚠ ${t.length - g.steps.length} અંક વધારે` : t.length === g.steps.length ? " · ✓ પૂરું — Enter / ભરો દબાવો" : ""); };
+  const apply = () => { const g = G(), t = inp.value.replace(/[^0-3]/g, "");
+    if (t.length !== g.steps.length) { show(); info.textContent += ` — ${g.steps.length} અંક જોઈએ`; return; }
+    if (!FX.t0) FX.t0 = Date.now();
+    g.steps.forEach((st, i) => { const c = +t[i]; FX.d[st.v] = c === 0 ? null : c; });
+    fxKeep(); const nx = (+sel.value + 1) % gs.length;
+    route(false).then(() => { const s2 = $("#dg_g"), i2 = $("#dg_in"); if (s2 && nx > +sel.value) { s2.value = nx; s2.dispatchEvent(new Event("change")); }
+      say(`⌨️ ${grpName(g.grp)}: ${t.length} જવાબ ભર્યા` + (nx > +sel.value ? ` — હવે ${grpName(gs[nx].grp)} લખો.` : " — હવે વિભાગ C ભરી સેવ કરો."), "ok"); if (i2) i2.focus(); }); };
+  sel.onchange = () => { inp.value = cur(); show(); };
+  inp.addEventListener("input", show);
+  inp.addEventListener("keydown", e => { e.stopPropagation(); if (e.key === "Enter") { e.preventDefault(); apply(); } });
+  inp.value = cur(); setTimeout(show, 0);
+  return h("details", {class:"card", id:"dg_card", style:"padding:10px 12px", open:(lsGet(PKEY) || {}).dg ? "" : null, ontoggle:e => lsSet(PKEY, Object.assign(lsGet(PKEY) || {}, {dg:e.target.open}))},
+    h("summary", {style:"font-weight:700;font-size:1.05rem;cursor:pointer"}, "⌨️ અંક-પટ્ટી: આખું કોષ્ટક એક સાથે લખો (સૌથી ઝડપી)"),
+    h("p", {class:"note", style:"margin:6px 0"}, "પેપર પર ઉપરથી નીચે દરેક પ્રશ્નનો જવાબ અંકમાં લખતા જાઓ: 3 = નિયમિત, 2 = ક્યારેક, 1 = ક્યારેય નહીં, 0 = ખાલી/બે નિશાન. વચ્ચે જગ્યા ચાલે."),
+    h("div", {style:"display:flex;gap:6px;align-items:center;margin-bottom:6px"}, sel), inp, info,
+    h("button", {type:"button", class:"btn primary", id:"dg_apply", style:"width:100%;margin-top:8px;min-height:48px", onclick:apply}, "✓ ભરો"));
+}
 window.__ppAltIcon = "🪄";
 window.__ppAlt = () => { if (S.route !== "fast") return false; fxPhoto(); return true; };
 function fxPhoto(){
@@ -913,6 +942,7 @@ function viewFast(){
     h("div", {class:"modes", role:"group", "aria-label":"ભરવાની રીત"},
       h("button", {type:"button", class:paperMode() ? "" : "on", onclick:() => setPaper(false)}, "એક પ્રશ્ન એક સ્ક્રીન"),
       h("button", {type:"button", class:paperMode() ? "on" : "", onclick:() => setPaper(true)}, "📄 કાગળ જેવું કોષ્ટક")),
+    digitCard(),
     h("button", {type:"button", class:"btn", id:"fx_photo", style:"width:100%;margin:6px 0;background:#d9480f;border-color:#d9480f;color:#fff;font-weight:700;min-height:48px", onclick:fxPhoto}, "🪄 ફોટામાંથી ✓ વાંચો (વિભાગ A, B, મૂલ્યાંકન)"),
     h("p", {class:"msg", id:"msg", hidden:true}), h("div", {id:"fxDone"}),
     paperMode() ? h("div", {class:"card paper", style:"padding:10px 12px"}, h("div", {class:"meta"}, h("span", {id:"fxCount"}), h("a", {href:"#reg", class:"note"}, "વિગતવાર ફોર્મ")),

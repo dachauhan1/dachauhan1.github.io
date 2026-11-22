@@ -1712,6 +1712,59 @@ function integDoc(d){
     P(" "), T(["", ""], [["સંશોધકની સહી અને તારીખ", ""], ["માર્ગદર્શકની સહી અને તારીખ", ""]], "", [2, 3])]);
 }
 
+/* ================= complete thesis: front matter, annexures, one-file thesis (Shodhganga order) ================= */
+async function integLoad(){ try { const x = await fs().getDoc(dref("config", "integrity")); return x.exists() ? x.data() : {}; } catch (e) { return {}; } }
+function frontDoc(I){
+  const K = docKit({toc:true}), {P, H, T, TOC} = K, F = (I && I.F) || {}, v = (k, d) => (F[k] || "").trim() || d, b = [];
+  const yr = new Date().getFullYear();
+  b.push(P(" "), P(TH.title, {b:true, sz:36, center:true, after:240}), P("[ગુજરાતી શીર્ષક — યુનિવર્સિટીમાં નોંધાયેલું શીર્ષક શબ્દશઃ લખો]", {i:true, center:true}),
+    P(" "), P(`${v("univ", "[યુનિવર્સિટીનું નામ]")} ની`, {center:true}), P("શિક્ષણશાસ્ત્ર વિષયમાં પીએચ.ડી. (Doctor of Philosophy) પદવી માટે રજૂ કરેલ મહાશોધ નિબંધ", {center:true, b:true}),
+    P(" "), P("સંશોધક", {center:true, b:true}), P(v("name", "દશરથભાઈ એ. ચૌહાણ"), {center:true, sz:28}), P(`નોંધણી નં.: ${v("enrol", "______")}`, {center:true}),
+    P(" "), P("માર્ગદર્શક", {center:true, b:true}), P(v("guide", "[માર્ગદર્શકનું નામ અને હોદ્દો]"), {center:true, sz:28}),
+    P(" "), P(`${v("univ", "[વિભાગ / યુનિવર્સિટી]")} · ${yr}`, {center:true, b:true}), PB,
+    H("પ્રમાણપત્ર (Certificate)", 1), P(`પ્રમાણિત કરવામાં આવે છે કે '${TH.title}' શીર્ષક હેઠળનો મહાશોધ નિબંધ ${v("name", "__________")} એ મારા માર્ગદર્શન હેઠળ તૈયાર કર્યો છે. આ કાર્ય સંશોધકનું મૌલિક કાર્ય છે અને અગાઉ કોઈ પદવી માટે રજૂ થયું નથી. મહાશોધ નિબંધ પીએચ.ડી. પદવી માટે રજૂ કરવા યોગ્ય છે.`),
+    P(" "), P(`માર્ગદર્શક: ${v("guide", "__________")}            તારીખ: ________            સ્થળ: ________`), PB,
+    H("સંશોધકનું ઘોષણાપત્ર (Declaration)", 1), P(`હું, ${v("name", "__________")}, ઘોષણા કરું છું કે આ મહાશોધ નિબંધ મારું મૌલિક સંશોધન કાર્ય છે; અન્ય લેખકોના વિચારો કે શબ્દો જ્યાં વાપર્યા છે ત્યાં APA 7 મુજબ સંદર્ભ આપ્યો છે. INFLIBNET ShodhShuddhi (DrillBit) મુજબ સમાનતા ${v("sim", "____")}% છે. માહિતી દાખલ અને આંકડાકીય ગણતરી સંશોધક-નિર્મિત વેબ-એપ દ્વારા કરી છે; ${v("aiuse", "AI/સોફ્ટવેર સહાયની વિગત: __________")} તમામ અર્થઘટન અને તારણો સંશોધકનાં પોતાનાં છે.`),
+    P(" "), P("સંશોધકની સહી: ________            તારીખ: ________"), PB,
+    H("ઋણસ્વીકાર (Acknowledgement)", 1), P("[માર્ગદર્શક, તજ્જ્ઞો, શાળાઓ, શિક્ષકો, વિદ્યાર્થીઓ, પરિવાર પ્રત્યે આભાર — પોતાના શબ્દોમાં, 1 પાનું]", {i:true}), PB,
+    H("સંશોધન સાર (Abstract)", 1), P("[250–300 શબ્દ: સમસ્યા, હેતુઓ, પદ્ધતિ (નમૂનો 72 શાળા, ~100 શિક્ષક, ~2000 વિદ્યાર્થી, ઉપકરણો), મુખ્ય તારણો (હેતુવાર), સૂચિતાર્થ. ચાવીરૂપ શબ્દો: 5–6]", {i:true}), PB,
+    H("અનુક્રમણિકા (Contents)", 1), TOC(), PB,
+    H("સંક્ષેપ-સૂચિ (Abbreviations)", 1),
+    T(["સંક્ષેપ", "પૂર્ણ રૂપ"], [["NCF-SE 2023", "National Curriculum Framework for School Education 2023"], ["NEP 2020", "National Education Policy 2020"], ["NCERT", "National Council of Educational Research and Training"], ["GSSTB", "ગુજરાત રાજ્ય શાળા પાઠ્યપુસ્તક મંડળ"], ["CG / C / LO", "Curricular Goal / Competency / Learning Outcome"], ["RAC", "Research Advisory Committee"], ["TCA-40", "RAC-સૂચિત 40 સૂચકનો સૂચકાંક"], ["MAS", "ગણિત ચિંતા માપદંડ (Mathematics Anxiety Scale)"], ["α", "Krippendorff's alpha / Cronbach's alpha"], ["κw", "Weighted Cohen's kappa"], ["APA 7", "American Psychological Association, 7th edition"]], "", [1, 3]), PB);
+  return K.pack(b);
+}
+function annexDoc(){
+  const K = docKit(), {P, H, T, B} = K, b = [];
+  b.push(H("પરિશિષ્ટો (Annexures)", 1),
+    H("પરિશિષ્ટ 1: સંશોધન ઉપકરણો", 2), T(["ક્રમ", "ઉપકરણ", "હેતુ", "ઉત્તરદાતા / સ્રોત"], TD_TOOLS.map((t, i) => [i + 1, t[1], t[2], t[3]]), "દરેક ઉપકરણનું અંતિમ સ્વરૂપ (છાપેલું ફોર્મ) આ પરિશિષ્ટ પછી જોડો — ઉત્તરદાતાનાં નામ/ઓળખ વગર."));
+  const ex = []; for (let c = 1; c <= 13; c++) { const r = caR2(c); if (r && r.NAME_R) ex.push([ex.length + 1, r.NAME_R, r.POST || "", r.QUAL || "", r.EXP || "", `હેતુ 1: પ્રકરણ ${c}`]); }
+  b.push(H("પરિશિષ્ટ 2: તજ્જ્ઞો અને મૂલ્યાંકનકારોની યાદી", 2), ex.length ? T(["ક્રમ", "નામ", "હોદ્દો / સંસ્થા", "લાયકાત", "અનુભવ (વર્ષ)", "ભૂમિકા"], ex, "ઉપકરણ-રચનાના તજ્જ્ઞો (🛠 ઉપકરણ રચના) પણ અહીં ઉમેરો.") : P("[તજ્જ્ઞોની યાદી: નામ, હોદ્દો, સંસ્થા, ભૂમિકા]", {i:true}));
+  const sc = schoolRecs();
+  b.push(H("પરિશિષ્ટ 3: નમૂનામાં સમાવિષ્ટ શાળાઓ (કોડ સ્વરૂપે)", 2), sc.length ? T(["ક્રમ", "શાળા કોડ", "જિલ્લો", "પ્રકાર"], sc.map((x, i) => [i + 1, x.SID, distGu(x.district) || x.district || "", ({G:"સરકારી", GIA:"અનુદાનિત", P:"સ્વનિર્ભર"})[(String(x.SID).match(/^(?:VT|A|B|N)(GIA|G|P)/) || [])[1]] || ""]), "ઓળખ ગુપ્ત રાખવા શાળાનાં નામ દર્શાવ્યાં નથી.") : P("[શાળા-કોડ યાદી]", {i:true}));
+  const cb = codebookRows().slice(0, 400);
+  b.push(H("પરિશિષ્ટ 4: કોડબુક (શિક્ષક ઉપકરણ)", 2), T(["ચલ", "પ્રશ્ન", "કોડ"], cb.map(r => [r.name, r.gu || r.en || "", r.codes || r.opts || ""]), "વિદ્યાર્થી ઉપકરણોની કોડ-યોજના પ્રકરણ 3 (કોડિંગ યોજના) માં છે."),
+    H("પરિશિષ્ટ 5: પરવાનગી અને સંમતિ પત્રો", 2), B("શિક્ષણ વિભાગ / શાળા વડાની પરવાનગી (નકલ)"), B("ઉત્તરદાતા સંમતિ નમૂનો"), B("નૈતિક સમિતિ મંજૂરી (હોય તો)"),
+    H("પરિશિષ્ટ 6: સમાનતા (Plagiarism) પ્રમાણપત્ર", 2), P("[ShodhShuddhi/DrillBit રિપોર્ટનું પ્રથમ પાનું અને યુનિવર્સિટીનું પ્રમાણપત્ર જોડો]", {i:true}),
+    H("પરિશિષ્ટ 7: સંશોધન-લેખ / પ્રકાશનો", 2), P("[થીસિસ આધારિત પ્રકાશિત/સ્વીકૃત લેખોની યાદી અને પ્રથમ પાનાં]", {i:true}));
+  return K.pack(b);
+}
+async function thesisFull(){
+  const mk = document.querySelector("#thMark"); TH_MARK = mk ? mk.checked : true; const v = !!(document.querySelector("#thV") || {}).checked;
+  say("આખી થીસિસ બને છે… (1–2 મિનિટ)", "ok");
+  try { await caLoad(true); } catch (e) {} try { await tdLoad(true); } catch (e) {} try { await twLoad(true); } catch (e) {} try { await smpLoad(); } catch (e) {}
+  const I = await integLoad(); const body = []; DOC_CAPTURE = body;
+  try {
+    frontDoc(I); twChapterDoc(1); twChapterDoc(2);
+    for (const ch of [3, 4, 5]) { TW.ins = {}; for (const s of twDoc(ch).sec) if (String(s.text || "").trim()) TW.ins[s.no] = s.text; ({3:thesisCh3, 4:thesisCh4, 5:thesisCh5})[ch](v); TW.ins = null; }
+    twRefsDoc(); annexDoc();
+  } finally { DOC_CAPTURE = null; TW.ins = null; }
+  const K = docKit({toc:true}); const file = K.pack(body.slice(0, -1));
+  download(`Thesis_COMPLETE_${today()}.docx`, file, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+  audit("export", "", [], {file:"thesis_full"}); say("✓ આખી થીસિસ (પ્રારંભિક પાનાં → પ્રકરણ 1–5 → સંદર્ભસૂચિ → પરિશિષ્ટો) Word માં તૈયાર. Word માં ખોલી અનુક્રમણિકા માટે 'Update field' કરો.", "ok");
+}
+async function frontDownload(){ const I = await integLoad(); download(`Thesis_Front_Matter_${today()}.docx`, frontDoc(I), "application/vnd.openxmlformats-officedocument.wordprocessingml.document"); }
+async function annexDownload(){ try { await caLoad(true); } catch (e) {} download(`Thesis_Annexures_${today()}.docx`, annexDoc(), "application/vnd.openxmlformats-officedocument.wordprocessingml.document"); }
+
 window.__ppShow = () => S.route === "form" || S.route === "rate";
 function obj1Nav(k){
   return h("div", {class:"chips obj1nav", style:"margin:0 0 10px"}, ...[["ca", "✏️ ગુણ દાખલ / સુધારો"], ["cad", "📑 13 પ્રકરણ × 3 Word"], ["cares", "📊 પરિણામ · સહમતિ · વિશ્વસનીયતા"]]
@@ -2412,14 +2465,17 @@ function docKit(opt = {}){
   const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles ${W_}><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Shruti" w:hAnsi="Shruti" w:cs="Shruti" w:eastAsia="Shruti"/><w:sz w:val="24"/><w:szCs w:val="24"/><w:lang w:val="en-IN" w:bidi="gu-IN"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="120" w:line="360" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>`
     + `<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style>` + hs("Heading1", 0, 32, true) + hs("Heading2", 1, 28) + hs("Heading3", 2, 24) + `</w:styles>`;
   const footer = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:ftr ${W_}><w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> PAGE </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:t>1</w:t></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r></w:p></w:ftr>`;
-  const pack = body => zip([
-    ["[Content_Types].xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/></Types>'],
+  const pack = body => DOC_CAPTURE ? (DOC_CAPTURE.push(...body, PB), null) : zip([
+    ["[Content_Types].xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/>' + (opt.toc ? '<Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/>' : "") + '</Types>'],
     ["_rels/.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'],
-    ["word/_rels/document.xml.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdS" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rIdF" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/></Relationships>'],
-    ["word/styles.xml", styles], ["word/footer1.xml", footer],
-    ["word/document.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${W_}><w:body>${body.join("")}<w:sectPr><w:footerReference w:type="default" r:id="rIdF"/>${opt.land ? '<w:pgSz w:w="16838" w:h="11906" w:orient="landscape"/><w:pgMar w:top="1200" w:right="1440" w:bottom="1200" w:left="1440"' : '<w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1800"'} w:header="720" w:footer="720" w:gutter="0"/></w:sectPr></w:body></w:document>`]]);
-  return {run, P, H, B, N, T, TODO, cap, pc, fx, pack};
+    ["word/_rels/document.xml.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdS" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rIdF" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/>' + (opt.toc ? '<Relationship Id="rIdT" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/>' : "") + '</Relationships>'],
+    ["word/styles.xml", styles], ["word/footer1.xml", footer], ...(opt.toc ? [["word/settings.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:settings ${W_}><w:updateFields w:val="true"/></w:settings>`]] : []),
+    ["word/document.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${W_}><w:body>${body.join("")}<w:sectPr><w:footerReference w:type="default" r:id="rIdF"/>${opt.land ? '<w:pgSz w:w="16838" w:h="11906" w:orient="landscape"/><w:pgMar w:top="1200" w:right="1440" w:bottom="1200" w:left="1440"' : '<w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="2160"'} w:header="720" w:footer="720" w:gutter="0"/></w:sectPr></w:body></w:document>`]]);
+  const TOC = () => `<w:p><w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> TOC \\o "1-3" \\h \\z \\u </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:t>[અનુક્રમણિકા: Word માં ખોલી 'Update field' / F9 દબાવો]</w:t></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r></w:p>`;
+  return {run, P, H, B, N, T, TODO, cap, pc, fx, pack, TOC, PB};
 }
+let DOC_CAPTURE = null;
+const PB = '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
 const TH = {
   title:"Mathematics Education in the Upper Primary Schools: An Exploratory Study",
   objectives:["ગુજરાત રાજ્ય શાળા પાઠ્યપુસ્તક મંડળ, ગાંધીનગર દ્વારા પ્રકાશિત ધોરણ 8 ગણિત પાઠ્યપુસ્તકના 13 પ્રકરણોનું NCF-SE 2023 ના પાઠ્યપુસ્તક-રચના સિદ્ધાંતો સંદર્ભે વિષયવસ્તુ વિશ્લેષણ કરવું.",
@@ -2676,22 +2732,31 @@ async function thesisDownload(ch){
 function viewThesis(){
   const m = $("#main"); if (!isAdmin()) { viewDash(); return; }
   const all = [...S.teachers.values()], nv = all.filter(r => r.VERIFY_STATUS === "Verified").length;
-  const big = (ch, t, d) => h("button", {class:"btn primary", type:"button", id:"th" + ch, style:"display:block;width:100%;text-align:left;padding:14px 16px;margin:10px 0;font-size:1.05rem", onclick:() => thesisDownload(ch)},
-    h("b", {}, `📄 Thesis Chapter ${ch} — ${t}`), h("div", {style:"font-size:.85rem;font-weight:400;opacity:.9;margin-top:4px"}, d));
-  m.append(h("div", {class:"card"}, h("h2", {}, "થીસિસ પ્રકરણ (Word, શ્રુતિ ફોન્ટ)"),
-    h("p", {class:"note"}, `સેવ થયેલ શિક્ષકો: ${all.length} · Verified: ${nv}. દરેક ફાઇલ શ્રુતિ (Shruti) ફોન્ટ, A4, 1.5 લાઇન-અંતર, પાન-નંબર અને Heading શૈલી સાથે બને છે (Word માં આપમેળે અનુક્રમણિકા બની શકે). [કૌંસ] માંની બાબતો તમારે લખવાની કે ચકાસવાની છે.`),
-    h("label", {class:"note", style:"display:flex;gap:8px;align-items:center;margin:8px 0"}, h("input", {type:"checkbox", id:"thV", checked:nv > 0}), "ફક્ત Verified રેકોર્ડ (અંતિમ થીસિસ માટે ✓ રાખો)"),
-    h("label", {class:"note", style:"display:flex;gap:8px;align-items:center;margin:8px 0"}, h("input", {type:"checkbox", id:"thMark", checked:TH_MARK, onchange:e => { TH_MARK = e.target.checked; }}), "🟨 ઍપે લખેલાં તૈયાર વાક્યો પીળા રંગમાં બતાવો (પ્રકરણ 3–5) — તેને પોતાના શબ્દોમાં ફરી લખવાં; તમારું પોતાનું લખાણ સાદું રહેશે"),
-    h("a", {href:"#integ", class:"btn", style:"margin:4px 0"}, "🛡 પ્રામાણિકતા / Shodhganga ચેકલિસ્ટ અને Declaration"),
-    h("a", {href:"#tools", class:"btn", id:"tdLink", style:"display:block;text-align:left;padding:12px 16px;margin:10px 0;font-size:1rem"}, "🛠 ઉપકરણ રચના: 5 ઉપકરણ × 6 તબક્કા (પ્રથમ મુસદ્દો → તજ્જ્ઞ → દ્વિતીય મુસદ્દો → પૂર્વ-અજમાયશ → અજમાયશ → અંતિમ), ફાઇલ જોડો"),
-    h("a", {href:"#ca", class:"btn", id:"caLink", style:"display:block;text-align:left;padding:12px 16px;margin:10px 0;font-size:1rem"}, "📚 હેતુ 1: વિષયવસ્તુ વિશ્લેષણ — 13 પ્રકરણના ગુણ દાખલ કરો"),
-    h("a", {href:"#write", class:"btn", id:"twLink", style:"display:block;text-align:left;padding:12px 16px;margin:10px 0;font-size:1rem"}, "✍️ થીસિસ લેખન: પ્રકરણ 1–5 ના મુદ્દા/પેટા-મુદ્દામાં લખાણ, ફાઇલ (.txt/.docx/.pdf) માંથી ઉમેરો, સાહિત્ય સમીક્ષા અને સંદર્ભસૂચિ"),
-    big(1, "પ્રસ્તાવના", "15 મુદ્દા: પૃષ્ઠભૂમિ, સૈદ્ધાંતિક આધાર, જરૂરિયાત, સમસ્યા કથન, વ્યાખ્યાઓ, હેતુઓ, પ્રશ્નો, સીમાંકન, પ્રકરણ યોજના"),
-    big(2, "સંબંધિત સાહિત્યની સમીક્ષા", "6 ક્ષેત્રવાર સંશોધનો (ભારત/વિદેશ, સમયાનુક્રમ), વિહંગાવલોકન કોષ્ટક, સંશોધન-અંતર, પ્રસ્તુત સંશોધનનું સ્થાન"),
-    big(3, "સંશોધન પદ્ધતિ", "ડિઝાઇન, હેતુઓ, વ્યાપવિશ્વ-નમૂનો (ડેટા પરથી કોષ્ટક), ઉપકરણો, માહિતી દાખલ-ચકાસણી, કોડિંગ, વિશ્લેષણ પ્રવિધિ, નૈતિક બાબતો"),
-    big(4, "માહિતીનું વિશ્લેષણ અને અર્થઘટન", "હેતુ 1 (13 પ્રકરણ × 9 ઘટક, સૂચકાંક, વિશ્વસનીયતા) અને હેતુ 2, 3: ક્રમાંકિત કોષ્ટકો (f, %, મધ્યક, ક્રમાંક), દરેક કોષ્ટકનું અર્થઘટન, મુખ્ય તારણો, ગુણાત્મક જવાબોનું પરિશિષ્ટ"),
-    big(5, "સારાંશ, તારણો અને ભલામણો", "સંશોધન સાર, હેતુવાર તારણો, ઉચ્ચ/ઓછી પ્રથાઓ અને પડકારો પરથી ભલામણો, મર્યાદાઓ, ભાવિ સંશોધન"),
-    h("p", {class:"note"}, "હેતુ 4, 5, 6 અને વિદ્યાર્થી સાધનોના ભાગ [કૌંસ] માં ખાલી છે; તે-તે એપની Excel/CSV પરથી ઉમેરો. આંકડા ડેટા પરથી છે, પણ NCF-SE 2023 સાથેની ચર્ચા સંશોધકે પોતાની ભાષામાં લખવી.")));
+  const big = (ch, t, d) => h("button", {class:"btn primary", type:"button", id:"th" + ch, style:"display:block;width:100%;text-align:left;padding:12px 14px;margin:8px 0;font-size:1rem", onclick:() => thesisDownload(ch)},
+    h("b", {}, `📄 પ્રકરણ ${ch} — ${t}`), h("div", {style:"font-size:.82rem;font-weight:400;opacity:.9;margin-top:2px"}, d));
+  const link = (href, id, t, d) => h("a", {href, class:"btn", id, style:"display:block;text-align:left;padding:10px 14px;margin:6px 0;font-size:.98rem;text-decoration:none"}, h("b", {}, t), d ? h("div", {class:"note", style:"margin:2px 0 0"}, d) : null);
+  const step = (n, t, ...kids) => h("div", {class:"card", style:"border-left:6px solid var(--accent,#1f6f54)"}, h("h2", {style:"margin:0 0 6px"}, `પગલું ${n}: ${t}`), ...kids);
+  m.append(h("div", {class:"card", style:"background:#f3faf6"}, h("h2", {style:"margin:0"}, "📘 થીસિસ કાર્ય-માર્ગ: ઉપકરણ → ડેટા → વિશ્લેષણ → પ્રકરણ 1–5 → પરિશિષ્ટ → સબમિશન"),
+      h("p", {class:"note"}, `Word: શ્રુતિ ફૉન્ટ, A4, 1.5 લાઇન-અંતર, ડાબે 1.5" (બાઇન્ડિંગ), પાન-નંબર, Heading શૈલી (આપમેળે અનુક્રમણિકા), સંદર્ભ APA 7. સેવ થયેલ શિક્ષકો: ${all.length} · Verified: ${nv}.`),
+      h("label", {class:"note", style:"display:flex;gap:8px;align-items:center;margin:6px 0"}, h("input", {type:"checkbox", id:"thV", checked:nv > 0}), "ફક્ત Verified રેકોર્ડ (અંતિમ થીસિસ માટે ✓ રાખો)"),
+      h("label", {class:"note", style:"display:flex;gap:8px;align-items:center;margin:6px 0"}, h("input", {type:"checkbox", id:"thMark", checked:TH_MARK, onchange:e => { TH_MARK = e.target.checked; }}), "🟨 ઍપે લખેલાં તૈયાર વાક્યો પીળા રંગમાં (પ્રકરણ 3–5) — પોતાના શબ્દોમાં ફરી લખવાં; તમારું પોતાનું લખાણ સાદું રહેશે")),
+    step(1, "ઉપકરણ રચના (હેતુ 1–6)", link("#tools", "tdLink", "🛠 5 ઉપકરણ × 6 તબક્કા", "પ્રથમ મુસદ્દો → તજ્જ્ઞ → દ્વિતીય મુસદ્દો → પૂર્વ-અજમાયશ → અજમાયશ → અંતિમ; ફાઇલ જોડો — પ્રકરણ 3 માં આપમેળે"),
+      link("#cad", "caLink", "📚 હેતુ 1: 13 પ્રકરણ વિષયવસ્તુ-વિશ્લેષણ", "Word અપલોડ → તજ્જ્ઞ શિક્ષક → સહમતિ → 3 આવૃત્તિ Word")),
+    step(2, "ડેટા એન્ટ્રી (⌨️ અંક-પટ્ટી)", h("div", {class:"chips"}, h("a", {href:"./index.html#fast", class:"btn"}, "⚡ હેતુ 2–3 વિદ્યાર્થી"), h("a", {href:"./test.html", class:"btn"}, "📝 હેતુ 4 કસોટી"), h("a", {href:"./anxiety.html", class:"btn"}, "😟 હેતુ 6 ચિંતા"), h("a", {href:"#form", class:"btn"}, "👩‍🏫 શિક્ષક"), h("a", {href:"#home", class:"btn"}, "🏠 પ્રગતિ · 🎲 નમૂનો · 💾 બૅકઅપ"))),
+    step(3, "વિશ્લેષણ", h("div", {class:"chips"}, h("a", {href:"#analysis", class:"btn"}, "📊 શિક્ષક (હેતુ 2–3): Excel + SPSS"), h("a", {href:"#quality", class:"btn"}, "✔ ડેટા ગુણવત્તા"), h("a", {href:"#cares", class:"btn"}, "📊 હેતુ 1: α, κ, સહમતિ"),
+      h("a", {href:"./test.html#export", class:"btn"}, "📝 હેતુ 4 + હેતુ 5 નિકાસ"), h("a", {href:"./anxiety.html#export", class:"btn"}, "😟 હેતુ 6 નિકાસ"))),
+    step(4, "પ્રકરણ લેખન (Word)", link("#write", "twLink", "✍️ મુદ્દાવાર લખાણ / સાહિત્ય સમીક્ષા / સંદર્ભ (APA 7)", "તમારું લખાણ અહીં — Word માં સાદું આવે છે"),
+      big(1, "પ્રસ્તાવના", "પૃષ્ઠભૂમિ, જરૂરિયાત, સમસ્યા, વ્યાખ્યાઓ, હેતુઓ, પ્રશ્નો, સીમાંકન, પ્રકરણ-યોજના"),
+      big(2, "સંબંધિત સાહિત્યની સમીક્ષા", "6 ક્ષેત્ર, વિહંગાવલોકન કોષ્ટક, સંશોધન-અંતર"),
+      big(3, "સંશોધન પદ્ધતિ", "ડિઝાઇન, નમૂનો (ડેટા પરથી), ઉપકરણ-રચના, ચકાસણી-નમૂનો, કોડિંગ, વિશ્લેષણ, નૈતિકતા"),
+      big(4, "માહિતીનું વિશ્લેષણ અને અર્થઘટન", "હેતુ 1–6 ના કોષ્ટક, વિશ્વસનીયતા, તારણ-વાક્યો"),
+      big(5, "સારાંશ, તારણો અને ભલામણો", "હેતુવાર તારણો, ચર્ચા, સૂચિતાર્થ, મર્યાદા, ભાવિ સંશોધન")),
+    step(5, "પ્રારંભિક પાનાં અને પરિશિષ્ટ (Shodhganga ક્રમ)",
+      h("p", {class:"note"}, "ક્રમ: શીર્ષક-પાનું → પ્રમાણપત્ર → ઘોષણાપત્ર → ઋણસ્વીકાર → સાર → અનુક્રમણિકા → સંક્ષેપ → પ્રકરણ 1–5 → સંદર્ભસૂચિ → પરિશિષ્ટો"),
+      h("div", {class:"chips"}, h("button", {type:"button", class:"btn", id:"thFront", onclick:frontDownload}, "📄 પ્રારંભિક પાનાં"), h("button", {type:"button", class:"btn", id:"thAnnex", onclick:annexDownload}, "📎 પરિશિષ્ટો"),
+        h("button", {type:"button", class:"btn", onclick:async () => { try { await twLoad(true); } catch (e) {} download(`Thesis_References_${today()}.docx`, twRefsDoc(), "application/vnd.openxmlformats-officedocument.wordprocessingml.document"); }}, "📚 સંદર્ભસૂચિ (APA 7)")),
+      h("button", {type:"button", class:"btn primary", id:"thFull", style:"display:block;width:100%;padding:14px;margin-top:8px;font-size:1.05rem", onclick:() => thesisFull().catch(e => say("ન બન્યું: " + (e.message || e), "bad"))}, "📘 આખી થીસિસ — એક જ Word ફાઇલ")),
+    step(6, "પ્રામાણિકતા અને સબમિશન", link("#integ", "igLink", "🛡 ચેકલિસ્ટ 12 મુદ્દા · Declaration · DrillBit", "પીળાં વાક્યો 0 · સમાનતા ≤ 10% · AI ઉપયોગની જાહેરાત · ઓળખ વગરની PDF")));
 }
 
 /* ====================== ADMIN ====================== */
@@ -2992,7 +3057,7 @@ function buildVerifyWorkbook(){
     ["Original checkbox options compared", VERIFY_ROWS.reduce((a, r) => a + (r.n_opts || 0), 0)], ["Original table statements compared", VERIFY_ROWS.filter(r => r.kind === "table-row").length]];
   return xlsx([{name:"Summary", rows:sum, filter:false, freeze:false, widths:[40, 20]}, {name:"Verification_Report", rows, wrap:true, widths:[8, 30, 10, 60, 50, 60, 50, 10, 50]}]);
 }
-window.__TEST__ = {integDoc, stratSample, fullBackup, caWorkbook, caStruct, caDocxBlocks, caImportDocx, caChapterDoc, relStats, cadLoad, S, buildWorkbook, buildVerifyWorkbook, spssSyntax, spssCsv, masterCsv, codebookRows, thesisCh3, thesisCh4, thesisCh5, caStats, kAlphaOrdinal, CA, caLoad, raterKit, TD, tdLoad, splitItems, fileToText, TW, twLoad, twChapterDoc, twRefsDoc, qualityOf, completeness, readForm};
+window.__TEST__ = {frontDoc, annexDoc, thesisFull, integDoc, stratSample, fullBackup, caWorkbook, caStruct, caDocxBlocks, caImportDocx, caChapterDoc, relStats, cadLoad, S, buildWorkbook, buildVerifyWorkbook, spssSyntax, spssCsv, masterCsv, codebookRows, thesisCh3, thesisCh4, thesisCh5, caStats, kAlphaOrdinal, CA, caLoad, raterKit, TD, tdLoad, splitItems, fileToText, TW, twLoad, twChapterDoc, twRefsDoc, qualityOf, completeness, readForm};
 boot();
 </script>
 <script data-pp>/* Paper-photo panel: shows the photo of the filled paper form at the top of the screen while the operator enters data below.

@@ -2311,7 +2311,8 @@ function ocrClean(t){
   const endS = x => /[.?!:।)\]]$/.test(x);
   for (let i = 0; i < L.length; i++) { const x = L[i];
     if (!x) { const nx = L.slice(i + 1).find(Boolean) || ""; if (buf && (endS(buf) || /^(\(?[0-9૦-૯]{1,3}[.)]|[-•*]\s|[0-9]+\.[0-9]+\s)/.test(nx))) { out.push(buf); buf = ""; } continue; }
-    const starts = /^(\(?[0-9૦-૯]{1,3}[.)]|[-•*]\s|[0-9]+\.[0-9]+\s)/.test(x);
+    if (/^[0-9૦-૯]+([.][0-9૦-૯]+)+\s/.test(x) && x.length < 120) { if (buf) out.push(buf); out.push(x); buf = ""; continue; }
+    const starts = /^(\(?[0-9૦-૯]{1,3}[.)]|[-•*]\s)/.test(x);
     if (starts && buf) { out.push(buf); buf = x; } else buf = buf ? (/[-‐]$/.test(buf) ? buf + x : buf + " " + x) : x; }
   if (buf) out.push(buf);
   let r = out.join("\n\n"); for (const [a, b] of fix) r = r.replace(a, b); return r.trim();
@@ -2497,6 +2498,46 @@ function twDoc(ch){
   if (ch === 2) d.rev = d.rev || []; return d;
 }
 const twWords = t => (String(t || "").trim().match(/\S+/g) || []).length;
+/* ---- પ્રકરણ-સ્તરે આયાત: PDF / Word / ફોટો / કૅમેરા → મુદ્દા નંબર (1.1, 1.2…) મુજબ સીધું પ્રકરણમાં ---- */
+TW.undo = TW.undo || {};
+const gujDigits = t => String(t || "").replace(/[૦-૯]/g, c => String(c.charCodeAt(0) - 0x0AE6));
+function twDistribute(ch, d, text, target){
+  const L = gujDigits(text).replace(/\r/g, "").split("\n");
+  const head = new RegExp(`^\\s*(${ch}(?:\\.\\d{1,2}){1,3})\\s*[.):–-]?\\s+(.{1,110})$`);
+  const parts = []; let cur = {no:target === "auto" ? null : target, title:"", lines:[]};
+  for (const line of L) { const m = line.match(head);
+    if (m && target === "auto" && !/[.?!।]$/.test(m[2].trim())) { if (cur.lines.join("").trim() || cur.no) parts.push(cur); cur = {no:m[1], title:m[2].trim(), lines:[]}; }
+    else cur.lines.push(line); }
+  parts.push(cur);
+  const hit = []; const first = d.sec[0];
+  for (const p of parts) { const t = p.lines.join("\n").replace(/\n{3,}/g, "\n\n").trim(); if (!t && !p.no) continue;
+    let sec = p.no ? d.sec.find(x => x.no === p.no) : (target === "auto" ? first : d.sec.find(x => x.no === target)) || first;
+    if (!sec) { sec = {no:p.no, title:p.title || "નવો મુદ્દો", text:"", custom:true}; d.sec.push(sec); }
+    if (t) { sec.text = (sec.text && sec.text.trim() ? sec.text.trim() + "\n\n" : "") + t; }
+    if (!hit.includes(sec.no)) hit.push(sec.no); }
+  return hit;
+}
+function twImportPanel(ch, d, save, redraw){
+  const sel = h("select", {style:"width:100%"}, h("option", {value:"auto"}, `🧭 આપમેળે — લખાણમાંના મુદ્દા નંબર (${ch}.1, ${ch}.2 …) મુજબ યોગ્ય મુદ્દામાં`),
+    ...d.sec.map(x => h("option", {value:x.no}, `➡ ફક્ત ${x.no} ${x.title} માં ઉમેરો`)));
+  const prog = h("div", {class:"note"});
+  const run = async files => { files = [...files].sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric:true})); if (!files.length) return;
+    TW.undo[ch] = JSON.stringify(d.sec); let all = [];
+    for (let i = 0; i < files.length; i++) { prog.textContent = `⏳ ${i + 1}/${files.length}: ${files[i].name} વંચાય છે…`;
+      try { all.push((await fileToText(files[i])).trim()); } catch (er) { say(`${files[i].name} વાંચી ન શકાઈ (${er.message || er}). ઇન્ટરનેટ ચાલુ રાખી ફરી પ્રયત્ન કરો.`, "warn"); } }
+    const text = all.filter(Boolean).join("\n\n"); if (!text) { prog.textContent = ""; return; }
+    const hit = twDistribute(ch, d, text, sel.value); TW.docs.set(ch, JSON.parse(JSON.stringify(d)));
+    await save(true); prog.textContent = "";
+    say(`✓ ${files.length} ફાઇલ, ${twWords(text)} શબ્દ → મુદ્દા ${hit.join(", ")} માં ઉમેરાયા. દરેક મુદ્દો ખોલી ચકાસો (OCR ભૂલો સુધારો).`, "ok"); redraw(); };
+  const pick = (attrs, label) => { const inp = h("input", {type:"file", style:"display:none", ...attrs, onchange:e => { run(e.target.files).catch(er => say(er.message || er, "bad")); e.target.value = ""; }});
+    return [inp, h("button", {class:"btn", type:"button", onclick:() => inp.click()}, label)]; };
+  const [f1, b1] = pick({multiple:true, accept:".txt,.docx,.pdf,image/*"}, "📂 PDF / Word / ફોટો પસંદ કરો");
+  const [f2, b2] = pick({accept:"image/*", capture:"environment"}, "📷 કૅમેરાથી પાનું");
+  return h("div", {class:"card", style:"border:2px dashed #2f6f5e"}, h("b", {}, `📥 ${TW_OUT[ch][0]} — ફાઇલમાંથી સીધું પ્રકરણમાં લખો`),
+    h("p", {class:"note"}, "એક સાથે અનેક PDF / Word / ફોટા પસંદ કરી શકાય (ફાઇલ-નામના ક્રમમાં વંચાશે). સ્કેન PDF અને ફોટાનું ગુજરાતી લખાણ OCRથી ઓળખાશે. લખાણમાં “1.2 …” જેવા મુદ્દા-શીર્ષક હશે તો દરેક ભાગ પોતાના મુદ્દામાં જશે; નવો નંબર હશે તો નવો પેટા-મુદ્દો બનશે."),
+    sel, h("div", {class:"chips", style:"margin-top:6px"}, b1, b2, f1, f2,
+      h("button", {class:"btn small", type:"button", onclick:async () => { if (!TW.undo[ch]) return say("રદ કરવા માટે કોઈ ઉમેરણ નથી.", "warn"); d.sec = JSON.parse(TW.undo[ch]); TW.undo[ch] = null; TW.docs.set(ch, JSON.parse(JSON.stringify(d))); await save(true); say("↩ છેલ્લું ઉમેરણ રદ થયું.", "ok"); redraw(); }}, "↩ છેલ્લું ઉમેરણ રદ કરો")), prog);
+}
 function viewWrite(arg){
   const m = $("#main"); if (!isAdmin()) { viewDash(); return; }
   if (arg) TW.ch = Math.min(5, Math.max(1, +arg || 1));
@@ -2510,6 +2551,7 @@ function viewWrite(arg){
       h("div", {class:"chips"}, ...[1, 2, 3, 4, 5].map(c => h("button", {class:"btn" + (c === ch ? " primary" : ""), type:"button", onclick:() => { TW.ch = c; draw(); }}, `પ્રકરણ ${c}`)),
         h("button", {class:"btn", type:"button", onclick:() => { save(true).then(() => download(`Thesis_References_${today()}.docx`, twRefsDoc(), "application/vnd.openxmlformats-officedocument.wordprocessingml.document")).catch(er => say(er.code || er.message, "bad")); }}, "📚 સંદર્ભસૂચિ (Word)"))));
     box.append(h("h3", {style:"margin:8px 4px"}, TW_OUT[ch][0]));
+    box.append(twImportPanel(ch, d, save, draw));
     for (const s of d.sec) {
       const depth = s.no.split(".").length; const wc = h("span", {class:"note"}, ` (${twWords(s.text)} શબ્દ)`);
       const ta = h("textarea", {rows:depth > 2 ? 5 : 7, style:"width:100%", placeholder:gen ? "આ મુદ્દા નીચે ઉમેરવાનું તમારું લખાણ (વૈકલ્પિક)" : "લખાણ…", oninput:e => { s.text = e.target.value; wc.textContent = ` (${twWords(s.text)} શબ્દ)`; }}, s.text || "");

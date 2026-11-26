@@ -35,6 +35,7 @@ nav.tabs a.main[data-k="home"]{flex:0 0 42px;padding:6px 2px}
 nav.tabs a.main.cur{background:var(--accent);border-color:var(--accent);color:#fff}
 nav.tabs a.mbtn{flex:none;padding:6px 10px}
 nav.tabs .brk{flex-basis:100%;height:0}
+.qk input.qks{max-width:92px;text-align:center;font-size:1.2rem} .qk input.qkm{max-width:150px;font-size:1.2rem;letter-spacing:2px}
 .objgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .objtile{display:block;text-decoration:none;color:#fff;background:var(--oc);border-radius:16px;padding:12px 14px;box-shadow:0 3px 8px rgba(0,0,0,.18);min-height:132px}
 .objtile:active{transform:scale(.98)} .objtile .oi{font-size:1.8rem;line-height:1} .objtile .ot{font-weight:800;font-size:1.15rem;margin-top:4px}
@@ -580,7 +581,6 @@ const TABS = [["thesis", "📄 થીસિસ પ્રકરણ 1–5"], ["wri
               ["quality", "ડેટા ગુણવત્તા"], ["codebook", "કોડબુક"], ["admin", "એડમિન"]];
 const MENU = [
   ["📄 થીસિસ (પ્રકરણ 1–5)", [["thesis", "📄 થીસિસ Word: પ્રકરણ 1–5"], ["write", "✍️ પ્રકરણવાર મુદ્દા / સાહિત્ય સમીક્ષા"], ["tools", "🛠 ઉપકરણ રચના (પ્રકરણ 3)"], ["integ", "🛡 પ્રામાણિકતા · ગોપનીયતા · Shodhganga"]], true],
-  ["📊 વિદ્યાર્થી ડેટા વિશ્લેષણ (Google Sheet)", [["./sheet-analysis.html", "📊 Google Sheet: હેતુ 2–3 · 4 · 6 વિશ્લેષણ + H01–H04"]]],
   ["📚 હેતુ 1: પાઠ્યપુસ્તક વિષયવસ્તુ વિશ્લેષણ", [["cad", "📑 13 પ્રકરણ × 3 Word (સંશોધક · તજ્જ્ઞ · અંતિમ)"], ["ca", "✏️ સંશોધકના ગુણ દાખલ / સુધારો"], ["cares", "📊 પરિણામ · સહમતિ · વિશ્વસનીયતા"], ["rate", "📋 તજ્જ્ઞ શિક્ષક પત્રક"]]],
   ["👩‍🏫 હેતુ 2–3: શિક્ષક ડેટા", [["dash", "📈 ડેશબોર્ડ"], ["list", "📋 શિક્ષક યાદી"], ["quality", "✔ ડેટા ગુણવત્તા"], ["analysis", "📊 વિશ્લેષણ (Chapter 4)"], ["qual", "💬 ગુણાત્મક જવાબ"], ["codebook", "📖 કોડબુક"], ["schools", "🏫 શાળા માસ્ટર"]]],
   ["⚙️ સેટિંગ", [["admin", "⚙️ એડમિન"]], true]];
@@ -599,9 +599,9 @@ function renderShell(){
     const close = () => t.classList.remove("open");
     const allowed = MENU.flatMap(([, items, adm], gi) => (adm && !isAdmin()) ? [] : items.filter(([k]) => isAdmin() || !MENU_ADMIN.has(k)).map(x => [x[0], x[1], gi]));
     const fav = useTop(4).map(k => allowed.find(x => x[0] === k)).filter(Boolean);
-    if (fav.length) { t.append(h("span", {class:"more mhd gfav"}, "⭐ વારંવાર વપરાતા")); fav.forEach(([k, l]) => t.append(h("a", {href:k.startsWith("./") ? k : "#" + k, "data-k":k, class:"more tile gfav", onclick:close}, l))); }
+    if (fav.length) { t.append(h("span", {class:"more mhd gfav"}, "⭐ વારંવાર વપરાતા")); fav.forEach(([k, l]) => t.append(h("a", {href:"#" + k, "data-k":k, class:"more tile gfav", onclick:close}, l))); }
     MENU.forEach(([title, items, adm], gi) => { const its = items.filter(([k]) => isAdmin() || !MENU_ADMIN.has(k)); if (!its.length || (adm && !isAdmin())) return;
-      t.append(h("span", {class:"more mhd g" + gi}, title)); its.forEach(([k, l]) => t.append(h("a", {href:k.startsWith("./") ? k : "#" + k, "data-k":k, class:"more tile g" + gi, onclick:close}, l))); });
+      t.append(h("span", {class:"more mhd g" + gi}, title)); its.forEach(([k, l]) => t.append(h("a", {href:"#" + k, "data-k":k, class:"more tile g" + gi, onclick:close}, l))); });
     t.append(h("span", {class:"more mhd"}, ""));
     t.append(h("a", {href:"#", class:"more", onclick:async e => { e.preventDefault(); if (S.form && S.form.dirty && !(await ask("સેવ ન થયેલ ફેરફાર છે. છતાં બહાર નીકળવું છે?"))) return; S.fb.U.signOut(S.fb.auth); }},
       "બહાર (" + (S.user.email || "") + (isAdmin() ? " · એડમિન" : "") + ")"));
@@ -765,11 +765,15 @@ function renderQ(q, sec){
         h("input", {type:"number", id:"f_TEACH_EXP_MONTHS", "data-v":"TEACH_EXP_MONTHS", min:"0", max:"11", step:"1", inputmode:"numeric", style:"max-width:110px", placeholder:"0"}), h("span", {}, "મહિના")),
       h("div", {class:"qhint", id:"expHint"}, "પેપર પર લખેલી સંખ્યા અને મહિના/વર્ષ પસંદ કરો."));
   } else if (q.k === "single") {
-    box.append(qTitle(q), h("div", {class:"chips", role:"radiogroup"}, q.o.map((o, i) => radioChip(q.v, REV_SINGLE.has(q.v) ? q.o.length - i : i + 1, o)),
+    box.append(qTitle(q), MERGED ? h("div", {class:"qk"}, h("input", {type:"text", inputmode:"numeric", class:"qks", "data-t":q.v, "data-o":String(q.o.length), maxlength:"1", placeholder:"⚡ ક્રમ", "aria-label":"ઝડપી પસંદગી"}),
+        h("span", {}, `પેપર પર જે વિકલ્પ ✓ હોય તેનો ક્રમ (1–${q.o.length}) · 0 = ખાલી`)) : null,
+      h("div", {class:"chips", role:"radiogroup"}, q.o.map((o, i) => radioChip(q.v, REV_SINGLE.has(q.v) ? q.o.length - i : i + 1, o)),
       q.oth ? h("div", {class:"othbox"}, h("span", {}, "અન્ય:"), h("input", {type:"text", id:"f_" + q.v + "_OTH", "data-v":q.v + "_OTH", "aria-label":q.q + " અન્ય"})) : null));
   } else if (q.k === "multi") {
     const vars = multiVars(q);
     box.append(...(q.cont || []).map(t => h("div", {class:"qt"}, t)), qTitle(q),
+      MERGED ? h("div", {class:"qk"}, h("input", {type:"text", inputmode:"numeric", class:"qkm", "data-t":q.v, "data-o":String(q.o.length), maxlength:String(q.o.length), placeholder:"⚡ ક્રમ (દા.ત. 135)", "aria-label":"ઝડપી બહુ-પસંદગી"}),
+        h("span", {}, `✓ વાળા બધા વિકલ્પના ક્રમ (1–${q.o.length}) એકસાથે · પછી Done/Enter`)) : null,
       h("div", {class:"chips"}, q.o.map((o, i) => h("label", {class:"chip", for:"c_" + vars[i]}, h("input", {type:"checkbox", id:"c_" + vars[i], "data-v":vars[i]}), h("span", {}, o))),
         q.other ? h("div", {class:"othbox"}, h("span", {}, "અન્ય:"), h("input", {type:"text", id:"f_" + q.v + "_OTH", "data-v":q.v + "_OTH", "aria-label":q.q + " અન્ય"})) : null));
   } else if (q.k === "table") {
@@ -889,8 +893,33 @@ function viewForm(arg){
       lastChecked[v] = c === "0" ? null : c;
     }
     if (clean.length === n) { const box = t.closest(".q"); const all = [...qroot.querySelectorAll(".q:not(.skipped) input, .q:not(.skipped) textarea")].filter(x => x.offsetParent);
-      const k = all.findIndex(x => !box.contains(x) && box.compareDocumentPosition(x) & 4); if (k >= 0) { const nx = all[k]; nx.closest(".q").scrollIntoView({block:"center"}); if (nx.classList.contains("qkin") || nx.type === "number" || nx.type === "text") nx.focus(); } }
+      qkNext(box); return;
+      const k = all.findIndex(x => !box.contains(x) && box.compareDocumentPosition(x) & 4); if (k >= 0) { const nx = all[k]; nx.closest(".q").scrollIntoView({block:"center"}); nx.focus(); } }
   });
+  /* ⚡ single / multi quick entry: type the position of the ticked option(s) as printed on paper */
+  const qkNext = box => { const all = [...qroot.querySelectorAll(".q:not(.skipped) input.qkin, .q:not(.skipped) input.qks, .q:not(.skipped) input.qkm, .q:not(.skipped) input[type=number], .q:not(.skipped) input[type=text]:not(.qkin):not(.qks):not(.qkm), .q:not(.skipped) textarea")].filter(x => x.offsetParent && !(x.id || "").endsWith("_OTH"));
+    const nx = all.find(x => !box.contains(x) && box.compareDocumentPosition(x) & 4); if (nx) { nx.closest(".q").scrollIntoView({block:"center"}); nx.focus(); } };
+  const qkSingle = t => { const box = t.closest(".q"), c = t.value.replace(/[^0-9]/g, "").slice(-1), n = Number(t.dataset.o); t.value = c;
+    if (c === "") return; const k = Number(c); const radios = [...box.querySelectorAll("input[type=radio]")];
+    if (k === 0) { radios.forEach(r => { r.checked = false; }); lastChecked[t.dataset.t] = null; radios[0] && radios[0].dispatchEvent(new Event("change", {bubbles:true})); qkNext(box); return; }
+    if (k > n) { t.value = ""; return; }
+    const r = radios[k - 1]; if (r && !r.checked) r.click(); lastChecked[t.dataset.t] = r ? r.value : null;
+    const oth = box.querySelector("input[id$='_OTH']"); if (oth && k === n && /અન્ય/.test(r.closest("label").textContent)) { oth.focus(); return; }
+    qkNext(box); };
+  const qkMulti = (t, go) => { const box = t.closest(".q"), n = Number(t.dataset.o), want = new Set(t.value.replace(/[^0-9]/g, "").split("").map(Number).filter(k => k >= 1 && k <= n));
+    t.value = [...want].join(""); [...box.querySelectorAll("input[type=checkbox]")].forEach((cb, i) => { if (cb.checked !== want.has(i + 1)) cb.click(); });
+    if (go) { const oth = box.querySelector("input[id$='_OTH']"); if (oth && want.has(n) && /અન્ય/.test(box.querySelectorAll("input[type=checkbox]")[n - 1].closest("label").textContent)) oth.focus(); else qkNext(box); } };
+  qroot.addEventListener("change", e => { const t = e.target, box = t.closest && t.closest(".q"); if (!box) return;
+    if (t.type === "radio") { const q = box.querySelector("input.qks"); if (q) q.value = String([...box.querySelectorAll("input[type=radio]")].findIndex(r => r.checked) + 1 || ""); }
+    if (t.type === "checkbox") { const q = box.querySelector("input.qkm"); if (q && document.activeElement !== q) q.value = [...box.querySelectorAll("input[type=checkbox]")].map((c, i) => c.checked ? i + 1 : "").join(""); } });
+  let qkmT = null;
+  qroot.addEventListener("input", e => { const t = e.target; if (!t.classList) return;
+    if (t.classList.contains("qks")) qkSingle(t);
+    else if (t.classList.contains("qkm")) { qkMulti(t, false); clearTimeout(qkmT); qkmT = setTimeout(() => { if (document.activeElement === t && t.value) qkMulti(t, true); }, 1500); } });
+  qroot.addEventListener("keydown", e => { const t = e.target; if (e.key !== "Enter" || !t.classList) return;
+    if (t.classList.contains("qkm")) { e.preventDefault(); clearTimeout(qkmT); qkMulti(t, true); }
+    else if (t.classList.contains("qks") && !t.value) { e.preventDefault(); qkNext(t.closest(".q")); }
+    else if (t.tagName === "INPUT" && t.type === "text" && !t.classList.contains("qkin")) { e.preventDefault(); qkNext(t.closest(".q")); } });
   /* skip notes */
   const addSkip = (afterV, cond, hides, label) => {
     const after = qroot.querySelector(`.q[data-q="${afterV}"]`);
@@ -1650,7 +1679,7 @@ function viewObj(arg){
     else if (k === "2s") card.append(
       sec("1️⃣", "ડેટા એન્ટ્રી", B("./index.html#fast", "⚡ ⌨️ અંક-પટ્ટીથી એન્ટ્રી", true), B("./index.html#list", "📋 ભરાયેલ યાદી")),
       sec("2️⃣", "ચકાસણી", B("./index.html#check", "✔ ડેટા ગુણવત્તા"), F(() => { location.hash = "#home"; setTimeout(() => { const s = $("#smpK"); if (s) { s.value = "s23_students"; s.scrollIntoView({block:"center"}); } }, 900); }, "🎲 10% ચકાસણી નમૂનો")),
-      sec("3️⃣", "વિશ્લેષણ", B("./index.html#analysis", "📊 આવૃત્તિ · % · મધ્યક · ક્રમ", true), B("./sheet-analysis.html", "📊 Google Sheet વિશ્લેષણ (H01–H04)"), B("./index.html#codebook", "📖 કોડબુક"), B("./index.html#admin", "📥 Excel / SPSS નિકાસ")),
+      sec("3️⃣", "વિશ્લેષણ", B("./index.html#analysis", "📊 આવૃત્તિ · % · મધ્યક · ક્રમ", true), B("./index.html#codebook", "📖 કોડબુક"), B("./index.html#admin", "📥 Excel / SPSS નિકાસ")),
       sec("4️⃣", "થીસિસ", F(() => thesisDownload(4), "📄 પ્રકરણ 4 (4.4, 4.5)", true)));
     else if (k === "2t") card.append(
       sec("1️⃣", "ડેટા એન્ટ્રી", B("#form", "✍ નવું શિક્ષક ફોર્મ", true), B("#list", "📋 શિક્ષક યાદી")),
@@ -1660,7 +1689,7 @@ function viewObj(arg){
     else if (k === "4") card.append(
       sec("1️⃣", "ડેટા એન્ટ્રી", B("./test.html#form", "📝 ⌨️ અંક-પટ્ટીથી ગુણ", true), B("./test.html#list", "📋 યાદી")),
       sec("2️⃣", "ચકાસણી", B("./test.html#code", "📐 ગુણ-યોજના"), F(() => { location.hash = "#home"; setTimeout(() => { const s = $("#smpK"); if (s) { s.value = "ac_students"; s.scrollIntoView({block:"center"}); } }, 900); }, "🎲 10% ચકાસણી નમૂનો")),
-      sec("3️⃣", "વિશ્લેષણ", B("./test.html#export", "📥 RAW · SCORED · SPSS (.sps)", true), B("./sheet-analysis.html", "📊 Google Sheet વિશ્લેષણ (H01–H04)")),
+      sec("3️⃣", "વિશ્લેષણ", B("./test.html#export", "📥 RAW · SCORED · SPSS (.sps)", true)),
       sec("4️⃣", "થીસિસ", F(() => thesisDownload(4), "📄 પ્રકરણ 4 (4.6 માટે [કૌંસ])", true)),
       h("p", {class:"note"}, "SPSS માં: મધ્યક, SD, ટકાવારી, જાતિ/જિલ્લા/શાળા-પ્રકાર મુજબ t / ANOVA, ઘટક (C2, C3, C4, C7) મુજબ સરેરાશ."));
     else if (k === "5") card.append(
@@ -1672,7 +1701,7 @@ function viewObj(arg){
     else card.append(
       sec("1️⃣", "ડેટા એન્ટ્રી", B("./anxiety.html#form", "😟 ⌨️ 21 અંકની પટ્ટી", true), B("./anxiety.html#list", "📋 યાદી")),
       sec("2️⃣", "ચકાસણી", B("./anxiety.html#code", "🔁 કોડ / ઊલટા ગુણ"), F(() => { location.hash = "#home"; setTimeout(() => { const s = $("#smpK"); if (s) { s.value = "ax_students"; s.scrollIntoView({block:"center"}); } }, 900); }, "🎲 10% ચકાસણી નમૂનો")),
-      sec("3️⃣", "વિશ્લેષણ", B("./anxiety.html#export", "📥 RAW · SCORED (MAS) · SPSS", true), B("./sheet-analysis.html", "📊 Google Sheet વિશ્લેષણ (H01–H04)")),
+      sec("3️⃣", "વિશ્લેષણ", B("./anxiety.html#export", "📥 RAW · SCORED (MAS) · SPSS", true)),
       sec("4️⃣", "થીસિસ", F(() => thesisDownload(4), "📄 પ્રકરણ 4 (4.8 માટે [કૌંસ])", true)),
       h("p", {class:"note"}, "SPSS માં: Cronbach's α, MAS મધ્યક/SD, ચિંતા-સ્તર (નીચું/મધ્યમ/ઊંચું), જાતિ/જિલ્લા મુજબ t / ANOVA, ચિંતા ↔ સિદ્ધિ સહસંબંધ."));
     const nav = h("div", {class:"hrow", style:"margin-top:8px"}, ...["1", "2s", "2t", "4", "5", "6"].map(x => [x, OBJ[x]]).filter(([x]) => x !== k).map(([x, oo]) => h("a", {href:"#obj-" + x, class:"hmini", style:`--oc:${oo.c}`}, `${oo.ic} ${oo.t}`)));
@@ -2284,63 +2313,17 @@ async function unzipEntry(buf, name){
     p += 46 + fl + xl + cl; }
   throw new Error("missing " + name);
 }
-/* ---- ગુજરાતી OCR: ફોટો / સ્કેન કરેલી PDF → લખાણ (Tesseract.js, guj+eng) ---- */
-const OCR_JS = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
-const IMG_RE = /\.(jpe?g|png|webp|bmp|gif|heic|heif)$/i;
-let OCR_WORKER = null;
-function loadScript(src){ return new Promise((ok, no) => { if (document.querySelector(`script[src="${src}"]`) && window.Tesseract) return ok(); const sc = document.createElement("script"); sc.src = src; sc.onload = ok; sc.onerror = () => no(new Error("ઇન્ટરનેટ નથી — OCR લાઇબ્રેરી લોડ ન થઈ")); document.head.append(sc); }); }
-async function ocrWorker(){
-  if (OCR_WORKER) return OCR_WORKER;
-  await loadScript(OCR_JS);
-  OCR_WORKER = await window.Tesseract.createWorker(["guj", "eng"], 1, {logger:m => { if (m.status === "recognizing text") say(`🔍 ગુજરાતી લખાણ ઓળખાય છે… ${Math.round((m.progress || 0) * 100)}%`, ""); else if (/load|initializ/i.test(m.status || "")) say("⏳ ગુજરાતી OCR તૈયાર થાય છે (પહેલી વાર 1–2 મિનિટ લાગી શકે)…", ""); }});
-  await OCR_WORKER.setParameters({preserve_interword_spaces:"1"});
-  return OCR_WORKER;
-}
-async function prepImage(src){
-  /* નાના ફોટાને મોટો કરી ગ્રે કરવાથી OCR સુધરે છે */
-  const img = await createImageBitmap(src); const k = Math.min(3, Math.max(1, 2200 / Math.max(img.width, img.height)));
-  const c = document.createElement("canvas"); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
-  const g = c.getContext("2d"); g.filter = "grayscale(1) contrast(1.25)"; g.drawImage(img, 0, 0, c.width, c.height); return c;
-}
-function ocrClean(t){
-  const fix = [[/\b[06]5513\b/g, "GSSTB"], [/સ્વડપ/g, "સ્વરૂપ"], [/પાઠયપુસ્તક/g, "પાઠ્યપુસ્તક"], [/[|¦]/g, ""], [/ +/g, " "]];
-  let L = String(t || "").replace(/\r/g, "").split("\n").map(x => x.trim());
-  /* માત્ર ચિહ્નો / કચરો ધરાવતી લાઇનો કાઢો (દા.ત. "e ©", "હુ. ©") */
-  L = L.filter(x => !x || (x.match(/[\u0A80-\u0AFFA-Za-z0-9]/g) || []).length >= Math.min(6, x.length * 0.6));
-  /* તૂટેલી લાઇનો જોડીને ફકરા બનાવો; ખાલી લાઇન = નવો ફકરો */
-  const out = []; let buf = "";
-  const endS = x => /[.?!:।)\]]$/.test(x);
-  for (let i = 0; i < L.length; i++) { const x = L[i];
-    if (!x) { const nx = L.slice(i + 1).find(Boolean) || ""; if (buf && (endS(buf) || /^(\(?[0-9૦-૯]{1,3}[.)]|[-•*]\s|[0-9]+\.[0-9]+\s)/.test(nx))) { out.push(buf); buf = ""; } continue; }
-    if (/^[0-9૦-૯]+([.][0-9૦-૯]+)+\s/.test(x) && x.length < 120) { if (buf) out.push(buf); out.push(x); buf = ""; continue; }
-    const starts = /^(\(?[0-9૦-૯]{1,3}[.)]|[-•*]\s)/.test(x);
-    if (starts && buf) { out.push(buf); buf = x; } else buf = buf ? (/[-‐]$/.test(buf) ? buf + x : buf + " " + x) : x; }
-  if (buf) out.push(buf);
-  let r = out.join("\n\n"); for (const [a, b] of fix) r = r.replace(a, b); return r.trim();
-}
-async function ocrCanvases(list){
-  const w = await ocrWorker(); let out = [];
-  for (let i = 0; i < list.length; i++) { say(`🔍 પાન ${i + 1}/${list.length}: ગુજરાતી લખાણ ઓળખાય છે…`, ""); const {data} = await w.recognize(list[i]); out.push(ocrClean(data.text)); }
-  return out.filter(Boolean).join("\n\n");
-}
 async function fileToText(f){
   const buf = await f.arrayBuffer();
   if (/\.txt$/i.test(f.name)) return new TextDecoder().decode(buf);
   if (/\.docx$/i.test(f.name)) { const x = await unzipEntry(buf, "word/document.xml");
     return x.replace(/<w:tab\/>/g, " ").replace(/<\/w:p>/g, "\n\n").replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&"); }
-  if (IMG_RE.test(f.name) || /^image\//.test(f.type)) return ocrCanvases([await prepImage(new Blob([buf], {type:f.type || "image/jpeg"}))]);
   if (/\.pdf$/i.test(f.name)) {
     const lib = await import("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs");
     lib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
     const doc = await lib.getDocument({data:new Uint8Array(buf)}).promise; let out = "";
     for (let i = 1; i <= doc.numPages; i++) { const pg = await (await doc.getPage(i)).getTextContent(); let last = null;
       for (const it of pg.items) { if (last !== null && Math.abs(it.transform[5] - last) > 2) out += "\n"; out += it.str; last = it.transform[5]; } out += "\n"; }
-    /* લખાણ ન મળે (સ્કેન કરેલી PDF) અથવા ગુજરાતી ફૉન્ટ તૂટેલા હોય તો દરેક પાનાનું OCR */
-    const txt = out.replace(/\s/g, "").length;
-    if (txt < 30 * doc.numPages) {
-      const pages = []; for (let i = 1; i <= doc.numPages; i++) { const p = await doc.getPage(i); const v = p.getViewport({scale:2.2});
-        const c = document.createElement("canvas"); c.width = v.width; c.height = v.height; await p.render({canvasContext:c.getContext("2d"), viewport:v}).promise; pages.push(c); }
-      return ocrCanvases(pages); }
     return out; }
   throw new Error("type");
 }
@@ -2348,9 +2331,9 @@ function rowsEditor(st, sid){
   const R = TD_ROWS[sid]; st.rows = st.rows || []; const wrap = h("div"), list = h("div");
   const paste = h("textarea", {rows:4, class:"tdPaste", style:"width:100%", placeholder:`${R.text} અહીં પેસ્ટ કરો — દરેક લાઇન કે ક્રમાંક (1. 2. 3. / a) b) / -) = એક ${R.text}. અંગ્રેજી પણ ચાલશે.`});
   const who = h("input", {type:"text", class:"tdWho", placeholder:`${R.who} (બધી નવી લાઇનો માટે, વૈકલ્પિક)`, style:"width:100%"});
-  const fileIn = h("input", {type:"file", accept:".txt,.docx,.pdf,image/*", onchange:async e => { const f = e.target.files[0]; if (!f) return;
+  const fileIn = h("input", {type:"file", accept:".txt,.docx,.pdf", onchange:async e => { const f = e.target.files[0]; if (!f) return;
     try { paste.value = (await fileToText(f)).trim(); say(`✓ ${f.name} માંથી લખાણ વાંચ્યું. જરૂરી ભાગ રાખી 'યાદીમાં ઉમેરો' દબાવો.`, "ok"); }
-    catch (er) { say(/\.pdf$/i.test(f.name) ? "લખાણ વાંચી ન શકાયું (" + (er.message || er) + "). ઇન્ટરનેટ ચાલુ રાખી ફરી પ્રયત્ન કરો." : "ફાઇલ વાંચી ન શકાઈ: " + (er.message || er), "warn"); } e.target.value = ""; }});
+    catch (er) { say(/\.pdf$/i.test(f.name) ? "PDF નું લખાણ વાંચી ન શકાયું (સ્કેન કરેલી PDF કે નેટ નથી). PDF ખોલી લખાણ કોપી કરી ઉપર પેસ્ટ કરો." : "ફાઇલ વાંચી ન શકાઈ: " + (er.message || er), "warn"); } e.target.value = ""; }});
   const draw = () => { list.textContent = "";
     st.rows.forEach((r, i) => list.append(h("div", {class:"card", style:"margin:6px 0;padding:8px"},
       h("div", {style:"display:flex;gap:6px;align-items:center"}, h("b", {}, String(i + 1)), h("input", {type:"text", value:r.item || "", placeholder:"વિધાન/પ્રશ્ન નં.", style:"width:110px", oninput:e => { r.item = e.target.value; }}),
@@ -2362,7 +2345,7 @@ function rowsEditor(st, sid){
     if (!st.rows.length) list.append(h("p", {class:"note"}, "હજી કોઈ લાઇન નથી."));
   };
   wrap.append(h("div", {class:"field", style:"margin-top:8px"}, h("label", {}, `📋 ${R.title} — પ્રકરણ 3 માં કોષ્ટક તરીકે આવશે`)),
-    h("div", {class:"note"}, "ફાઇલમાંથી વાંચો (.txt / .docx / .pdf / 📷 ફોટો — ગુજરાતી OCR):"), fileIn, paste, who,
+    h("div", {class:"note"}, "ફાઇલમાંથી વાંચો (.txt / .docx / .pdf):"), fileIn, paste, who,
     h("div", {class:"chips"}, h("button", {class:"btn", type:"button", onclick:() => { const it = splitItems(paste.value); if (!it.length) return say("ઉપર લખાણ પેસ્ટ કરો.", "warn");
       it.forEach(t => st.rows.push({text:t, who:who.value.trim(), item:"", dec:"", act:""})); paste.value = ""; draw(); say(`✓ ${it.length} લાઇન ઉમેરાઈ. હવે દરેક માટે નિર્ણય અને સુધારો લખો, પછી સેવ કરો.`, "ok"); }}, "⬇ યાદીમાં ઉમેરો"),
       h("button", {class:"btn", type:"button", onclick:() => { st.rows.push({text:"", who:who.value.trim(), item:"", dec:"", act:""}); draw(); }}, "+ એક લાઇન")), list);
@@ -2499,46 +2482,6 @@ function twDoc(ch){
   if (ch === 2) d.rev = d.rev || []; return d;
 }
 const twWords = t => (String(t || "").trim().match(/\S+/g) || []).length;
-/* ---- પ્રકરણ-સ્તરે આયાત: PDF / Word / ફોટો / કૅમેરા → મુદ્દા નંબર (1.1, 1.2…) મુજબ સીધું પ્રકરણમાં ---- */
-TW.undo = TW.undo || {};
-const gujDigits = t => String(t || "").replace(/[૦-૯]/g, c => String(c.charCodeAt(0) - 0x0AE6));
-function twDistribute(ch, d, text, target){
-  const L = gujDigits(text).replace(/\r/g, "").split("\n");
-  const head = new RegExp(`^\\s*(${ch}(?:\\.\\d{1,2}){1,3})\\s*[.):–-]?\\s+(.{1,110})$`);
-  const parts = []; let cur = {no:target === "auto" ? null : target, title:"", lines:[]};
-  for (const line of L) { const m = line.match(head);
-    if (m && target === "auto" && !/[.?!।]$/.test(m[2].trim())) { if (cur.lines.join("").trim() || cur.no) parts.push(cur); cur = {no:m[1], title:m[2].trim(), lines:[]}; }
-    else cur.lines.push(line); }
-  parts.push(cur);
-  const hit = []; const first = d.sec[0];
-  for (const p of parts) { const t = p.lines.join("\n").replace(/\n{3,}/g, "\n\n").trim(); if (!t && !p.no) continue;
-    let sec = p.no ? d.sec.find(x => x.no === p.no) : (target === "auto" ? first : d.sec.find(x => x.no === target)) || first;
-    if (!sec) { sec = {no:p.no, title:p.title || "નવો મુદ્દો", text:"", custom:true}; d.sec.push(sec); }
-    if (t) { sec.text = (sec.text && sec.text.trim() ? sec.text.trim() + "\n\n" : "") + t; }
-    if (!hit.includes(sec.no)) hit.push(sec.no); }
-  return hit;
-}
-function twImportPanel(ch, d, save, redraw){
-  const sel = h("select", {style:"width:100%"}, h("option", {value:"auto"}, `🧭 આપમેળે — લખાણમાંના મુદ્દા નંબર (${ch}.1, ${ch}.2 …) મુજબ યોગ્ય મુદ્દામાં`),
-    ...d.sec.map(x => h("option", {value:x.no}, `➡ ફક્ત ${x.no} ${x.title} માં ઉમેરો`)));
-  const prog = h("div", {class:"note"});
-  const run = async files => { files = [...files].sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric:true})); if (!files.length) return;
-    TW.undo[ch] = JSON.stringify(d.sec); let all = [];
-    for (let i = 0; i < files.length; i++) { prog.textContent = `⏳ ${i + 1}/${files.length}: ${files[i].name} વંચાય છે…`;
-      try { all.push((await fileToText(files[i])).trim()); } catch (er) { say(`${files[i].name} વાંચી ન શકાઈ (${er.message || er}). ઇન્ટરનેટ ચાલુ રાખી ફરી પ્રયત્ન કરો.`, "warn"); } }
-    const text = all.filter(Boolean).join("\n\n"); if (!text) { prog.textContent = ""; return; }
-    const hit = twDistribute(ch, d, text, sel.value); TW.docs.set(ch, JSON.parse(JSON.stringify(d)));
-    await save(true); prog.textContent = "";
-    say(`✓ ${files.length} ફાઇલ, ${twWords(text)} શબ્દ → મુદ્દા ${hit.join(", ")} માં ઉમેરાયા. દરેક મુદ્દો ખોલી ચકાસો (OCR ભૂલો સુધારો).`, "ok"); redraw(); };
-  const pick = (attrs, label) => { const inp = h("input", {type:"file", style:"display:none", ...attrs, onchange:e => { run(e.target.files).catch(er => say(er.message || er, "bad")); e.target.value = ""; }});
-    return [inp, h("button", {class:"btn", type:"button", onclick:() => inp.click()}, label)]; };
-  const [f1, b1] = pick({multiple:true, accept:".txt,.docx,.pdf,image/*"}, "📂 PDF / Word / ફોટો પસંદ કરો");
-  const [f2, b2] = pick({accept:"image/*", capture:"environment"}, "📷 કૅમેરાથી પાનું");
-  return h("div", {class:"card", style:"border:2px dashed #2f6f5e"}, h("b", {}, `📥 ${TW_OUT[ch][0]} — ફાઇલમાંથી સીધું પ્રકરણમાં લખો`),
-    h("p", {class:"note"}, "એક સાથે અનેક PDF / Word / ફોટા પસંદ કરી શકાય (ફાઇલ-નામના ક્રમમાં વંચાશે). સ્કેન PDF અને ફોટાનું ગુજરાતી લખાણ OCRથી ઓળખાશે. લખાણમાં “1.2 …” જેવા મુદ્દા-શીર્ષક હશે તો દરેક ભાગ પોતાના મુદ્દામાં જશે; નવો નંબર હશે તો નવો પેટા-મુદ્દો બનશે."),
-    sel, h("div", {class:"chips", style:"margin-top:6px"}, b1, b2, f1, f2,
-      h("button", {class:"btn small", type:"button", onclick:async () => { if (!TW.undo[ch]) return say("રદ કરવા માટે કોઈ ઉમેરણ નથી.", "warn"); d.sec = JSON.parse(TW.undo[ch]); TW.undo[ch] = null; TW.docs.set(ch, JSON.parse(JSON.stringify(d))); await save(true); say("↩ છેલ્લું ઉમેરણ રદ થયું.", "ok"); redraw(); }}, "↩ છેલ્લું ઉમેરણ રદ કરો")), prog);
-}
 function viewWrite(arg){
   const m = $("#main"); if (!isAdmin()) { viewDash(); return; }
   if (arg) TW.ch = Math.min(5, Math.max(1, +arg || 1));
@@ -2548,20 +2491,19 @@ function viewWrite(arg){
     box.textContent = ""; const ch = TW.ch; const d = twDoc(ch); const gen = ch >= 3;
     const save = async quiet => { d._at = nowIso(); d._by = S.user.email || S.user.uid; await tracked(fs().setDoc(dref("config", "tw_" + ch), d), "થીસિસ લખાણ"); TW.docs.set(ch, JSON.parse(JSON.stringify(d))); if (!quiet) say(`✓ ${TW_OUT[ch][0]}: સેવ થયું.`, "ok"); };
     box.append(h("div", {class:"card"}, h("h2", {}, "✍️ થીસિસ લેખન: પ્રકરણવાર મુદ્દા"),
-      h("p", {class:"note"}, gen ? "આ પ્રકરણ ડેટા પરથી આપમેળે બને છે. અહીં લખેલું લખાણ Word માં એ જ મુદ્દાના શીર્ષક નીચે ઉમેરાશે (અને ત્યાંનો [કૌંસ] સંદેશ નીકળી જશે)." : "દરેક મુદ્દામાં લખાણ લખો, પેસ્ટ કરો અથવા ફાઇલ (.txt / .docx / .pdf / 📷 ફોટો) માંથી વાંચો — સ્કેન કરેલી PDF અને ફોટાનું ગુજરાતી લખાણ આપમેળે ઓળખાઈ (OCR) અહીં આવશે; ચકાસીને સેવ કરો. ખાલી લાઇનથી નવો ફકરો; '- ' થી શરૂ થતી લાઇન = બુલેટ. જરૂર મુજબ પેટા-મુદ્દા ઉમેરી શકાય."),
+      h("p", {class:"note"}, gen ? "આ પ્રકરણ ડેટા પરથી આપમેળે બને છે. અહીં લખેલું લખાણ Word માં એ જ મુદ્દાના શીર્ષક નીચે ઉમેરાશે (અને ત્યાંનો [કૌંસ] સંદેશ નીકળી જશે)." : "દરેક મુદ્દામાં લખાણ લખો, પેસ્ટ કરો અથવા ફાઇલ (.txt / .docx / .pdf) માંથી વાંચો. ખાલી લાઇનથી નવો ફકરો; '- ' થી શરૂ થતી લાઇન = બુલેટ. જરૂર મુજબ પેટા-મુદ્દા ઉમેરી શકાય."),
       h("div", {class:"chips"}, ...[1, 2, 3, 4, 5].map(c => h("button", {class:"btn" + (c === ch ? " primary" : ""), type:"button", onclick:() => { TW.ch = c; draw(); }}, `પ્રકરણ ${c}`)),
         h("button", {class:"btn", type:"button", onclick:() => { save(true).then(() => download(`Thesis_References_${today()}.docx`, twRefsDoc(), "application/vnd.openxmlformats-officedocument.wordprocessingml.document")).catch(er => say(er.code || er.message, "bad")); }}, "📚 સંદર્ભસૂચિ (Word)"))));
     box.append(h("h3", {style:"margin:8px 4px"}, TW_OUT[ch][0]));
-    box.append(twImportPanel(ch, d, save, draw));
     for (const s of d.sec) {
       const depth = s.no.split(".").length; const wc = h("span", {class:"note"}, ` (${twWords(s.text)} શબ્દ)`);
       const ta = h("textarea", {rows:depth > 2 ? 5 : 7, style:"width:100%", placeholder:gen ? "આ મુદ્દા નીચે ઉમેરવાનું તમારું લખાણ (વૈકલ્પિક)" : "લખાણ…", oninput:e => { s.text = e.target.value; wc.textContent = ` (${twWords(s.text)} શબ્દ)`; }}, s.text || "");
-      const imp = h("input", {type:"file", accept:".txt,.docx,.pdf,image/*", onchange:async e => { const f = e.target.files[0]; if (!f) return;
+      const imp = h("input", {type:"file", accept:".txt,.docx,.pdf", onchange:async e => { const f = e.target.files[0]; if (!f) return;
         try { const t = (await fileToText(f)).replace(/\n{3,}/g, "\n\n").trim(); s.text = (s.text ? s.text + "\n\n" : "") + t; ta.value = s.text; wc.textContent = ` (${twWords(s.text)} શબ્દ)`; say(`✓ ${f.name}: ${twWords(t)} શબ્દ ઉમેરાયા. ચકાસી સેવ કરો.`, "ok"); }
-        catch (er) { say("ફાઇલ વાંચી ન શકાઈ (" + (er.message || er) + "). ઇન્ટરનેટ ચાલુ રાખી ફરી પ્રયત્ન કરો.", "warn"); } e.target.value = ""; }});
+        catch (er) { say(/\.pdf$/i.test(f.name) ? "PDF વાંચી ન શકાઈ (સ્કેન કે નેટ નથી). લખાણ કોપી કરી પેસ્ટ કરો." : "ફાઇલ વાંચી ન શકાઈ.", "warn"); } e.target.value = ""; }});
       const card = h("details", {class:"card", style:depth > 2 ? "margin-left:14px" : ""}, h("summary", {}, h("b", {}, s.no + " "), s.title, wc),
         !gen ? h("div", {class:"field"}, h("label", {}, "શીર્ષક"), h("input", {type:"text", value:s.title, oninput:e => { s.title = e.target.value; }})) : null,
-        ta, h("div", {class:"note", style:"margin-top:4px"}, "ફાઇલ / 📷 ફોટોમાંથી ઉમેરો (ગુજરાતી OCR): "), imp,
+        ta, h("div", {class:"note", style:"margin-top:4px"}, "ફાઇલમાંથી ઉમેરો: "), imp,
         ch === 1 && s.no === "1.9" ? h("p", {class:"note"}, "ખાલી રાખશો તો 6 હેતુઓ આપમેળે આવશે.") : null,
         ch === 1 && s.no === "1.14" ? h("p", {class:"note"}, "ખાલી રાખશો તો પ્રકરણ યોજના આપમેળે આવશે.") : null,
         ch === 2 && s.no === "2.5" ? h("p", {class:"note"}, "સમીક્ષા કરેલાં સંશોધનોનું વિહંગાવલોકન કોષ્ટક આપમેળે બનશે.") : null,
